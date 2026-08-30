@@ -1,0 +1,28 @@
+:root {
+    --bg: #0B0A10;
+    --surface: #16141D;
+    --surface-raised: #1E1B27;
+    --border: #2C2837;
+
+    --text-primary: #F2EFFA;
+    --text-secondary: #9C96AE;
+    --text-muted: #6E6A80;
+
+    --accent-violet: #7C5CFC;
+    --accent-violet-dim: #241E33;
+    --accent-ember: #FF7A45;
+
+    --success: #35D4A0;
+    --warning: #FF7A45;
+    --error: #FF5D6C;
+
+    --font-display: 'Sora', sans-serif;
+    --font-body: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+}

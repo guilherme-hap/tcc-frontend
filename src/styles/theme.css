@@ -1,28 +1,129 @@
 :root {
-    --bg: #0B0A10;
-    --surface: #16141D;
-    --surface-raised: #1E1B27;
-    --border: #2C2837;
+    color-scheme: dark;
 
-    --text-primary: #F2EFFA;
-    --text-secondary: #9C96AE;
-    --text-muted: #6E6A80;
+    --bg: #08070d;
+    --surface: #110f19;
+    --surface-raised: #191622;
+    --glass: rgba(255, 255, 255, 0.04);
+    --glass-raised: rgba(255, 255, 255, 0.07);
+    --well: rgba(0, 0, 0, 0.32);
 
-    --accent-violet: #7C5CFC;
-    --accent-violet-dim: #241E33;
-    --accent-ember: #FF7A45;
+    --border: rgba(255, 255, 255, 0.1);
+    --border-hover: rgba(255, 255, 255, 0.2);
+    --border-control: rgba(255, 255, 255, 0.38);
 
-    --success: #35D4A0;
-    --warning: #FF7A45;
-    --error: #FF5D6C;
+    --ink: #f2effa;
+    --ink-secondary: #a9a3bd;
+    --ink-muted: #948ea9;
 
-    --font-display: 'Sora', sans-serif;
-    --font-body: 'IBM Plex Sans', sans-serif;
-    --font-mono: 'IBM Plex Mono', monospace;
+    --accent: #7c5cfc;
+    --accent-fill: #6a48ee;
+    --on-accent: #ffffff;
+    --accent-ink: #b6a5ff;
+    --accent-dim: rgba(124, 92, 252, 0.16);
+    --focus: #b6a5ff;
+    --ember: #ff7a45;
+
+    --data-cyan: #5fd4f4;
+    --data-indigo: #8b9cff;
+    --data-violet: #c59bff;
+    --data-dim: rgba(95, 212, 244, 0.12);
+
+    --success: #35d4a0;
+    --success-dim: rgba(53, 212, 160, 0.12);
+    --warning: #e8b93c;
+    --warning-dim: rgba(232, 185, 60, 0.12);
+    --error: #ff5d6c;
+    --error-dim: rgba(255, 93, 108, 0.12);
+
+    --scrim: rgba(4, 3, 8, 0.64);
+    --glow-violet: rgba(124, 92, 252, 0.22);
+    --glow-cyan: rgba(95, 212, 244, 0.1);
+}
+
+@theme {
+    --font-display: 'Sora', system-ui, sans-serif;
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    --breakpoint-lg: 67.5rem;
+
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --radius-xl: 14px;
+    --radius-card: 10px;
+
+    --shadow-card: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 24px 48px -28px rgba(0, 0, 0, 0.7);
+    --shadow-overlay: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 32px 80px -16px rgba(0, 0, 0, 0.85);
+    --shadow-accent: inset 0 1px 0 0 rgba(255, 255, 255, 0.22), 0 8px 24px -8px rgba(124, 92, 252, 0.6);
+    --shadow-accent-hover: inset 0 1px 0 0 rgba(255, 255, 255, 0.3), 0 10px 32px -6px rgba(124, 92, 252, 0.8);
+
+    --blur-glass: 12px;
+    --blur-overlay: 20px;
+}
+
+@theme inline {
+    --color-bg: var(--bg);
+    --color-surface: var(--surface);
+    --color-surface-raised: var(--surface-raised);
+    --color-glass: var(--glass);
+    --color-glass-raised: var(--glass-raised);
+    --color-well: var(--well);
+
+    --color-border: var(--border);
+    --color-border-hover: var(--border-hover);
+    --color-border-control: var(--border-control);
+
+    --color-ink: var(--ink);
+    --color-ink-secondary: var(--ink-secondary);
+    --color-ink-muted: var(--ink-muted);
+
+    --color-accent: var(--accent);
+    --color-accent-fill: var(--accent-fill);
+    --color-on-accent: var(--on-accent);
+    --color-accent-ink: var(--accent-ink);
+    --color-accent-dim: var(--accent-dim);
+    --color-focus: var(--focus);
+    --color-ember: var(--ember);
+
+    --color-data-cyan: var(--data-cyan);
+    --color-data-indigo: var(--data-indigo);
+    --color-data-violet: var(--data-violet);
+    --color-data-dim: var(--data-dim);
+
+    --color-success: var(--success);
+    --color-success-dim: var(--success-dim);
+    --color-warning: var(--warning);
+    --color-warning-dim: var(--warning-dim);
+    --color-error: var(--error);
+    --color-error-dim: var(--error-dim);
+
+    --color-scrim: var(--scrim);
+    --color-glow-violet: var(--glow-violet);
+    --color-glow-cyan: var(--glow-cyan);
+}
+
+@property --ring-value {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0;
+}
+
+html {
+    scrollbar-gutter: stable;
+    scrollbar-color: var(--border-hover) transparent;
 }
 
 body {
-    background: var(--bg);
-    color: var(--text-primary);
-    font-family: var(--font-body);
+    background-color: var(--bg);
+    background-image:
+        radial-gradient(64% 480px at 14% -8%, var(--glow-violet), transparent 72%),
+        radial-gradient(48% 400px at 90% -8%, var(--glow-cyan), transparent 72%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--ink);
+    font: 400 14px/20px var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }

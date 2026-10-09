@@ -1,54 +1,70 @@
-export type EvaluationType = 'contract' | 'performance' | 'full';
+export type EvaluationType = 'contract' | 'performance' | 'security' | 'full'
 
-export type EvaluationStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'PARTIAL' | 'FAILED';
+export type EvaluationStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'PARTIAL' | 'FAILED'
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+
+export type Severity = 'Error' | 'Warning' | 'Info' | 'Hint' | 'Unknown'
+
+export type PillarName = 'contract' | 'performance' | 'security'
+
+export type PillarWeights = Partial<Record<PillarName, number>>
 
 export interface ILoadTestOptions {
-    duration?: number;
-    connections?: number;
-    targetLatency?: number;
-    maxRequests?: number;
-    requestsPerSecond?: number;
-    method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-    headers?: Record<string, string>;
-    body?: string;
+  duration?: number
+  connections?: number
+  targetLatency?: number
+  maxRequests?: number
+  requestsPerSecond?: number
+  method?: HttpMethod
+  headers?: Record<string, string>
+  body?: string
+  allowMutatingMethods?: boolean
+  allowHighLoad?: boolean
+}
+
+export interface IPerformanceTarget {
+  path: string
+  method?: HttpMethod
+  payload?: unknown
 }
 
 export interface IContractRequest {
-    swaggerUrl: string;
-    rulesConfig?: Record<string, boolean>;
+  openApiUrl: string
+  rulesConfig?: Record<string, boolean>
+  severityWeights?: Partial<Record<Severity, number>>
+}
+
+export interface ISecurityRequest {
+  openApiUrl: string
+  apiBaseUrl?: string
 }
 
 export interface IPerformanceRequest {
-    swaggerUrl: string;
-    baseUrl?: string;
-    loadTestOptions?: ILoadTestOptions;
+  openApiUrl: string
+  apiBaseUrl?: string
+  targets: IPerformanceTarget[]
+  loadTestOptions?: ILoadTestOptions
 }
 
-export interface IFullEvaluationRequest {
-    swaggerUrl: string;
-    baseUrl?: string;
-    rulesConfig?: Record<string, boolean>;
-    loadTestOptions?: ILoadTestOptions;
-    weights?: {
-        contract?: number;
-        performance?: number;
-    };
+export interface IFullEvaluationRequest extends IPerformanceRequest {
+  rulesConfig?: Record<string, boolean>
+  severityWeights?: Partial<Record<Severity, number>>
+  weights?: PillarWeights
 }
 
-export interface IFailedPillar {
-    pillar: string;
-    error: string;
+export interface EvaluationRequestMap {
+  contract: IContractRequest
+  performance: IPerformanceRequest
+  security: ISecurityRequest
+  full: IFullEvaluationRequest
 }
 
-export interface IAutocannonResult {
-    score: number;
-    averageLatency: number;
-    totalRequests: number;
-    errors: number;
-    timeouts: number;
-}
+export type EvaluationRequest = {
+  [T in EvaluationType]: { type: T; payload: EvaluationRequestMap[T] }
+}[EvaluationType]
 
 export interface EvaluationQueueResponse {
-    evaluationId: string;
-    status: EvaluationStatus;
+  evaluationId: string
+  status: EvaluationStatus
 }

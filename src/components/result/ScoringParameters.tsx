@@ -2,6 +2,7 @@ import type { IScoringParameters, PillarName } from '../../types'
 import { formatMilliseconds, formatNumber, formatPercent } from '../../utils/format'
 import {
   CHECK_STATUS_LABELS,
+  CHECK_STATUS_ORDER,
   LAYER_LABELS,
   LAYER_ORDER,
   PILLAR_LABELS,
@@ -83,7 +84,7 @@ export function ScoringParameters({ scoring }: ScoringParametersProps) {
             />
             <ParameterGroup
               title="Segurança: valor de cada resultado"
-              entries={(['pass', 'warning', 'missing', 'error'] as const).map((status) => [
+              entries={CHECK_STATUS_ORDER.map((status) => [
                 CHECK_STATUS_LABELS[status],
                 formatNumber(security.statusScores[status]),
               ])}

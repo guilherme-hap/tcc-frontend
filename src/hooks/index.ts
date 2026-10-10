@@ -1,5 +1,7 @@
 export { useDismissedTip } from './useDismissedTip'
 export type { TipId } from './useDismissedTip'
+export { EVALUATION_HISTORY_KEY, useEvaluationHistory } from './useEvaluationHistory'
+export type { UseEvaluationHistoryResult } from './useEvaluationHistory'
 export { useEvaluationPolling } from './useEvaluationPolling'
 export type { UseEvaluationPollingResult } from './useEvaluationPolling'
 export { useSession } from './useSession'

@@ -1,6 +1,7 @@
 import type {
   EvaluationStatus,
   EvaluationType,
+  EvaluationVisibility,
   PillarName,
   SecurityCheckStatus,
   SecurityLayer,
@@ -73,6 +74,21 @@ export const STATUS_LABELS: Record<EvaluationStatus, string> = {
   COMPLETED: 'Concluída',
   PARTIAL: 'Parcial',
   FAILED: 'Falhou',
+}
+
+export const STATUS_ORDER: EvaluationStatus[] = ['PENDING', 'RUNNING', 'COMPLETED', 'PARTIAL', 'FAILED']
+
+export const STATUS_FILTER_STATUSES: Record<EvaluationStatus, EvaluationStatus[]> = {
+  PENDING: ['PENDING'],
+  RUNNING: ['PENDING', 'RUNNING'],
+  COMPLETED: ['COMPLETED'],
+  PARTIAL: ['PARTIAL'],
+  FAILED: ['FAILED'],
+}
+
+export const VISIBILITY_LABELS: Record<EvaluationVisibility, string> = {
+  private: 'Privada · no histórico',
+  anonymous: 'Anônima · abre pelo link',
 }
 
 export const SEVERITY_LABELS: Record<Severity, string> = {

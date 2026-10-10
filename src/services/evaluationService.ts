@@ -1,4 +1,10 @@
-import type { EvaluationQueueResponse, EvaluationRecord, EvaluationRequest } from '../types'
+import type {
+  EvaluationListPage,
+  EvaluationListQuery,
+  EvaluationQueueResponse,
+  EvaluationRecord,
+  EvaluationRequest,
+} from '../types'
 import { api, handleError } from './api'
 
 export async function createEvaluation({
@@ -19,6 +25,20 @@ export async function createEvaluation({
 export async function getEvaluation(id: string): Promise<EvaluationRecord> {
   try {
     const { data } = await api.get<EvaluationRecord>(`/api/evaluations/${id}`)
+    return data
+  } catch (err) {
+    handleError(err)
+  }
+}
+
+export async function listEvaluations({
+  status,
+  ...query
+}: EvaluationListQuery): Promise<EvaluationListPage> {
+  try {
+    const { data } = await api.get<EvaluationListPage>('/api/evaluations', {
+      params: { ...query, status: status?.join(',') },
+    })
     return data
   } catch (err) {
     handleError(err)

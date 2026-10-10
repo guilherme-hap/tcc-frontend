@@ -23,6 +23,8 @@ const MASKED_HEADER_VALUE = '••••••••'
 const MUTATING_METHODS: HttpMethod[] = ['POST', 'PUT', 'PATCH', 'DELETE']
 const BODY_METHODS: HttpMethod[] = ['POST', 'PUT', 'PATCH']
 const WEIGHT_SUM_TOLERANCE = 0.1
+const HEADER_NAME_PATTERN = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/
+const SERVER_HEADERS_PATH = 'loadTestOptions.headers.'
 
 export interface TargetDraft {
   id: string
@@ -223,6 +225,11 @@ function buildLoadTestOptions(
       errors[`headers.${header.id}`] = 'Informe o nome do cabeçalho.'
       continue
     }
+    if (!HEADER_NAME_PATTERN.test(name)) {
+      errors[`headers.${header.id}`] =
+        'Nome inválido: use letras, dígitos e hífens, sem espaços nem dois-pontos (ex.: X-Api-Key).'
+      continue
+    }
     headers[name] = maskHeaderValues ? MASKED_HEADER_VALUE : header.value
   }
   if (Object.keys(headers).length > 0) options.headers = headers
@@ -348,6 +355,12 @@ function fieldKeyForIssue(form: EvaluationFormState, path: string): string | und
   if (path === 'openApiUrl' || path === 'apiBaseUrl') return path
   if (path === 'weights' || path.startsWith('weights.')) return 'weights'
   if (path === 'severityWeights' || path.startsWith('severityWeights.')) return 'severityWeights'
+
+  if (path.startsWith(SERVER_HEADERS_PATH)) {
+    const name = path.slice(SERVER_HEADERS_PATH.length)
+    const draft = form.headers.find((header) => header.name.trim() === name)
+    return draft ? `headers.${draft.id}` : undefined
+  }
 
   const [root, second, third] = path.split('.')
 

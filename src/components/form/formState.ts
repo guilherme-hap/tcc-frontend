@@ -10,6 +10,7 @@ import type {
   Severity,
 } from '../../types'
 import { SEVERITY_ORDER } from '../../utils/labels'
+import { INVALID_URL_MESSAGE, isHttpUrl } from '../../utils/validation'
 
 export const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
@@ -60,6 +61,10 @@ export interface EvaluationFormState {
   rulesConfig: Record<string, boolean>
   customSeverityWeights: boolean
   severityWeights: Record<Severity, string>
+  savedApiId: string
+  saveApi: boolean
+  savedApiName: string
+  ruleSetId: string
 }
 
 export type FormErrors = Record<string, string>
@@ -77,6 +82,14 @@ export const NUMERIC_OPTION_KEYS: NumericOptionKey[] = [
   'maxRequests',
   'requestsPerSecond',
 ]
+
+export const DEFAULT_SEVERITY_WEIGHTS: Record<Severity, string> = {
+  Error: '0,5208',
+  Warning: '0,2708',
+  Info: '0,1458',
+  Hint: '0,0625',
+  Unknown: '0',
+}
 
 export function createTargetDraft(): TargetDraft {
   return { id: crypto.randomUUID(), method: 'GET', path: '', payload: '' }
@@ -106,13 +119,11 @@ export function createInitialFormState(type: EvaluationType = 'full'): Evaluatio
     weights: { contract: '33,33', performance: '33,33', security: '33,34' },
     rulesConfig: {},
     customSeverityWeights: false,
-    severityWeights: {
-      Error: '0,5208',
-      Warning: '0,2708',
-      Info: '0,1458',
-      Hint: '0,0625',
-      Unknown: '0',
-    },
+    severityWeights: DEFAULT_SEVERITY_WEIGHTS,
+    savedApiId: '',
+    saveApi: false,
+    savedApiName: '',
+    ruleSetId: '',
   }
 }
 
@@ -161,15 +172,6 @@ export function estimateLoadDuration(form: EvaluationFormState): number {
 
 export function sumWeights(weights: Record<PillarName, string>): number {
   return Object.values(weights).reduce((sum, value) => sum + (parseDecimal(value) || 0), 0)
-}
-
-function isHttpUrl(value: string): boolean {
-  try {
-    const { protocol } = new URL(value)
-    return protocol === 'http:' || protocol === 'https:'
-  } catch {
-    return false
-  }
 }
 
 function buildTargets(form: EvaluationFormState, errors: FormErrors): IPerformanceTarget[] {
@@ -274,7 +276,7 @@ function buildRulesConfig(form: EvaluationFormState): Record<string, boolean> | 
   return Object.keys(form.rulesConfig).length > 0 ? form.rulesConfig : undefined
 }
 
-function buildSeverityWeights(
+export function buildSeverityWeights(
   form: EvaluationFormState,
   errors: FormErrors,
 ): Partial<Record<Severity, number>> | undefined {
@@ -303,10 +305,10 @@ function assembleRequest(
   const apiBaseUrl = form.apiBaseUrl.trim()
 
   if (!isHttpUrl(openApiUrl)) {
-    errors.openApiUrl = 'Informe uma URL http ou https válida.'
+    errors.openApiUrl = INVALID_URL_MESSAGE
   }
   if (usesBaseUrl(form.type) && apiBaseUrl && !isHttpUrl(apiBaseUrl)) {
-    errors.apiBaseUrl = 'Informe uma URL http ou https válida.'
+    errors.apiBaseUrl = INVALID_URL_MESSAGE
   }
 
   const base = { openApiUrl, apiBaseUrl: apiBaseUrl || undefined }

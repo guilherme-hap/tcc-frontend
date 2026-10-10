@@ -1,12 +1,11 @@
 import { Plus, Trash2 } from 'lucide-react'
-import { formatMilliseconds } from '../../utils/format'
 import { Button } from '../ui/Button'
 import { Disclosure } from '../ui/Disclosure'
 import { CheckboxField, FieldMessages, TextField, TextInput } from '../ui/Field'
 import { IconButton } from '../ui/IconButton'
+import { describeOptions } from './describe'
 import {
   createHeaderDraft,
-  parseDecimal,
   type EvaluationFormState,
   type FormErrors,
   type HeaderDraft,
@@ -34,27 +33,6 @@ const NUMERIC_FIELDS: NumericOptionField[] = [
   { key: 'maxRequests', label: 'Máximo de requisições', placeholder: 'Sem limite' },
   { key: 'requestsPerSecond', label: 'Requisições por segundo', placeholder: 'Sem limite' },
 ]
-
-function describeOptions(form: EvaluationFormState): string {
-  const parts: string[] = []
-
-  const latency = parseDecimal(form.numericOptions.targetLatency)
-  if (form.numericOptions.targetLatency.trim() && Number.isFinite(latency) && latency > 0) {
-    parts.push(`T = ${formatMilliseconds(latency)}`)
-  }
-
-  const changed = NUMERIC_FIELDS.filter(
-    (field) => field.key !== 'targetLatency' && form.numericOptions[field.key].trim(),
-  ).length
-  if (changed > 0) parts.push(`${changed} ${changed === 1 ? 'limite alterado' : 'limites alterados'}`)
-
-  const headers = form.headers.filter((header) => header.name.trim()).length
-  if (headers > 0) parts.push(`${headers} ${headers === 1 ? 'cabeçalho' : 'cabeçalhos'}`)
-
-  if (form.allowHighLoad) parts.push('carga elevada')
-
-  return parts.length > 0 ? parts.join(' · ') : 'Padrões'
-}
 
 interface LoadOptionsFieldsProps {
   form: EvaluationFormState

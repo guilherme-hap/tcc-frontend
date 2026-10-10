@@ -1,3 +1,5 @@
 export * from './apiError'
+export * from './authService'
 export * from './evaluationService'
 export * from './ruleService'
+export * from './session'

@@ -1,14 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { getEvaluation } from '../services'
-import type { EvaluationRecord, EvaluationStatus } from '../types'
+import type { EvaluationRecord } from '../types'
+import { isStatusActive } from '../utils/status'
+import { useSession } from './useSession'
 
 const POLLING_INTERVAL_MS = 2000
-
-const ACTIVE_STATUSES: EvaluationStatus[] = ['PENDING', 'RUNNING']
-
-function isStatusActive(status: EvaluationStatus): boolean {
-  return ACTIVE_STATUSES.includes(status)
-}
 
 export interface UseEvaluationPollingResult {
   evaluation: EvaluationRecord | undefined
@@ -20,8 +16,9 @@ export interface UseEvaluationPollingResult {
 export function useEvaluationPolling(
   evaluationId: string | undefined,
 ): UseEvaluationPollingResult {
+  const { user } = useSession()
   const query = useQuery<EvaluationRecord, Error>({
-    queryKey: ['evaluation', evaluationId],
+    queryKey: ['evaluation', evaluationId, user?.id],
     queryFn: () => getEvaluation(evaluationId!),
     enabled: !!evaluationId,
     refetchIntervalInBackground: false,

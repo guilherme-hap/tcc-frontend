@@ -62,6 +62,7 @@ function renderPillar(evaluation: EvaluationRecord, pillar: PillarName): ReactNo
       <SecuritySection
         checks={evaluation.securityResult}
         layerWeights={evaluation.scoring?.security?.layerWeights}
+        breakdown={evaluation.scoreBreakdown}
         score={score}
       />
     )

@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import type {
+  IScoreBreakdown,
   ISecurityCheckResult,
   IScoringParameters,
   SecurityCheckStatus,
@@ -16,11 +17,13 @@ import type {
 } from '../../types'
 import { formatPercent } from '../../utils/format'
 import { CHECK_STATUS_LABELS, LAYER_LABELS, LAYER_ORDER } from '../../utils/labels'
+import { securityScoreParts } from '../../utils/scoreParts'
 import { Badge, type BadgeTone } from '../ui/Badge'
 import { Icon } from '../ui/Icon'
 import { Panel } from '../ui/Panel'
 import { GLASS } from '../ui/classes'
 import { PillarScore } from './PillarScore'
+import { ScoreBreakdown } from './ScoreBreakdown'
 
 const STATUS_TONES: Record<SecurityCheckStatus, BadgeTone> = {
   pass: 'success',
@@ -82,14 +85,16 @@ function CheckCard({ check }: CheckCardProps) {
 interface SecuritySectionProps {
   checks: ISecurityCheckResult[]
   layerWeights?: NonNullable<IScoringParameters['security']>['layerWeights']
+  breakdown: IScoreBreakdown | null
   score?: number
 }
 
-export function SecuritySection({ checks, layerWeights, score }: SecuritySectionProps) {
+export function SecuritySection({ checks, layerWeights, breakdown, score }: SecuritySectionProps) {
   const layers = LAYER_ORDER.map((layer: SecurityLayer) => ({
     layer,
     checks: checks.filter((check) => check.layer === layer),
   })).filter((group) => group.checks.length > 0)
+  const parts = securityScoreParts(breakdown, checks)
 
   return (
     <Panel
@@ -98,6 +103,17 @@ export function SecuritySection({ checks, layerWeights, score }: SecuritySection
       aside={<PillarScore score={score} />}
     >
       <div className="flex flex-col gap-6">
+        {parts && score !== undefined ? (
+          <div className="border-b border-border pb-6">
+            <ScoreBreakdown
+              title="Composição da nota"
+              description="Cada arco é uma camada: o comprimento é o peso e o preenchimento é a média das verificações. Os pontos das camadas somam a nota do pilar."
+              label="Nota de segurança"
+              score={score}
+              parts={parts}
+            />
+          </div>
+        ) : null}
         {layers.map(({ layer, checks: layerChecks }) => (
           <section key={layer} className="flex min-w-0 flex-col gap-3">
             <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">

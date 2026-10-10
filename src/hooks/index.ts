@@ -1,3 +1,5 @@
+export { useDismissedTip } from './useDismissedTip'
+export type { TipId } from './useDismissedTip'
 export { useEvaluationPolling } from './useEvaluationPolling'
 export type { UseEvaluationPollingResult } from './useEvaluationPolling'
 export { useSession } from './useSession'

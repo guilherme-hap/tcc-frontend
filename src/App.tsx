@@ -2,13 +2,26 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { EvaluationResultPage } from './pages/EvaluationResultPage'
 import { HomePage } from './pages/HomePage'
+import { LoginPage } from './pages/LoginPage'
+import { LogoutPage } from './pages/LogoutPage'
 import { NewEvaluationPage } from './pages/NewEvaluationPage'
-import { EVALUATION_PATH_PATTERN, HOME_PATH, NEW_EVALUATION_PATH } from './utils/routes'
+import { RegisterPage } from './pages/RegisterPage'
+import {
+  EVALUATION_PATH_PATTERN,
+  HOME_PATH,
+  LOGIN_PATH,
+  LOGOUT_PATH,
+  NEW_EVALUATION_PATH,
+  REGISTER_PATH,
+} from './utils/routes'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path={LOGIN_PATH} element={<LoginPage />} />
+        <Route path={REGISTER_PATH} element={<RegisterPage />} />
+        <Route path={LOGOUT_PATH} element={<LogoutPage />} />
         <Route element={<AppShell />}>
           <Route index element={<HomePage />} />
           <Route path={NEW_EVALUATION_PATH} element={<NewEvaluationPage />} />

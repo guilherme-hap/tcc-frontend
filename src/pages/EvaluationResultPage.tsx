@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { LayoutDashboard } from 'lucide-react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
+import { AccountTip } from '../components/account/AccountTip'
 import { ContractSection } from '../components/result/ContractSection'
 import { PerformanceSection } from '../components/result/PerformanceSection'
 import { PillarPlaceholder } from '../components/result/PillarPlaceholder'
@@ -13,11 +14,11 @@ import { StatusNotice } from '../components/result/StatusNotice'
 import { Notice } from '../components/ui/Notice'
 import { Tabs, type TabItem } from '../components/ui/Tabs'
 import { FOCUS_RING, GLASS } from '../components/ui/classes'
-import { useEvaluationPolling } from '../hooks'
+import { useEvaluationPolling, useSession } from '../hooks'
 import type { EvaluationRecord, PillarName } from '../types'
 import { PILLAR_ICONS } from '../utils/icons'
 import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../utils/labels'
-import { NEW_EVALUATION_PATH } from '../utils/routes'
+import { LOGIN_PATH, NEW_EVALUATION_PATH, type ResultLocationState } from '../utils/routes'
 
 type TabId = 'overview' | PillarName
 
@@ -151,7 +152,11 @@ function SinglePillarResult({ evaluation, isActive }: ResultBodyProps) {
 
 export function EvaluationResultPage() {
   const { id } = useParams()
+  const location = useLocation()
+  const { user } = useSession()
   const { evaluation, isLoading, isPolling, error } = useEvaluationPolling(id)
+  const hasAccount = user !== null
+  const savedApiFailed = (location.state as ResultLocationState | null)?.savedApiFailed === true
 
   if (isLoading) return <ResultSkeleton />
 
@@ -160,8 +165,18 @@ export function EvaluationResultPage() {
       <>
         <Notice tone="error" title="Não foi possível carregar a avaliação.">
           {error ?? 'Avaliação não encontrada.'}
+          {hasAccount ? null : ' Se ela foi criada com uma conta, entre para abrir o resultado.'}
         </Notice>
-        <div>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          {hasAccount ? null : (
+            <Link
+              to={LOGIN_PATH}
+              state={{ from: location.pathname }}
+              className={`rounded-sm font-medium text-accent-ink underline underline-offset-4 ${FOCUS_RING}`}
+            >
+              Entrar
+            </Link>
+          )}
           <Link
             to={NEW_EVALUATION_PATH}
             className={`rounded-sm font-medium text-accent-ink underline underline-offset-4 ${FOCUS_RING}`}
@@ -175,8 +190,27 @@ export function EvaluationResultPage() {
 
   return (
     <>
-      <ResultHeader evaluation={evaluation} isActive={isPolling} />
+      <ResultHeader
+        key={evaluation.id}
+        evaluation={evaluation}
+        isActive={isPolling}
+        hasAccount={hasAccount}
+      />
+      {savedApiFailed && hasAccount ? (
+        <Notice tone="warning" title="A avaliação foi criada, mas a API não foi salva.">
+          Use "Salvar API" acima para tentar de novo.
+        </Notice>
+      ) : null}
       <StatusNotice evaluation={evaluation} />
+      {!hasAccount && evaluation.visibility === 'anonymous' ? (
+        <AccountTip id="result" title="Esta avaliação não está em nenhum histórico">
+          <p className="max-w-[88ch] text-[13px] text-ink">
+            Ela só abre por este endereço, para qualquer pessoa que o tenha. Com uma conta, as
+            próximas avaliações entram no histórico, ficam privadas e a API pode ser salva para
+            reavaliar sem redigitar.
+          </p>
+        </AccountTip>
+      ) : null}
       {evaluation.evaluationType === 'full' ? (
         <FullResult evaluation={evaluation} isActive={isPolling} />
       ) : (

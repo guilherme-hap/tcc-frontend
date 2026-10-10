@@ -1,12 +1,18 @@
+import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import type { IContractResult, ISpectralIssue, Severity } from '../../types'
 import { formatNumber } from '../../utils/format'
-import { SEVERITY_ORDER } from '../../utils/labels'
+import { SEVERITY_LABELS, SEVERITY_ORDER } from '../../utils/labels'
 import { Badge } from '../ui/Badge'
 import { Icon } from '../ui/Icon'
 import { Panel } from '../ui/Panel'
 import { PillarScore } from './PillarScore'
 import { SeverityBadge } from '../ui/SeverityBadge'
+import {
+  SeverityFilter,
+  type SeverityFilterOption,
+  type SeverityFilterValue,
+} from './SeverityFilter'
 
 const MAX_VISIBLE_OCCURRENCES = 50
 
@@ -42,6 +48,16 @@ function groupByRule(result: IContractResult): RuleGroup[] {
     .sort(
       (a, b) => severityRank(a.severity) - severityRank(b.severity) || b.count - a.count,
     )
+}
+
+function buildFilterOptions(groups: RuleGroup[]): SeverityFilterOption[] {
+  const bySeverity = SEVERITY_ORDER.map((severity) => ({
+    value: severity,
+    label: SEVERITY_LABELS[severity],
+    count: groups.filter((group) => group.severity === severity).length,
+  })).filter((option) => option.count > 0)
+
+  return [{ value: 'all', label: 'Todas', count: groups.length }, ...bySeverity]
 }
 
 interface RuleRowProps {
@@ -111,8 +127,12 @@ interface ContractSectionProps {
 
 export function ContractSection({ result, score }: ContractSectionProps) {
   const { evaluatedRules, violatedRules } = result.summary
+  const [filter, setFilter] = useState<SeverityFilterValue>('all')
   const groups = groupByRule(result)
   const maxCount = Math.max(1, ...groups.map((group) => group.count))
+  const options = buildFilterOptions(groups)
+  const active = options.some((option) => option.value === filter) ? filter : 'all'
+  const visible = active === 'all' ? groups : groups.filter((group) => group.severity === active)
 
   return (
     <Panel
@@ -123,11 +143,16 @@ export function ContractSection({ result, score }: ContractSectionProps) {
       {groups.length === 0 ? (
         <p className="text-ink-secondary">Nenhuma regra violada.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {groups.map((group) => (
-            <RuleRow key={group.rule} group={group} maxCount={maxCount} />
-          ))}
-        </ul>
+        <div className="flex flex-col gap-4">
+          {options.length > 2 ? (
+            <SeverityFilter options={options} value={active} onChange={setFilter} />
+          ) : null}
+          <ul className="flex flex-col gap-2">
+            {visible.map((group) => (
+              <RuleRow key={group.rule} group={group} maxCount={maxCount} />
+            ))}
+          </ul>
+        </div>
       )}
     </Panel>
   )

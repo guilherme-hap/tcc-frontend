@@ -92,6 +92,13 @@ export const LAYER_LABELS: Record<SecurityLayer, string> = {
   leakage: 'Vazamento de informação',
 }
 
+export const LAYER_SHORT_LABELS: Record<SecurityLayer, string> = {
+  transport: 'Transporte',
+  access: 'Acesso',
+  content: 'Conteúdo',
+  leakage: 'Vazamento',
+}
+
 export const LAYER_ORDER: SecurityLayer[] = ['transport', 'access', 'content', 'leakage']
 
 export const CHECK_STATUS_LABELS: Record<SecurityCheckStatus, string> = {
@@ -100,3 +107,5 @@ export const CHECK_STATUS_LABELS: Record<SecurityCheckStatus, string> = {
   missing: 'Ausente',
   error: 'Não atendida',
 }
+
+export const CHECK_STATUS_ORDER: SecurityCheckStatus[] = ['pass', 'warning', 'missing', 'error']

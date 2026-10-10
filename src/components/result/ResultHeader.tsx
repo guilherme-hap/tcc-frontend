@@ -1,8 +1,18 @@
-import { Check, Clock, LoaderCircle, TriangleAlert, X, type LucideIcon } from 'lucide-react'
+import {
+  Check,
+  Clock,
+  Download,
+  LoaderCircle,
+  TriangleAlert,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import type { EvaluationRecord, EvaluationStatus } from '../../types'
+import { downloadJson } from '../../utils/download'
 import { formatDateTime } from '../../utils/format'
 import { STATUS_LABELS, TYPE_TITLES } from '../../utils/labels'
 import { Badge, type BadgeTone } from '../ui/Badge'
+import { Button } from '../ui/Button'
 
 const STATUS_TONES: Record<EvaluationStatus, BadgeTone> = {
   PENDING: 'neutral',
@@ -22,9 +32,10 @@ const STATUS_ICONS: Record<EvaluationStatus, LucideIcon> = {
 
 interface ResultHeaderProps {
   evaluation: EvaluationRecord
+  isActive: boolean
 }
 
-export function ResultHeader({ evaluation }: ResultHeaderProps) {
+export function ResultHeader({ evaluation, isActive }: ResultHeaderProps) {
   const { status } = evaluation
 
   return (
@@ -36,6 +47,15 @@ export function ResultHeader({ evaluation }: ResultHeaderProps) {
         <Badge tone={STATUS_TONES[status]} icon={STATUS_ICONS[status]} spin={status === 'RUNNING'}>
           {STATUS_LABELS[status]}
         </Badge>
+        {isActive ? null : (
+          <Button
+            icon={Download}
+            className="ml-auto"
+            onClick={() => downloadJson(`avaliacao-${evaluation.id}.json`, evaluation)}
+          >
+            Exportar JSON
+          </Button>
+        )}
       </div>
       <dl className="grid grid-cols-1 gap-x-6 gap-y-1 text-[13px] sm:grid-cols-[auto_1fr] sm:gap-y-1.5">
         <dt className="text-ink-secondary">Especificação</dt>

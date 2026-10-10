@@ -175,7 +175,7 @@ export function EvaluationResultPage() {
 
   return (
     <>
-      <ResultHeader evaluation={evaluation} />
+      <ResultHeader evaluation={evaluation} isActive={isPolling} />
       <StatusNotice evaluation={evaluation} />
       {evaluation.evaluationType === 'full' ? (
         <FullResult evaluation={evaluation} isActive={isPolling} />

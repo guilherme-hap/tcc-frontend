@@ -107,7 +107,7 @@ export function PerformanceSection({ results, score }: PerformanceSectionProps) 
   return (
     <Panel
       title="Desempenho"
-      description="Apdex calculado por endpoint; a nota do pilar é a média simples dos endpoints medidos. As barras de latência usam a mesma escala em todos os endpoints."
+      description="Apdex calculado por endpoint; a nota do pilar é a média simples dos endpoints medidos e dos que falharam, que contam como 0; endpoint não medido fica fora da média. As barras de latência usam a mesma escala em todos os endpoints."
       aside={<PillarScore score={score} />}
     >
       <ul className="flex flex-col gap-3">

@@ -73,7 +73,9 @@ function describeFinalScore(
   const { evaluationType, finalScore, status } = evaluation
 
   if (evaluationType !== 'full') {
-    return `Com um único pilar, a nota final é a nota de ${PILLAR_LABELS[evaluationType].toLowerCase()}.`
+    const pillar = PILLAR_LABELS[evaluationType].toLowerCase()
+    if (status === 'FAILED') return `A nota de ${pillar} não foi calculada porque a avaliação falhou.`
+    return `Com um único pilar, a nota final é a nota de ${pillar}.`
   }
   if (finalScore === null && !isActive && status !== 'COMPLETED') {
     return 'A nota final só é calculada quando os três pilares concluem.'

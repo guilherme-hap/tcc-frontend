@@ -23,6 +23,9 @@ type TabId = 'overview' | PillarName
 
 const TABS_ID = 'resultado'
 
+const SUMMARY_GRID =
+  'grid grid-cols-1 gap-3 *:only:col-span-full lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]'
+
 function ResultSkeleton() {
   return (
     <div
@@ -115,7 +118,7 @@ function FullResult({ evaluation, isActive }: ResultBodyProps) {
       >
         {tab === 'overview' ? (
           <>
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+            <div className={SUMMARY_GRID}>
               <ScoreSummary evaluation={evaluation} isActive={isActive} onOpenPillar={setTab} />
               <ResultStats evaluation={evaluation} isActive={isActive} onOpenPillar={setTab} />
             </div>
@@ -136,7 +139,7 @@ function SinglePillarResult({ evaluation, isActive }: ResultBodyProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      <div className={SUMMARY_GRID}>
         <ScoreSummary evaluation={evaluation} isActive={isActive} />
         <ResultStats evaluation={evaluation} isActive={isActive} />
       </div>

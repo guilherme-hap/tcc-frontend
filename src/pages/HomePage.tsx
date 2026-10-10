@@ -1,23 +1,29 @@
-import { ArrowRight, Plus } from 'lucide-react'
+import { ArrowRight, Bookmark, History, Lock, Plus, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { AccountTip } from '../components/account/AccountTip'
+import { RecentEvaluations } from '../components/home/RecentEvaluations'
+import { SavedApisPreview } from '../components/home/SavedApisPreview'
 import { Icon } from '../components/ui/Icon'
 import { LinkButton } from '../components/ui/LinkButton'
 import { Notice } from '../components/ui/Notice'
 import { Panel } from '../components/ui/Panel'
-import { FOCUS_RING, GLASS, OVERLINE } from '../components/ui/classes'
+import { FOCUS_RING, GLASS, ICON_TILE, OVERLINE } from '../components/ui/classes'
+import { useSession } from '../hooks'
 import { TYPE_ICONS } from '../utils/icons'
 import { TYPE_INPUTS, TYPE_ORDER, TYPE_SUMMARIES, TYPE_TITLES } from '../utils/labels'
-import { NEW_EVALUATION_PATH, newEvaluationPath } from '../utils/routes'
+import { HISTORY_PATH, NEW_EVALUATION_PATH, newEvaluationPath } from '../utils/routes'
 
 interface Step {
   title: string
   description: string
+  accountNote?: string
 }
 
 const STEPS: Step[] = [
   {
     title: 'Informe a especificação',
     description: 'A URL do documento OpenAPI, em JSON ou YAML. A URL base da API é opcional.',
+    accountNote: 'Uma API salva preenche os dois campos.',
   },
   {
     title: 'A avaliação roda em segundo plano',
@@ -27,10 +33,24 @@ const STEPS: Step[] = [
     title: 'Leia a nota e o detalhe',
     description:
       'Cada pilar recebe uma nota de 0 a 100, com as regras violadas, as zonas do Apdex e as verificações de segurança.',
+    accountNote: 'O resultado fica no histórico da conta.',
   },
 ]
 
+interface TipBenefit {
+  icon: LucideIcon
+  label: string
+}
+
+const TIP_BENEFITS: TipBenefit[] = [
+  { icon: History, label: 'Histórico de avaliações' },
+  { icon: Bookmark, label: 'APIs e conjuntos de regras salvos' },
+  { icon: Lock, label: 'Resultados que só abrem para quem os criou' },
+]
+
 export function HomePage() {
+  const { user } = useSession()
+
   return (
     <>
       <section
@@ -49,15 +69,16 @@ export function HomePage() {
             Com a especificação OpenAPI e a URL base, o auditor mede contrato, desempenho e
             segurança e devolve uma nota de 0 a 100 para cada pilar, com o cálculo à mostra.
           </p>
-          <LinkButton
-            to={NEW_EVALUATION_PATH}
-            variant="primary"
-            size="lg"
-            icon={Plus}
-            className="lg:mt-auto"
-          >
-            Nova avaliação
-          </LinkButton>
+          <div className="flex flex-wrap gap-3 lg:mt-auto">
+            <LinkButton to={NEW_EVALUATION_PATH} variant="primary" size="lg" icon={Plus}>
+              Nova avaliação
+            </LinkButton>
+            {user ? (
+              <LinkButton to={HISTORY_PATH} size="lg" icon={History}>
+                Ver histórico
+              </LinkButton>
+            ) : null}
+          </div>
         </div>
 
         <Panel title="Como funciona">
@@ -72,13 +93,34 @@ export function HomePage() {
                 </span>
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <h3 className="font-medium text-ink">{step.title}</h3>
-                  <p className="text-[13px] text-ink-secondary">{step.description}</p>
+                  <p className="text-[13px] text-ink-secondary">
+                    {step.description}
+                    {user && step.accountNote ? ` ${step.accountNote}` : null}
+                  </p>
                 </div>
               </li>
             ))}
           </ol>
         </Panel>
       </section>
+
+      {user ? (
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <RecentEvaluations />
+          <SavedApisPreview />
+        </div>
+      ) : (
+        <AccountTip id="home" title="Com uma conta, as avaliações ficam guardadas">
+          <ul className="flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-ink">
+            {TIP_BENEFITS.map((benefit) => (
+              <li key={benefit.label} className="inline-flex items-center gap-1.5">
+                <Icon icon={benefit.icon} size={14} className="text-accent-ink" />
+                {benefit.label}
+              </li>
+            ))}
+          </ul>
+        </AccountTip>
+      )}
 
       <section aria-labelledby="home-types" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
@@ -100,10 +142,7 @@ export function HomePage() {
                 className={`group flex min-w-0 flex-1 flex-col gap-3 border-border p-4 hover:border-border-hover hover:bg-glass-raised ${GLASS} ${FOCUS_RING}`}
               >
                 <span className="flex items-center justify-between gap-3">
-                  <span
-                    aria-hidden="true"
-                    className="inline-flex size-9 items-center justify-center rounded-md border border-accent-ink/30 bg-accent-dim text-accent-ink"
-                  >
+                  <span aria-hidden="true" className={ICON_TILE}>
                     <Icon icon={TYPE_ICONS[type]} size={18} />
                   </span>
                   <Icon

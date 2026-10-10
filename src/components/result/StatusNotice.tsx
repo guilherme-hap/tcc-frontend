@@ -1,5 +1,5 @@
 import type { EvaluationRecord, IFailedPillar } from '../../types'
-import { PILLAR_LABELS } from '../../utils/labels'
+import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../../utils/labels'
 import { Notice } from '../ui/Notice'
 
 const ALL_PILLARS_FAILED_CODE = 'EVALUATION_PILLARS_FAILED'
@@ -26,7 +26,7 @@ interface StatusNoticeProps {
 }
 
 export function StatusNotice({ evaluation }: StatusNoticeProps) {
-  const { status, failedPillars, errorMessage, errorCode } = evaluation
+  const { evaluationType, status, failedPillars, errorMessage, errorCode } = evaluation
 
   if (status === 'PENDING') {
     return <Notice busy title="Avaliação na fila. Esta página atualiza sozinha." />
@@ -35,7 +35,9 @@ export function StatusNotice({ evaluation }: StatusNoticeProps) {
   if (status === 'RUNNING') {
     return (
       <Notice busy title="Avaliação em execução. Esta página atualiza sozinha.">
-        O teste de carga roda um endpoint por vez e pode levar alguns minutos.
+        {PILLARS_BY_TYPE[evaluationType].includes('performance')
+          ? 'O teste de carga roda um endpoint por vez e pode levar alguns minutos.'
+          : null}
       </Notice>
     )
   }

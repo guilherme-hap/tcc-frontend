@@ -85,7 +85,6 @@ export type IScoreBreakdown = Partial<Record<PillarName | 'final', IScorePart[]>
 
 export interface EvaluationRecord {
   id: string
-  userId: string | null
   openApiUrl: string
   apiBaseUrl: string | null
   targets: IPerformanceTarget[] | null

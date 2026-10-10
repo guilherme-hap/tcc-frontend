@@ -8,6 +8,7 @@ import { LoginPage } from './pages/LoginPage'
 import { LogoutPage } from './pages/LogoutPage'
 import { NewEvaluationPage } from './pages/NewEvaluationPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { SavedApisPage } from './pages/SavedApisPage'
 import {
   EVALUATION_PATH_PATTERN,
   HISTORY_PATH,
@@ -16,6 +17,7 @@ import {
   LOGOUT_PATH,
   NEW_EVALUATION_PATH,
   REGISTER_PATH,
+  SAVED_APIS_PATH,
 } from './utils/routes'
 
 function App() {
@@ -31,6 +33,7 @@ function App() {
           <Route path={EVALUATION_PATH_PATTERN} element={<EvaluationResultPage />} />
           <Route element={<RequireAuth />}>
             <Route path={HISTORY_PATH} element={<HistoryPage />} />
+            <Route path={SAVED_APIS_PATH} element={<SavedApisPage />} />
           </Route>
           <Route path="*" element={<Navigate to={HOME_PATH} replace />} />
         </Route>

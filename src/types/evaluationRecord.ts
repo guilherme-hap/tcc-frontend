@@ -73,6 +73,16 @@ export interface IScoringParameters {
   }
 }
 
+export interface IScorePart {
+  id: string
+  weight: number
+  score: number
+  points: number
+  maxPoints: number
+}
+
+export type IScoreBreakdown = Partial<Record<PillarName | 'final', IScorePart[]>>
+
 export interface EvaluationRecord {
   id: string
   userId: string | null
@@ -87,6 +97,7 @@ export interface EvaluationRecord {
   finalScore: number | null
   pillarScores: PillarWeights | null
   scoring: IScoringParameters | null
+  scoreBreakdown: IScoreBreakdown | null
   failedPillars: IFailedPillar[] | null
   errorMessage: string | null
   errorCode: string | null

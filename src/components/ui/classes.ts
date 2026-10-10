@@ -9,7 +9,12 @@ export const FOCUS_RING =
 export const OVERLINE =
   'text-[11px] leading-4 font-medium tracking-[0.08em] text-ink-secondary uppercase'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost'
+export const TEXT_LINK = `rounded-sm font-medium transition-colors duration-150 hover:text-ink ${FOCUS_RING}`
+
+export const ICON_TILE =
+  'inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-accent-ink/30 bg-accent-dim text-accent-ink'
+
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 export type ButtonSize = 'md' | 'lg'
 
 export const BUTTON_BASE = `inline-flex items-center justify-center gap-2 rounded-md border px-3.5 text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow] duration-150 ${FOCUS_RING}`
@@ -18,6 +23,7 @@ export const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary: 'border-transparent bg-accent-fill text-on-accent shadow-accent hover:shadow-accent-hover',
   secondary: 'border-border bg-glass-raised text-ink hover:border-border-hover',
   ghost: 'border-transparent text-ink-secondary hover:bg-glass-raised hover:text-ink',
+  danger: 'border-error/60 bg-error-dim text-error hover:border-error',
 }
 
 export const BUTTON_SIZES: Record<ButtonSize, string> = {

@@ -15,6 +15,7 @@ interface LinkButtonProps {
   variant?: ButtonVariant
   size?: ButtonSize
   icon?: LucideIcon
+  label?: string
   className?: string
   children: ReactNode
 }
@@ -24,12 +25,14 @@ export function LinkButton({
   variant = 'secondary',
   size = 'md',
   icon,
+  label,
   className = '',
   children,
 }: LinkButtonProps) {
   return (
     <Link
       to={to}
+      aria-label={label}
       className={`${BUTTON_BASE} ${BUTTON_SIZES[size]} ${BUTTON_VARIANTS[variant]} ${className}`}
     >
       {icon ? <Icon icon={icon} /> : null}

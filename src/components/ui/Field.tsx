@@ -1,6 +1,7 @@
 import type {
   InputHTMLAttributes,
   ReactNode,
+  Ref,
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from 'react'
@@ -13,13 +14,20 @@ const CONTROL_CLASSES = `min-w-0 rounded-md border border-border-control bg-well
 const MONO_CLASSES = 'font-mono text-[13px]'
 
 interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  ref?: Ref<HTMLInputElement>
   mono?: boolean
+  tall?: boolean
 }
 
-export function TextInput({ className = 'w-full', mono = false, ...props }: TextInputProps) {
+export function TextInput({
+  className = 'w-full',
+  mono = false,
+  tall = false,
+  ...props
+}: TextInputProps) {
   return (
     <input
-      className={`h-9 ${CONTROL_CLASSES} ${mono ? MONO_CLASSES : ''} ${className}`}
+      className={`${tall ? 'h-10' : 'h-9'} ${CONTROL_CLASSES} ${mono ? MONO_CLASSES : ''} ${className}`}
       {...props}
     />
   )
@@ -89,6 +97,7 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string
   suffix?: ReactNode
   mono?: boolean
+  tall?: boolean
 }
 
 export function TextField({ id, label, optional, hint, error, suffix, ...props }: TextFieldProps) {

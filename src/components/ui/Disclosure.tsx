@@ -8,15 +8,23 @@ interface DisclosureProps {
   aside?: ReactNode
   open?: boolean
   onToggle?: (open: boolean) => void
+  className?: string
   children: ReactNode
 }
 
-export function Disclosure({ title, aside, open, onToggle, children }: DisclosureProps) {
+export function Disclosure({
+  title,
+  aside,
+  open,
+  onToggle,
+  className = '',
+  children,
+}: DisclosureProps) {
   return (
     <details
       open={open}
       onToggle={onToggle ? (event) => onToggle(event.currentTarget.open) : undefined}
-      className={`group min-w-0 border-border ${GLASS}`}
+      className={`group min-w-0 border-border ${GLASS} ${className}`}
     >
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded-card px-5 py-4 font-display text-base font-semibold tracking-[-0.01em] text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
         <Icon

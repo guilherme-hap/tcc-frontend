@@ -1,6 +1,7 @@
 import type {
   EvaluationStatus,
   EvaluationType,
+  ILoadTestOptions,
   IPerformanceTarget,
   PillarName,
   PillarWeights,
@@ -83,12 +84,21 @@ export interface IScorePart {
 
 export type IScoreBreakdown = Partial<Record<PillarName | 'final', IScorePart[]>>
 
+export type EvaluationVisibility = 'private' | 'anonymous'
+
+export interface IEvaluationRequestSettings {
+  rulesConfig?: Record<string, boolean>
+  loadTestOptions?: Omit<ILoadTestOptions, 'headers' | 'body'>
+}
+
 export interface EvaluationRecord {
   id: string
   openApiUrl: string
   apiBaseUrl: string | null
   targets: IPerformanceTarget[] | null
+  requestSettings: IEvaluationRequestSettings | null
   evaluationType: EvaluationType
+  visibility: EvaluationVisibility
   status: EvaluationStatus
   spectralResult: IContractResult | null
   performanceResults: IPerformanceTargetResult[] | null
@@ -102,4 +112,31 @@ export interface EvaluationRecord {
   errorCode: string | null
   createdAt: string
   updatedAt: string
+}
+
+export interface EvaluationListItem {
+  id: string
+  evaluationType: EvaluationType
+  status: EvaluationStatus
+  finalScore: number | null
+  openApiUrl: string
+  createdAt: string
+}
+
+export interface EvaluationListPage {
+  items: EvaluationListItem[]
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
+export interface EvaluationListQuery {
+  page?: number
+  limit?: number
+  search?: string
+  type?: EvaluationType
+  status?: EvaluationStatus[]
+  from?: string
+  to?: string
 }

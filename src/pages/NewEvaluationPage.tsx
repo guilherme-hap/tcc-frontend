@@ -1,54 +1,136 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Bookmark, Check, History, type LucideIcon } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { AccountTip } from '../components/account/AccountTip'
 import { ContractRulesFields } from '../components/form/ContractRulesFields'
 import { LoadOptionsFields } from '../components/form/LoadOptionsFields'
 import { RequestSummary } from '../components/form/RequestSummary'
+import { TargetFields } from '../components/form/TargetFields'
 import { TargetsField } from '../components/form/TargetsField'
 import { TypeSelector } from '../components/form/TypeSelector'
 import { WeightsFields } from '../components/form/WeightsFields'
+import { applySavedApi, buildSubmission } from '../components/form/accountState'
 import {
   MAX_TARGETS,
-  buildEvaluationRequest,
   createInitialFormState,
   hasMutatingTarget,
   mapServerIssues,
-  usesBaseUrl,
   usesContractRules,
   usesTargets,
   type EvaluationFormState,
   type FormErrors,
 } from '../components/form/formState'
 import { Badge } from '../components/ui/Badge'
-import { CheckboxField, TextField } from '../components/ui/Field'
+import { CheckboxField } from '../components/ui/Field'
+import { Icon } from '../components/ui/Icon'
 import { Panel } from '../components/ui/Panel'
-import { ApiError, createEvaluation } from '../services'
+import { GLASS } from '../components/ui/classes'
+import { EVALUATION_HISTORY_KEY, SAVED_APIS_KEY, useSavedApis, useSession } from '../hooks'
+import { ApiError, createEvaluation, createSavedApi } from '../services'
+import type { EvaluationRequest, EvaluationType, SavedApi, SavedApiInput } from '../types'
 import { TYPE_ORDER } from '../utils/labels'
-import { TYPE_PARAM, evaluationPath } from '../utils/routes'
+import {
+  SAVED_API_PARAM,
+  TYPE_PARAM,
+  evaluationPath,
+  type ResultLocationState,
+} from '../utils/routes'
+
+interface TipItem {
+  icon: LucideIcon
+  text: string
+}
+
+const TIP_ITEMS: TipItem[] = [
+  { icon: History, text: 'A avaliação entra no histórico e o resultado fica privado.' },
+  {
+    icon: Bookmark,
+    text: 'A API pode ser salva, com especificação, URL base e opções do teste de carga.',
+  },
+  {
+    icon: Check,
+    text: 'As regras alteradas e os pesos por severidade viram um conjunto reutilizável.',
+  },
+]
+
+interface Submission {
+  request: EvaluationRequest
+  savedApi: SavedApiInput | null
+}
+
+async function submitEvaluation({ request, savedApi }: Submission) {
+  const { evaluationId } = await createEvaluation(request)
+  if (!savedApi) return { evaluationId, savedApiFailed: false }
+
+  try {
+    await createSavedApi(savedApi)
+    return { evaluationId, savedApiFailed: false }
+  } catch {
+    return { evaluationId, savedApiFailed: true }
+  }
+}
 
 function hasLoadOptionError(errors: FormErrors): boolean {
   return Object.keys(errors).some((key) => key.startsWith('options.') || key.startsWith('headers.'))
 }
 
-export function NewEvaluationPage() {
+function FormSkeleton() {
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Carregando a API salva"
+      className="flex flex-col gap-6"
+    >
+      <div className="h-8 w-56 animate-pulse rounded-md bg-glass-raised motion-reduce:animate-none" />
+      <div className={`h-72 animate-pulse border-border motion-reduce:animate-none ${GLASS}`} />
+    </div>
+  )
+}
+
+interface EvaluationFormProps {
+  initialType: EvaluationType | undefined
+  initialApi: SavedApi | null
+}
+
+function EvaluationForm({ initialType, initialApi }: EvaluationFormProps) {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const queryClient = useQueryClient()
+  const { user } = useSession()
+  const { apis } = useSavedApis()
   const [form, setForm] = useState<EvaluationFormState>(() => {
-    const requested = searchParams.get(TYPE_PARAM)
-    return createInitialFormState(TYPE_ORDER.find((type) => type === requested))
+    const initial = createInitialFormState(initialType)
+    return initialApi ? applySavedApi(initial, initialApi) : initial
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [loadOptionsOpen, setLoadOptionsOpen] = useState(false)
   const [contractRulesOpen, setContractRulesOpen] = useState(false)
   const [submitDetails, setSubmitDetails] = useState<string[]>([])
 
+  const hasAccount = user !== null
+  const savedApis = hasAccount ? (apis ?? []) : null
+  const selectedApi = savedApis?.find((api) => api.id === form.savedApiId) ?? null
+
   const mutation = useMutation({
-    mutationFn: createEvaluation,
-    onSuccess: ({ evaluationId }) => navigate(evaluationPath(evaluationId)),
+    mutationFn: submitEvaluation,
+    onSuccess: ({ evaluationId, savedApiFailed }) => {
+      void queryClient.invalidateQueries({ queryKey: [EVALUATION_HISTORY_KEY] })
+      void queryClient.invalidateQueries({ queryKey: [SAVED_APIS_KEY] })
+
+      const state: ResultLocationState = { savedApiFailed }
+      navigate(evaluationPath(evaluationId), { state })
+    },
   })
 
   const update = (patch: Partial<EvaluationFormState>) => {
     setForm((current) => ({ ...current, ...patch }))
+  }
+
+  const revealErrors = (next: FormErrors) => {
+    setErrors(next)
+    if (hasLoadOptionError(next)) setLoadOptionsOpen(true)
+    if (next.severityWeights) setContractRulesOpen(true)
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -57,25 +139,21 @@ export function NewEvaluationPage() {
 
     mutation.reset()
     setSubmitDetails([])
-    const result = buildEvaluationRequest(form)
+    const result = buildSubmission(form, hasAccount)
 
     if (!result.ok) {
-      setErrors(result.errors)
-      if (hasLoadOptionError(result.errors)) setLoadOptionsOpen(true)
-      if (result.errors.severityWeights) setContractRulesOpen(true)
+      revealErrors(result.errors)
       return
     }
 
     setErrors({})
-    mutation.mutate(result.request, {
+    mutation.mutate(result, {
       onError: (error) => {
         if (!(error instanceof ApiError) || error.issues.length === 0) return
 
         const mapped = mapServerIssues(form, error.issues)
-        setErrors(mapped.errors)
+        revealErrors(mapped.errors)
         setSubmitDetails(mapped.unmatched.map((issue) => issue.message))
-        if (hasLoadOptionError(mapped.errors)) setLoadOptionsOpen(true)
-        if (mapped.errors.severityWeights) setContractRulesOpen(true)
       },
     })
   }
@@ -94,8 +172,9 @@ export function NewEvaluationPage() {
           Nova avaliação
         </h1>
         <p className="max-w-[64ch] text-ink-secondary">
-          Informe a especificação OpenAPI e a URL base da API. A avaliação roda em segundo plano e
-          o resultado aparece assim que terminar.
+          {hasAccount
+            ? 'Parta de uma API salva ou informe a especificação OpenAPI e a URL base. A avaliação roda em segundo plano e o resultado entra no histórico assim que terminar.'
+            : 'Informe a especificação OpenAPI e a URL base da API. A avaliação roda em segundo plano e o resultado aparece assim que terminar.'}
         </p>
       </div>
 
@@ -113,44 +192,14 @@ export function NewEvaluationPage() {
             <TypeSelector value={form.type} onChange={(type) => update({ type })} />
           </Panel>
 
-          <Panel
-            title="Alvo"
-            description="A API é avaliada de fora: só a especificação e a URL base são necessárias."
-          >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <TextField
-                id="openApiUrl"
-                label="URL da especificação OpenAPI"
-                type="url"
-                mono
-                placeholder="https://api.exemplo.com/openapi.json"
-                hint="JSON ou YAML, OpenAPI 3.x ou Swagger 2.0."
-                error={errors.openApiUrl}
-                value={form.openApiUrl}
-                onChange={(event) => update({ openApiUrl: event.target.value })}
-              />
-              {usesBaseUrl(form.type) ? (
-                <TextField
-                  id="apiBaseUrl"
-                  label="URL base da API"
-                  optional
-                  type="url"
-                  mono
-                  placeholder="https://api.exemplo.com"
-                  hint="Vazia, usa o primeiro servidor declarado na especificação."
-                  error={errors.apiBaseUrl}
-                  value={form.apiBaseUrl}
-                  onChange={(event) => update({ apiBaseUrl: event.target.value })}
-                />
-              ) : null}
-            </div>
-          </Panel>
+          <TargetFields form={form} errors={errors} savedApis={savedApis} onChange={update} />
 
           {usesContractRules(form.type) ? (
             <ContractRulesFields
               form={form}
               errors={errors}
               open={contractRulesOpen}
+              hasAccount={hasAccount}
               onToggle={setContractRulesOpen}
               onChange={update}
             />
@@ -206,17 +255,53 @@ export function NewEvaluationPage() {
 
         <aside
           aria-label="Resumo do pedido"
-          className="min-w-0 rounded-card [scrollbar-color:var(--border-hover)_transparent] [scrollbar-width:thin] lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6.5rem)] lg:overflow-y-auto"
+          className="flex min-w-0 flex-col gap-4 rounded-card [scrollbar-color:var(--border-hover)_transparent] [scrollbar-width:thin] lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6.5rem)] lg:overflow-y-auto"
         >
           <RequestSummary
             form={form}
+            account={hasAccount ? { savedApiName: selectedApi?.name ?? null } : null}
             hasErrors={Object.keys(errors).length > 0}
             isSending={mutation.isPending}
             submitError={mutation.isError ? mutation.error.message : null}
             submitDetails={submitDetails}
           />
+          {hasAccount ? null : (
+            <AccountTip
+              id="new-evaluation"
+              title="Entre antes de iniciar para guardar esta avaliação"
+              stacked
+            >
+              <ul className="flex flex-col gap-2 text-[13px] text-ink">
+                {TIP_ITEMS.map((item) => (
+                  <li key={item.text} className="flex items-start gap-2">
+                    <span className="flex h-5 items-center text-accent-ink">
+                      <Icon icon={item.icon} size={14} />
+                    </span>
+                    {item.text}
+                  </li>
+                ))}
+              </ul>
+            </AccountTip>
+          )}
         </aside>
       </form>
     </>
+  )
+}
+
+export function NewEvaluationPage() {
+  const { user } = useSession()
+  const [searchParams] = useSearchParams()
+  const { apis, isLoading } = useSavedApis()
+  const requestedApiId = user ? searchParams.get(SAVED_API_PARAM) : null
+  const requestedType = searchParams.get(TYPE_PARAM)
+
+  if (requestedApiId && isLoading) return <FormSkeleton />
+
+  return (
+    <EvaluationForm
+      initialType={TYPE_ORDER.find((type) => type === requestedType)}
+      initialApi={apis?.find((api) => api.id === requestedApiId) ?? null}
+    />
   )
 }

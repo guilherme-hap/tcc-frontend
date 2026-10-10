@@ -10,21 +10,9 @@ import { Checkbox, CheckboxField, FieldMessages, TextField, TextInput } from '..
 import { Notice } from '../ui/Notice'
 import { SeverityBadge } from '../ui/SeverityBadge'
 import { FOCUS_RING } from '../ui/classes'
+import { RuleSetFields } from './RuleSetFields'
+import { describeRules } from './describe'
 import type { EvaluationFormState, FormErrors } from './formState'
-
-function countLabel(count: number, singular: string, plural: string): string {
-  return `${count} ${count === 1 ? singular : plural}`
-}
-
-function describeRules(form: EvaluationFormState): string {
-  const parts: string[] = []
-  const changed = Object.keys(form.rulesConfig).length
-
-  if (changed > 0) parts.push(countLabel(changed, 'regra alterada', 'regras alteradas'))
-  if (form.customSeverityWeights) parts.push('pesos por severidade')
-
-  return parts.length > 0 ? parts.join(' · ') : 'Padrões'
-}
 
 function matchesSearch(rule: ISpectralCatalogRule, term: string): boolean {
   if (!term) return true
@@ -91,11 +79,19 @@ interface ContractRulesFieldsProps {
   form: EvaluationFormState
   errors: FormErrors
   open: boolean
+  hasAccount: boolean
   onToggle: (open: boolean) => void
   onChange: (patch: Partial<EvaluationFormState>) => void
 }
 
-export function ContractRulesFields({ form, errors, open, onToggle, onChange }: ContractRulesFieldsProps) {
+export function ContractRulesFields({
+  form,
+  errors,
+  open,
+  hasAccount,
+  onToggle,
+  onChange,
+}: ContractRulesFieldsProps) {
   const { rules, isLoading, error } = useSpectralRules()
   const [search, setSearch] = useState('')
 
@@ -121,8 +117,10 @@ export function ContractRulesFields({ form, errors, open, onToggle, onChange }: 
       aside={describeRules(form)}
       open={open}
       onToggle={onToggle}
+      className="relative z-4"
     >
       <div className="flex min-w-0 flex-col gap-5">
+        {hasAccount ? <RuleSetFields form={form} onChange={onChange} /> : null}
         <fieldset className="flex min-w-0 flex-col gap-3">
           <legend className="mb-1 font-medium text-ink">Regras do Spectral</legend>
           <p className="text-ink-secondary">
@@ -159,7 +157,7 @@ export function ContractRulesFields({ form, errors, open, onToggle, onChange }: 
                   variant="ghost"
                   icon={RotateCcw}
                   disabled={Object.keys(form.rulesConfig).length === 0}
-                  onClick={() => onChange({ rulesConfig: {} })}
+                  onClick={() => onChange({ rulesConfig: {}, ruleSetId: '' })}
                 >
                   Restaurar padrões
                 </Button>

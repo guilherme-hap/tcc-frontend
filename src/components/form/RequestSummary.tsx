@@ -1,9 +1,10 @@
-import { Play } from 'lucide-react'
+import { History, Link2, Play } from 'lucide-react'
 import type { PillarName } from '../../types'
 import { formatNumber } from '../../utils/format'
 import { EXECUTION_STEPS, PILLARS_BY_TYPE, PILLAR_LABELS, TYPE_LABELS } from '../../utils/labels'
 import { Button } from '../ui/Button'
 import { CodeBlock } from '../ui/CodeBlock'
+import { Icon } from '../ui/Icon'
 import { Kbd } from '../ui/Kbd'
 import { KeyValue, type KeyValueItem } from '../ui/KeyValue'
 import { Notice } from '../ui/Notice'
@@ -20,7 +21,11 @@ import {
 
 const PILLARS: PillarName[] = ['contract', 'performance', 'security']
 
-function buildFacts(form: EvaluationFormState): KeyValueItem[] {
+export interface SummaryAccount {
+  savedApiName: string | null
+}
+
+function buildFacts(form: EvaluationFormState, account: SummaryAccount | null): KeyValueItem[] {
   const facts: KeyValueItem[] = [
     { label: 'Tipo', value: TYPE_LABELS[form.type] },
     {
@@ -28,6 +33,13 @@ function buildFacts(form: EvaluationFormState): KeyValueItem[] {
       value: PILLARS_BY_TYPE[form.type].map((pillar) => PILLAR_LABELS[pillar]).join(', '),
     },
   ]
+
+  if (account) {
+    facts.push({
+      label: 'API salva',
+      value: account.savedApiName ?? (form.saveApi ? 'Será salva ao iniciar' : 'Nenhuma'),
+    })
+  }
 
   if (usesContractRules(form.type)) {
     const changed = Object.keys(form.rulesConfig).length
@@ -64,6 +76,7 @@ function buildFacts(form: EvaluationFormState): KeyValueItem[] {
 
 interface RequestSummaryProps {
   form: EvaluationFormState
+  account: SummaryAccount | null
   hasErrors: boolean
   isSending: boolean
   submitError: string | null
@@ -72,6 +85,7 @@ interface RequestSummaryProps {
 
 export function RequestSummary({
   form,
+  account,
   hasErrors,
   isSending,
   submitError,
@@ -82,7 +96,7 @@ export function RequestSummary({
   return (
     <Panel title="Resumo do pedido" description="O que será enviado ao iniciar.">
       <div className="flex min-w-0 flex-col gap-5">
-        <KeyValue items={buildFacts(form)} />
+        <KeyValue items={buildFacts(form, account)} />
 
         <div className="flex flex-col gap-3">
           <h3 className="text-[11px] leading-4 font-medium tracking-[0.08em] text-ink-secondary uppercase">
@@ -107,6 +121,24 @@ export function RequestSummary({
           title={`POST /api/evaluations/${preview.type}`}
           code={JSON.stringify(preview.payload, null, 2)}
         />
+
+        <div className="flex items-start gap-3 rounded-md border border-border bg-well px-4 py-3">
+          <span
+            className={`flex h-5 items-center ${account ? 'text-accent-ink' : 'text-ink-secondary'}`}
+          >
+            <Icon icon={account ? History : Link2} />
+          </span>
+          <div className="flex min-w-0 flex-col gap-1">
+            <p className="font-medium text-ink">
+              {account ? 'Entra no histórico desta conta' : 'Avaliação anônima'}
+            </p>
+            <p className="text-[13px] text-ink-secondary">
+              {account
+                ? 'O resultado só abre com a sessão de quem criou a avaliação.'
+                : 'O resultado abre pelo link, para qualquer pessoa que o tenha. Guarde o endereço.'}
+            </p>
+          </div>
+        </div>
 
         {submitError ? (
           <Notice tone="error" title="A avaliação não foi aceita.">

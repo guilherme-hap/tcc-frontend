@@ -34,6 +34,7 @@ export function WeightsFields({ form, errors, onChange }: WeightsFieldsProps) {
                 mono
                 suffix="%"
                 aria-invalid={errors.weights ? true : undefined}
+                aria-describedby="weights-message"
                 value={form.weights[pillar]}
                 onChange={(event) =>
                   onChange({ weights: { ...form.weights, [pillar]: event.target.value } })

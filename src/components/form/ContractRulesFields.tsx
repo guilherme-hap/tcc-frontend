@@ -198,6 +198,7 @@ export function ContractRulesFields({
                   inputMode="decimal"
                   mono
                   aria-invalid={errors.severityWeights ? true : undefined}
+                  aria-describedby="severityWeights-message"
                   value={form.severityWeights[severity]}
                   onChange={(event) =>
                     onChange({

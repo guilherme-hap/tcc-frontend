@@ -1,5 +1,5 @@
 import { formatCount, formatMilliseconds } from '../../utils/format'
-import { NUMERIC_OPTION_KEYS, parseDecimal, type EvaluationFormState } from './formState'
+import { NUMERIC_OPTION_KEYS, parseLoadOption, type EvaluationFormState } from './formState'
 
 const DEFAULTS_LABEL = 'Padrões'
 
@@ -16,7 +16,7 @@ export function describeRules(form: EvaluationFormState): string {
 export function describeOptions(form: EvaluationFormState): string {
   const parts: string[] = []
 
-  const latency = parseDecimal(form.numericOptions.targetLatency)
+  const latency = parseLoadOption(form.numericOptions.targetLatency)
   if (form.numericOptions.targetLatency.trim() && Number.isFinite(latency) && latency > 0) {
     parts.push(`T = ${formatMilliseconds(latency)}`)
   }

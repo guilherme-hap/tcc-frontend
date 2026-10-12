@@ -26,6 +26,9 @@ const BODY_METHODS: HttpMethod[] = ['POST', 'PUT', 'PATCH']
 const WEIGHT_SUM_TOLERANCE = 0.1
 const HEADER_NAME_PATTERN = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/
 const SERVER_HEADERS_PATH = 'loadTestOptions.headers.'
+const DECIMAL_PATTERN = /^\d+(?:[.,]\d+)?$/
+const INTEGER_PATTERN = /^\d+$/
+const THOUSANDS_PATTERN = /^[1-9]\d{0,2}(?:\.\d{3})+$/
 
 export interface TargetDraft {
   id: string
@@ -152,11 +155,16 @@ export function hasMutatingTarget(form: EvaluationFormState): boolean {
 }
 
 export function parseDecimal(value: string): number {
-  return Number(value.trim().replace(',', '.'))
+  const text = value.trim()
+  return DECIMAL_PATTERN.test(text) ? Number(text.replace(',', '.')) : NaN
+}
+
+export function parseLoadOption(value: string): number {
+  return THOUSANDS_PATTERN.test(value.trim()) ? NaN : parseDecimal(value)
 }
 
 export function estimateLoadDuration(form: EvaluationFormState): number {
-  const custom = parseDecimal(form.numericOptions.duration)
+  const custom = parseLoadOption(form.numericOptions.duration)
   if (form.numericOptions.duration.trim() && Number.isFinite(custom) && custom > 0) {
     return form.targets.length * custom
   }
@@ -209,11 +217,13 @@ function buildLoadTestOptions(
     const raw = form.numericOptions[key].trim()
     if (!raw) continue
 
-    const value = parseDecimal(raw)
-    if (!Number.isFinite(value) || value <= 0) {
+    const value = parseLoadOption(raw)
+    if (THOUSANDS_PATTERN.test(raw)) {
+      errors[`options.${key}`] = 'Escreva o número sem separador de milhar (ex.: 1500 ou 1,5).'
+    } else if (!Number.isFinite(value) || value <= 0) {
       errors[`options.${key}`] = 'Informe um número maior que zero.'
-    } else if (INTEGER_OPTIONS.includes(key) && !Number.isInteger(value)) {
-      errors[`options.${key}`] = 'Informe um número inteiro.'
+    } else if (INTEGER_OPTIONS.includes(key) && !INTEGER_PATTERN.test(raw)) {
+      errors[`options.${key}`] = 'Informe um número inteiro, sem ponto nem vírgula.'
     } else {
       options[key] = value
     }

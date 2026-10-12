@@ -13,7 +13,7 @@ import { SecuritySection } from '../components/result/SecuritySection'
 import { StatusNotice } from '../components/result/StatusNotice'
 import { Button } from '../components/ui/Button'
 import { Notice } from '../components/ui/Notice'
-import { Tabs, type TabItem } from '../components/ui/Tabs'
+import { TabPanel, Tabs, type TabItem } from '../components/ui/Tabs'
 import { FOCUS_RING, GLASS } from '../components/ui/classes'
 import { useEvaluationPolling, useSession } from '../hooks'
 import type { EvaluationRecord, PillarName } from '../types'
@@ -112,12 +112,7 @@ function FullResult({ evaluation, isActive }: ResultBodyProps) {
         value={tab}
         onChange={setTab}
       />
-      <div
-        role="tabpanel"
-        id={`${TABS_ID}-panel-${tab}`}
-        aria-labelledby={`${TABS_ID}-tab-${tab}`}
-        className="flex flex-col gap-6"
-      >
+      <TabPanel idPrefix={TABS_ID} tab={tab} className="flex flex-col gap-6">
         {tab === 'overview' ? (
           <>
             <div className={SUMMARY_GRID}>
@@ -131,7 +126,7 @@ function FullResult({ evaluation, isActive }: ResultBodyProps) {
         ) : (
           <PillarPlaceholder pillar={tab} evaluation={evaluation} isActive={isActive} />
         )}
-      </div>
+      </TabPanel>
     </>
   )
 }

@@ -1,7 +1,8 @@
-import type { KeyboardEvent } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { formatNumber } from '../../utils/format'
 import { Icon } from './Icon'
+import { FOCUS_RING } from './classes'
 
 export interface TabItem<T extends string> {
   id: T
@@ -18,13 +19,20 @@ interface TabsProps<T extends string> {
   onChange: (id: T) => void
 }
 
+const MOVES: Record<string, (index: number, count: number) => number> = {
+  ArrowRight: (index, count) => (index + 1) % count,
+  ArrowLeft: (index, count) => (index - 1 + count) % count,
+  Home: () => 0,
+  End: (_index, count) => count - 1,
+}
+
 export function Tabs<T extends string>({ label, idPrefix, items, value, onChange }: TabsProps<T>) {
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return
+    const move = MOVES[event.key]
+    if (!move) return
 
     const index = items.findIndex((item) => item.id === value)
-    const step = event.key === 'ArrowRight' ? 1 : -1
-    const next = items[(index + step + items.length) % items.length]
+    const next = items[move(index, items.length)]
 
     event.preventDefault()
     onChange(next.id)
@@ -44,7 +52,7 @@ export function Tabs<T extends string>({ label, idPrefix, items, value, onChange
           type="button"
           role="tab"
           id={`${idPrefix}-tab-${item.id}`}
-          aria-controls={`${idPrefix}-panel-${item.id}`}
+          aria-controls={item.id === value ? `${idPrefix}-panel-${item.id}` : undefined}
           aria-selected={item.id === value}
           tabIndex={item.id === value ? 0 : -1}
           onClick={() => onChange(item.id)}
@@ -61,6 +69,27 @@ export function Tabs<T extends string>({ label, idPrefix, items, value, onChange
           ) : null}
         </button>
       ))}
+    </div>
+  )
+}
+
+interface TabPanelProps {
+  idPrefix: string
+  tab: string
+  className?: string
+  children: ReactNode
+}
+
+export function TabPanel({ idPrefix, tab, className = '', children }: TabPanelProps) {
+  return (
+    <div
+      role="tabpanel"
+      id={`${idPrefix}-panel-${tab}`}
+      aria-labelledby={`${idPrefix}-tab-${tab}`}
+      tabIndex={0}
+      className={`rounded-card ${FOCUS_RING} ${className}`}
+    >
+      {children}
     </div>
   )
 }

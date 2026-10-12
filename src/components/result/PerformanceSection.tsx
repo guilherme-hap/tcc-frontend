@@ -111,12 +111,8 @@ export function PerformanceSection({ results, score }: PerformanceSectionProps) 
       aside={<PillarScore score={score} />}
     >
       <ul className="flex flex-col gap-3">
-        {results.map((target) => (
-          <TargetCard
-            key={`${target.method} ${target.path}`}
-            target={target}
-            maxLatency={maxLatency}
-          />
+        {results.map((target, index) => (
+          <TargetCard key={index} target={target} maxLatency={maxLatency} />
         ))}
       </ul>
     </Panel>

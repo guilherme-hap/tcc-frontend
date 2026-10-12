@@ -9,6 +9,7 @@ const POLLING_INTERVAL_MS = 2000
 export interface UseEvaluationPollingResult {
   evaluation: EvaluationRecord | undefined
   isLoading: boolean
+  isPaused: boolean
   isPolling: boolean
   isFetching: boolean
   error: string | null
@@ -37,7 +38,8 @@ export function useEvaluationPolling(
 
   return {
     evaluation: query.data,
-    isLoading: query.isLoading,
+    isLoading: query.isPending,
+    isPaused: query.isPaused,
     isPolling,
     isFetching: query.isFetching,
     error: query.error?.message ?? null,

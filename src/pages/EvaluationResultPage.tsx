@@ -156,7 +156,8 @@ export function EvaluationResultPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user } = useSession()
-  const { evaluation, isLoading, isPolling, isFetching, error, refetch } = useEvaluationPolling(id)
+  const { evaluation, isLoading, isPaused, isPolling, isFetching, error, refetch } =
+    useEvaluationPolling(id)
   const hasAccount = user !== null
   const savedApi = (location.state as ResultLocationState | null)?.savedApi
 
@@ -165,7 +166,14 @@ export function EvaluationResultPage() {
     navigate(location, { replace: true, state })
   }
 
-  if (isLoading) return <ResultSkeleton />
+  if (isLoading) {
+    return (
+      <>
+        {isPaused ? <Notice title="Aguardando a conexão para carregar a avaliação." /> : null}
+        <ResultSkeleton />
+      </>
+    )
+  }
 
   if (!evaluation) {
     return (

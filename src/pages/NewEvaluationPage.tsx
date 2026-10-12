@@ -140,12 +140,9 @@ function EvaluationForm({ initialType, initialApi, restoresDraft }: EvaluationFo
 
   const mutation = useMutation({
     mutationFn: submitEvaluation,
-    onSuccess: ({ evaluationId, state }) => {
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: [EVALUATION_HISTORY_KEY] })
       void queryClient.invalidateQueries({ queryKey: [SAVED_APIS_KEY] })
-
-      submitted.current = true
-      navigate(evaluationPath(evaluationId), { state })
     },
   })
 
@@ -185,6 +182,10 @@ function EvaluationForm({ initialType, initialApi, restoresDraft }: EvaluationFo
 
     setRejection(null)
     mutation.mutate(result, {
+      onSuccess: ({ evaluationId, state }) => {
+        submitted.current = true
+        navigate(evaluationPath(evaluationId), { state })
+      },
       onError: (error) => {
         if (!(error instanceof ApiError) || error.issues.length === 0) return
 

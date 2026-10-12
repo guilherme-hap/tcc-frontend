@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { LayoutDashboard } from 'lucide-react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AccountTip } from '../components/account/AccountTip'
 import { ContractSection } from '../components/result/ContractSection'
 import { PerformanceSection } from '../components/result/PerformanceSection'
@@ -154,10 +154,16 @@ function SinglePillarResult({ evaluation, isActive }: ResultBodyProps) {
 export function EvaluationResultPage() {
   const { id } = useParams()
   const location = useLocation()
+  const navigate = useNavigate()
   const { user } = useSession()
   const { evaluation, isLoading, isPolling, isFetching, error, refetch } = useEvaluationPolling(id)
   const hasAccount = user !== null
-  const savedApiFailed = (location.state as ResultLocationState | null)?.savedApiFailed === true
+  const savedApi = (location.state as ResultLocationState | null)?.savedApi
+
+  const markApiSaved = () => {
+    const state: ResultLocationState = { savedApi: 'saved' }
+    navigate(location, { replace: true, state })
+  }
 
   if (isLoading) return <ResultSkeleton />
 
@@ -199,8 +205,10 @@ export function EvaluationResultPage() {
         evaluation={evaluation}
         isActive={isPolling}
         hasAccount={hasAccount}
+        apiSaved={savedApi === 'saved'}
+        onApiSaved={markApiSaved}
       />
-      {savedApiFailed && hasAccount ? (
+      {savedApi === 'failed' && hasAccount ? (
         <Notice tone="warning" title="A avaliação foi criada, mas a API não foi salva.">
           Use "Salvar API" acima para tentar de novo.
         </Notice>

@@ -24,16 +24,22 @@ const VISIBILITY_ICONS: Record<EvaluationVisibility, LucideIcon> = {
   anonymous: Link2,
 }
 
-type SaveStep = 'idle' | 'naming' | 'saved'
-
 interface ResultHeaderProps {
   evaluation: EvaluationRecord
   isActive: boolean
   hasAccount: boolean
+  apiSaved: boolean
+  onApiSaved: () => void
 }
 
-export function ResultHeader({ evaluation, isActive, hasAccount }: ResultHeaderProps) {
-  const [saveStep, setSaveStep] = useState<SaveStep>('idle')
+export function ResultHeader({
+  evaluation,
+  isActive,
+  hasAccount,
+  apiSaved,
+  onApiSaved,
+}: ResultHeaderProps) {
+  const [naming, setNaming] = useState(false)
   const { visibility } = evaluation
 
   return (
@@ -52,7 +58,7 @@ export function ResultHeader({ evaluation, isActive, hasAccount }: ResultHeaderP
           {VISIBILITY_LABELS[visibility]}
         </Badge>
         <div className="ml-auto flex flex-wrap gap-2">
-          {!hasAccount || saveStep === 'naming' ? null : saveStep === 'saved' ? (
+          {!hasAccount || naming ? null : apiSaved ? (
             <Link
               to={SAVED_APIS_PATH}
               className={`inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-success underline-offset-4 hover:underline ${FOCUS_RING}`}
@@ -61,7 +67,7 @@ export function ResultHeader({ evaluation, isActive, hasAccount }: ResultHeaderP
               API salva
             </Link>
           ) : (
-            <Button icon={Bookmark} onClick={() => setSaveStep('naming')}>
+            <Button icon={Bookmark} onClick={() => setNaming(true)}>
               Salvar API
             </Button>
           )}
@@ -75,11 +81,14 @@ export function ResultHeader({ evaluation, isActive, hasAccount }: ResultHeaderP
           )}
         </div>
       </div>
-      {hasAccount && saveStep === 'naming' ? (
+      {hasAccount && naming ? (
         <SaveApiPanel
           evaluation={evaluation}
-          onSaved={() => setSaveStep('saved')}
-          onCancel={() => setSaveStep('idle')}
+          onSaved={() => {
+            setNaming(false)
+            onApiSaved()
+          }}
+          onCancel={() => setNaming(false)}
         />
       ) : null}
       <dl className="grid grid-cols-1 gap-x-6 gap-y-1 text-[13px] sm:grid-cols-[auto_1fr] sm:gap-y-1.5">

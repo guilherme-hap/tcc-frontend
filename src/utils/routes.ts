@@ -16,7 +16,7 @@ export interface AuthRedirectState {
 }
 
 export interface ResultLocationState {
-  savedApiFailed?: boolean
+  savedApi?: 'saved' | 'failed'
 }
 
 export function newEvaluationPath(type: EvaluationType): string {

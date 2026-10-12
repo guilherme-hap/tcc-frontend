@@ -67,14 +67,16 @@ interface Rejection {
 
 async function submitEvaluation({ request, savedApi }: Submission) {
   const { evaluationId } = await createEvaluation(request)
-  if (!savedApi) return { evaluationId, savedApiFailed: false }
+  const state: ResultLocationState = {}
+  if (!savedApi) return { evaluationId, state }
 
   try {
     await createSavedApi(savedApi)
-    return { evaluationId, savedApiFailed: false }
+    state.savedApi = 'saved'
   } catch {
-    return { evaluationId, savedApiFailed: true }
+    state.savedApi = 'failed'
   }
+  return { evaluationId, state }
 }
 
 function hasLoadOptionError(errors: FormErrors): boolean {
@@ -121,11 +123,10 @@ function EvaluationForm({ initialType, initialApi }: EvaluationFormProps) {
 
   const mutation = useMutation({
     mutationFn: submitEvaluation,
-    onSuccess: ({ evaluationId, savedApiFailed }) => {
+    onSuccess: ({ evaluationId, state }) => {
       void queryClient.invalidateQueries({ queryKey: [EVALUATION_HISTORY_KEY] })
       void queryClient.invalidateQueries({ queryKey: [SAVED_APIS_KEY] })
 
-      const state: ResultLocationState = { savedApiFailed }
       navigate(evaluationPath(evaluationId), { state })
     },
   })

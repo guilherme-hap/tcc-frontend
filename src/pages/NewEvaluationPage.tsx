@@ -1,7 +1,7 @@
-import { useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Bookmark, Check, History, type LucideIcon } from 'lucide-react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AccountTip } from '../components/account/AccountTip'
 import { ContractRulesFields } from '../components/form/ContractRulesFields'
 import { LoadOptionsFields } from '../components/form/LoadOptionsFields'
@@ -11,6 +11,7 @@ import { TargetsField } from '../components/form/TargetsField'
 import { TypeSelector } from '../components/form/TypeSelector'
 import { WeightsFields } from '../components/form/WeightsFields'
 import { applySavedApi, buildSubmission } from '../components/form/accountState'
+import { clearFormDraft, readFormDraft, saveFormDraft } from '../components/form/formDraft'
 import { pruneErrors } from '../components/form/formErrors'
 import {
   MAX_TARGETS,
@@ -35,6 +36,7 @@ import {
   SAVED_API_PARAM,
   TYPE_PARAM,
   evaluationPath,
+  type RestoreDraftState,
   type ResultLocationState,
 } from '../utils/routes'
 
@@ -100,14 +102,18 @@ function FormSkeleton() {
 interface EvaluationFormProps {
   initialType: EvaluationType | undefined
   initialApi: SavedApi | null
+  restoresDraft: boolean
 }
 
-function EvaluationForm({ initialType, initialApi }: EvaluationFormProps) {
+function EvaluationForm({ initialType, initialApi, restoresDraft }: EvaluationFormProps) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user } = useSession()
   const { apis } = useSavedApis()
   const [form, setForm] = useState<EvaluationFormState>(() => {
+    const draft = restoresDraft ? readFormDraft() : null
+    if (draft) return draft
+
     const initial = createInitialFormState(initialType)
     return initialApi ? applySavedApi(initial, initialApi) : initial
   })
@@ -121,15 +127,30 @@ function EvaluationForm({ initialType, initialApi }: EvaluationFormProps) {
   const selectedApi = savedApis?.find((api) => api.id === form.savedApiId) ?? null
   const errors = rejection ? pruneErrors(rejection.errors, rejection.form, form) : {}
 
+  const leaving = useRef({ form, keepsDraft: false })
+  const submitted = useRef(false)
+
   const mutation = useMutation({
     mutationFn: submitEvaluation,
     onSuccess: ({ evaluationId, state }) => {
       void queryClient.invalidateQueries({ queryKey: [EVALUATION_HISTORY_KEY] })
       void queryClient.invalidateQueries({ queryKey: [SAVED_APIS_KEY] })
 
+      submitted.current = true
       navigate(evaluationPath(evaluationId), { state })
     },
   })
+
+  useEffect(() => {
+    leaving.current = { form, keepsDraft: !hasAccount }
+  })
+
+  useEffect(() => {
+    clearFormDraft()
+    return () => {
+      if (leaving.current.keepsDraft && !submitted.current) saveFormDraft(leaving.current.form)
+    }
+  }, [])
 
   const update = (patch: Partial<EvaluationFormState>) => {
     setForm((current) => ({ ...current, ...patch }))
@@ -303,6 +324,7 @@ function EvaluationForm({ initialType, initialApi }: EvaluationFormProps) {
 
 export function NewEvaluationPage() {
   const { user } = useSession()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const { apis, isLoading } = useSavedApis()
   const requestedApiId = user ? searchParams.get(SAVED_API_PARAM) : null
@@ -314,6 +336,7 @@ export function NewEvaluationPage() {
     <EvaluationForm
       initialType={TYPE_ORDER.find((type) => type === requestedType)}
       initialApi={apis?.find((api) => api.id === requestedApiId) ?? null}
+      restoresDraft={(location.state as RestoreDraftState | null)?.restoreDraft === true}
     />
   )
 }

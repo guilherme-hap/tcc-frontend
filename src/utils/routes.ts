@@ -15,6 +15,12 @@ export interface AuthRedirectState {
   from?: string
 }
 
+export interface RestoreDraftState {
+  restoreDraft?: boolean
+}
+
+export const RESTORE_DRAFT_STATE: RestoreDraftState = { restoreDraft: true }
+
 export interface ResultLocationState {
   savedApi?: 'saved' | 'failed'
 }

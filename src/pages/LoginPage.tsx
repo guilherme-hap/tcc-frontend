@@ -9,7 +9,12 @@ import { PasswordField } from '../components/ui/PasswordField'
 import { TextLink } from '../components/ui/TextLink'
 import { useSession } from '../hooks'
 import { ApiError, login, startSession } from '../services'
-import { HOME_PATH, REGISTER_PATH, type AuthRedirectState } from '../utils/routes'
+import {
+  HOME_PATH,
+  REGISTER_PATH,
+  RESTORE_DRAFT_STATE,
+  type AuthRedirectState,
+} from '../utils/routes'
 import { issuesByField } from '../utils/validation'
 
 const INVALID_CREDENTIALS_CODE = 'AUTH_INVALID_CREDENTIALS'
@@ -33,7 +38,9 @@ export function LoginPage() {
     },
   })
 
-  if (user) return <Navigate to={redirect?.from ?? HOME_PATH} replace />
+  if (user) {
+    return <Navigate to={redirect?.from ?? HOME_PATH} replace state={RESTORE_DRAFT_STATE} />
+  }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

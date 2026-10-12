@@ -12,6 +12,7 @@ import {
 
 interface LinkButtonProps {
   to: To
+  state?: unknown
   variant?: ButtonVariant
   size?: ButtonSize
   icon?: LucideIcon
@@ -22,6 +23,7 @@ interface LinkButtonProps {
 
 export function LinkButton({
   to,
+  state,
   variant = 'secondary',
   size = 'md',
   icon,
@@ -32,6 +34,7 @@ export function LinkButton({
   return (
     <Link
       to={to}
+      state={state}
       aria-label={label}
       className={`${BUTTON_BASE} ${BUTTON_SIZES[size]} ${BUTTON_VARIANTS[variant]} ${className}`}
     >

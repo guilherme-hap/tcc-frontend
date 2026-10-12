@@ -1,5 +1,5 @@
 import { LogOut, Plus } from 'lucide-react'
-import { Link, NavLink, Outlet, useMatch } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useMatch } from 'react-router-dom'
 import { useSession } from '../../hooks'
 import type { AuthUser } from '../../types'
 import {
@@ -11,6 +11,7 @@ import {
   NEW_EVALUATION_PATH,
   REGISTER_PATH,
   SAVED_APIS_PATH,
+  type AuthRedirectState,
 } from '../../utils/routes'
 import { LinkButton } from '../ui/LinkButton'
 import { FOCUS_RING } from '../ui/classes'
@@ -65,6 +66,9 @@ function AccountNav({ user, showNewEvaluation }: NavProps & { user: AuthUser }) 
 }
 
 function VisitorNav({ showNewEvaluation }: NavProps) {
+  const location = useLocation()
+  const state: AuthRedirectState = { from: `${location.pathname}${location.search}` }
+
   return (
     <nav aria-label="Principal" className="ml-auto flex flex-wrap items-center gap-2">
       {showNewEvaluation ? (
@@ -72,10 +76,12 @@ function VisitorNav({ showNewEvaluation }: NavProps) {
           Nova avaliação
         </LinkButton>
       ) : null}
-      <LinkButton to={LOGIN_PATH} variant="ghost">
+      <LinkButton to={LOGIN_PATH} state={state} variant="ghost">
         Entrar
       </LinkButton>
-      <LinkButton to={REGISTER_PATH}>Criar conta</LinkButton>
+      <LinkButton to={REGISTER_PATH} state={state}>
+        Criar conta
+      </LinkButton>
     </nav>
   )
 }

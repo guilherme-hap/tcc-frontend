@@ -1,4 +1,4 @@
-import { NEW_EVALUATION_PATH } from '../../utils/routes'
+import { NEW_EVALUATION_PATH, RESTORE_DRAFT_STATE } from '../../utils/routes'
 import { Button } from '../ui/Button'
 import { LinkButton } from '../ui/LinkButton'
 
@@ -18,7 +18,7 @@ export function AuthActions({ submitLabel, loading }: AuthActionsProps) {
         ou
         <span className="h-px flex-1 bg-border" />
       </div>
-      <LinkButton to={NEW_EVALUATION_PATH} size="lg" className="w-full">
+      <LinkButton to={NEW_EVALUATION_PATH} state={RESTORE_DRAFT_STATE} size="lg" className="w-full">
         Avaliar sem conta
       </LinkButton>
     </div>

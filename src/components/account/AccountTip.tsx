@@ -1,7 +1,8 @@
 import { useId, type ReactNode } from 'react'
 import { Lightbulb, X } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { useDismissedTip, type TipId } from '../../hooks'
-import { LOGIN_PATH, REGISTER_PATH } from '../../utils/routes'
+import { LOGIN_PATH, REGISTER_PATH, type AuthRedirectState } from '../../utils/routes'
 import { Icon } from '../ui/Icon'
 import { IconButton } from '../ui/IconButton'
 import { LinkButton } from '../ui/LinkButton'
@@ -28,10 +29,15 @@ function TipIcon() {
 }
 
 function TipLinks() {
+  const location = useLocation()
+  const state: AuthRedirectState = { from: `${location.pathname}${location.search}` }
+
   return (
     <>
-      <LinkButton to={REGISTER_PATH}>Criar conta</LinkButton>
-      <LinkButton to={LOGIN_PATH} variant="ghost">
+      <LinkButton to={REGISTER_PATH} state={state}>
+        Criar conta
+      </LinkButton>
+      <LinkButton to={LOGIN_PATH} state={state} variant="ghost">
         Entrar
       </LinkButton>
     </>

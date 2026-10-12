@@ -28,9 +28,13 @@ export function applySavedApi(
   api: SavedApi | null,
 ): EvaluationFormState {
   const options = api?.defaultSettings?.loadTestOptions
+  const ruleSetWeights = form.ruleSetId
+    ? { customSeverityWeights: false, severityWeights: DEFAULT_SEVERITY_WEIGHTS }
+    : {}
 
   return {
     ...form,
+    ...ruleSetWeights,
     savedApiId: api?.id ?? '',
     saveApi: false,
     savedApiName: '',

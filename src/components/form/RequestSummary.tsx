@@ -9,6 +9,7 @@ import { Kbd } from '../ui/Kbd'
 import { KeyValue, type KeyValueItem } from '../ui/KeyValue'
 import { Notice } from '../ui/Notice'
 import { Panel } from '../ui/Panel'
+import { describeRules } from './describe'
 import {
   MAX_TARGETS,
   MAX_TOTAL_DURATION_SECONDS,
@@ -42,12 +43,7 @@ function buildFacts(form: EvaluationFormState, account: SummaryAccount | null): 
   }
 
   if (usesContractRules(form.type)) {
-    const changed = Object.keys(form.rulesConfig).length
-    facts.push({
-      label: 'Regras do contrato',
-      value:
-        changed === 0 ? 'Padrões' : `${changed} ${changed === 1 ? 'alterada' : 'alteradas'}`,
-    })
+    facts.push({ label: 'Regras do contrato', value: describeRules(form) })
   }
 
   if (usesTargets(form.type)) {

@@ -100,8 +100,18 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   tall?: boolean
 }
 
-export function TextField({ id, label, optional, hint, error, suffix, ...props }: TextFieldProps) {
-  const hasMessage = Boolean(error || hint)
+export function TextField({
+  id,
+  label,
+  optional,
+  hint,
+  error,
+  suffix,
+  'aria-invalid': invalid,
+  'aria-describedby': describedBy,
+  ...props
+}: TextFieldProps) {
+  const messageId = error || hint ? `${id}-message` : undefined
 
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
@@ -112,9 +122,9 @@ export function TextField({ id, label, optional, hint, error, suffix, ...props }
       <div className="flex items-center gap-2">
         <TextInput
           id={id}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={hasMessage ? `${id}-message` : undefined}
           {...props}
+          aria-invalid={error ? true : invalid}
+          aria-describedby={[describedBy, messageId].filter(Boolean).join(' ') || undefined}
         />
         {suffix ? <span className="shrink-0 text-ink-secondary">{suffix}</span> : null}
       </div>

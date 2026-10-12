@@ -1,5 +1,5 @@
 import { History, Link2, Play } from 'lucide-react'
-import type { PillarName } from '../../types'
+import type { IValidationIssue, PillarName } from '../../types'
 import { formatNumber } from '../../utils/format'
 import { EXECUTION_STEPS, PILLARS_BY_TYPE, PILLAR_LABELS, TYPE_LABELS } from '../../utils/labels'
 import { Button } from '../ui/Button'
@@ -76,7 +76,7 @@ interface RequestSummaryProps {
   hasErrors: boolean
   isSending: boolean
   submitError: string | null
-  submitDetails: string[]
+  submitDetails: IValidationIssue[]
 }
 
 export function RequestSummary({
@@ -144,8 +144,11 @@ export function RequestSummary({
             </p>
             {submitDetails.length > 0 ? (
               <ul className="mt-2 flex list-disc flex-col gap-1 pl-4">
-                {submitDetails.map((detail) => (
-                  <li key={detail}>{detail}</li>
+                {submitDetails.map((issue, index) => (
+                  <li key={index}>
+                    {issue.path ? <span className="font-mono text-[13px]">{issue.path}: </span> : null}
+                    {issue.message}
+                  </li>
                 ))}
               </ul>
             ) : null}

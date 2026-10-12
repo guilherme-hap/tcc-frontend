@@ -30,7 +30,13 @@ import { Panel } from '../components/ui/Panel'
 import { GLASS } from '../components/ui/classes'
 import { EVALUATION_HISTORY_KEY, SAVED_APIS_KEY, useSavedApis, useSession } from '../hooks'
 import { ApiError, createEvaluation, createSavedApi } from '../services'
-import type { EvaluationRequest, EvaluationType, SavedApi, SavedApiInput } from '../types'
+import type {
+  EvaluationRequest,
+  EvaluationType,
+  IValidationIssue,
+  SavedApi,
+  SavedApiInput,
+} from '../types'
 import { TYPE_ORDER } from '../utils/labels'
 import {
   SAVED_API_PARAM,
@@ -120,7 +126,7 @@ function EvaluationForm({ initialType, initialApi, restoresDraft }: EvaluationFo
   const [rejection, setRejection] = useState<Rejection | null>(null)
   const [loadOptionsOpen, setLoadOptionsOpen] = useState(false)
   const [contractRulesOpen, setContractRulesOpen] = useState(false)
-  const [submitDetails, setSubmitDetails] = useState<string[]>([])
+  const [submitDetails, setSubmitDetails] = useState<IValidationIssue[]>([])
 
   const hasAccount = user !== null
   const savedApis = hasAccount ? (apis ?? []) : null
@@ -184,7 +190,7 @@ function EvaluationForm({ initialType, initialApi, restoresDraft }: EvaluationFo
 
         const mapped = mapServerIssues(form, error.issues)
         revealErrors(mapped.errors)
-        setSubmitDetails(mapped.unmatched.map((issue) => issue.message))
+        setSubmitDetails(mapped.unmatched)
       },
     })
   }

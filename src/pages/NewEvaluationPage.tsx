@@ -166,9 +166,13 @@ function EvaluationForm({ initialType, initialApi }: EvaluationFormProps) {
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
-    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+    if (event.key !== 'Enter') return
+
+    if (event.ctrlKey || event.metaKey) {
       event.preventDefault()
       event.currentTarget.requestSubmit()
+    } else if (event.target instanceof HTMLInputElement) {
+      event.preventDefault()
     }
   }
 

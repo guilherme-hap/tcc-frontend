@@ -11,6 +11,7 @@ import { TargetsField } from '../components/form/TargetsField'
 import { TypeSelector } from '../components/form/TypeSelector'
 import { WeightsFields } from '../components/form/WeightsFields'
 import { applySavedApi, buildSubmission } from '../components/form/accountState'
+import { pruneErrors } from '../components/form/formErrors'
 import {
   MAX_TARGETS,
   createInitialFormState,
@@ -59,6 +60,11 @@ interface Submission {
   savedApi: SavedApiInput | null
 }
 
+interface Rejection {
+  form: EvaluationFormState
+  errors: FormErrors
+}
+
 async function submitEvaluation({ request, savedApi }: Submission) {
   const { evaluationId } = await createEvaluation(request)
   if (!savedApi) return { evaluationId, savedApiFailed: false }
@@ -103,7 +109,7 @@ function EvaluationForm({ initialType, initialApi }: EvaluationFormProps) {
     const initial = createInitialFormState(initialType)
     return initialApi ? applySavedApi(initial, initialApi) : initial
   })
-  const [errors, setErrors] = useState<FormErrors>({})
+  const [rejection, setRejection] = useState<Rejection | null>(null)
   const [loadOptionsOpen, setLoadOptionsOpen] = useState(false)
   const [contractRulesOpen, setContractRulesOpen] = useState(false)
   const [submitDetails, setSubmitDetails] = useState<string[]>([])
@@ -111,6 +117,7 @@ function EvaluationForm({ initialType, initialApi }: EvaluationFormProps) {
   const hasAccount = user !== null
   const savedApis = hasAccount ? (apis ?? []) : null
   const selectedApi = savedApis?.find((api) => api.id === form.savedApiId) ?? null
+  const errors = rejection ? pruneErrors(rejection.errors, rejection.form, form) : {}
 
   const mutation = useMutation({
     mutationFn: submitEvaluation,
@@ -128,7 +135,7 @@ function EvaluationForm({ initialType, initialApi }: EvaluationFormProps) {
   }
 
   const revealErrors = (next: FormErrors) => {
-    setErrors(next)
+    setRejection({ form, errors: next })
     if (hasLoadOptionError(next)) setLoadOptionsOpen(true)
     if (next.severityWeights) setContractRulesOpen(true)
   }
@@ -146,7 +153,7 @@ function EvaluationForm({ initialType, initialApi }: EvaluationFormProps) {
       return
     }
 
-    setErrors({})
+    setRejection(null)
     mutation.mutate(result, {
       onError: (error) => {
         if (!(error instanceof ApiError) || error.issues.length === 0) return

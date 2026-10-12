@@ -23,7 +23,7 @@ const MASKED_HEADER_VALUE = '••••••••'
 
 const MUTATING_METHODS: HttpMethod[] = ['POST', 'PUT', 'PATCH', 'DELETE']
 const BODY_METHODS: HttpMethod[] = ['POST', 'PUT', 'PATCH']
-const WEIGHT_SUM_TOLERANCE = 0.1
+const WEIGHT_SUM_TOLERANCE = 0.001
 const HEADER_NAME_PATTERN = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/
 const SERVER_HEADERS_PATH = 'loadTestOptions.headers.'
 const DECIMAL_PATTERN = /^\d+(?:[.,]\d+)?$/
@@ -274,7 +274,8 @@ function buildWeights(form: EvaluationFormState, errors: FormErrors): PillarWeig
     weights[pillar] = value / 100
   }
 
-  if (Math.abs(sumWeights(form.weights) - 100) > WEIGHT_SUM_TOLERANCE) {
+  const sum = pillars.reduce((total, pillar) => total + (weights[pillar] ?? 0), 0)
+  if (Math.abs(sum - 1) > WEIGHT_SUM_TOLERANCE) {
     errors.weights = 'Os pesos precisam somar 100%.'
     return undefined
   }

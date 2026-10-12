@@ -14,6 +14,8 @@ import {
   type AuthRedirectState,
 } from '../../utils/routes'
 import { LinkButton } from '../ui/LinkButton'
+import { Notice } from '../ui/Notice'
+import { TextLink } from '../ui/TextLink'
 import { FOCUS_RING } from '../ui/classes'
 
 const NAV_ITEMS = [
@@ -86,8 +88,22 @@ function VisitorNav({ showNewEvaluation }: NavProps) {
   )
 }
 
+function ExpiredSessionNotice() {
+  const location = useLocation()
+  const state: AuthRedirectState = { from: `${location.pathname}${location.search}` }
+
+  return (
+    <Notice tone="warning" title="A sessão expirou.">
+      Você continua como visitante: novas avaliações ficam anônimas e fora do histórico.{' '}
+      <TextLink to={LOGIN_PATH} state={state} inline>
+        Entrar de novo
+      </TextLink>
+    </Notice>
+  )
+}
+
 export function AppShell() {
-  const { user } = useSession()
+  const { user, expired } = useSession()
   const isHome = useMatch(HOME_PATH) !== null
   const isNew = useMatch(NEW_EVALUATION_PATH) !== null
   const isResult = useMatch(EVALUATION_PATH_PATTERN) !== null && !isNew
@@ -126,6 +142,7 @@ export function AppShell() {
         </div>
       </header>
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pt-6 pb-10 sm:px-6">
+        {expired && !user ? <ExpiredSessionNotice /> : null}
         <Outlet />
       </main>
     </div>

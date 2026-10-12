@@ -24,9 +24,12 @@ import {
   type FormErrors,
 } from '../components/form/formState'
 import { Badge } from '../components/ui/Badge'
+import { Button } from '../components/ui/Button'
 import { CheckboxField } from '../components/ui/Field'
 import { Icon } from '../components/ui/Icon'
+import { Notice } from '../components/ui/Notice'
 import { Panel } from '../components/ui/Panel'
+import { TextLink } from '../components/ui/TextLink'
 import { GLASS } from '../components/ui/classes'
 import { EVALUATION_HISTORY_KEY, SAVED_APIS_KEY, useSavedApis, useSession } from '../hooks'
 import { ApiError, createEvaluation, createSavedApi } from '../services'
@@ -39,9 +42,11 @@ import type {
 } from '../types'
 import { TYPE_ORDER } from '../utils/labels'
 import {
+  NEW_EVALUATION_PATH,
   SAVED_API_PARAM,
   TYPE_PARAM,
   evaluationPath,
+  newEvaluationPath,
   type RestoreDraftState,
   type ResultLocationState,
 } from '../utils/routes'
@@ -105,13 +110,41 @@ function FormSkeleton() {
   )
 }
 
+interface SavedApiLoadErrorProps {
+  message: string | null
+  type: EvaluationType | undefined
+  onRetry: () => void
+}
+
+function SavedApiLoadError({ message, type, onRetry }: SavedApiLoadErrorProps) {
+  return (
+    <>
+      <Notice tone="error" title="Não foi possível carregar a API salva deste link.">
+        {message ?? 'Sem resposta do servidor do auditor.'}
+      </Notice>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <Button onClick={onRetry}>Tentar de novo</Button>
+        <TextLink to={type ? newEvaluationPath(type) : NEW_EVALUATION_PATH}>
+          Continuar sem a API salva
+        </TextLink>
+      </div>
+    </>
+  )
+}
+
 interface EvaluationFormProps {
   initialType: EvaluationType | undefined
   initialApi: SavedApi | null
+  missingApi: boolean
   restoresDraft: boolean
 }
 
-function EvaluationForm({ initialType, initialApi, restoresDraft }: EvaluationFormProps) {
+function EvaluationForm({
+  initialType,
+  initialApi,
+  missingApi,
+  restoresDraft,
+}: EvaluationFormProps) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user } = useSession()
@@ -219,6 +252,12 @@ function EvaluationForm({ initialType, initialApi, restoresDraft }: EvaluationFo
             : 'Informe a especificação OpenAPI e a URL base da API. A avaliação roda em segundo plano e o resultado aparece assim que terminar.'}
         </p>
       </div>
+
+      {missingApi ? (
+        <Notice tone="warning" title="A API salva deste link não foi encontrada na conta.">
+          Ela pode ter sido excluída. Preencha os campos à mão ou escolha outra API salva.
+        </Notice>
+      ) : null}
 
       <form
         noValidate
@@ -335,16 +374,25 @@ export function NewEvaluationPage() {
   const { user } = useSession()
   const location = useLocation()
   const [searchParams] = useSearchParams()
-  const { apis, isLoading } = useSavedApis()
-  const requestedApiId = user ? searchParams.get(SAVED_API_PARAM) : null
+  const { apis, isLoading, error, refetch } = useSavedApis()
+  const apiParam = searchParams.get(SAVED_API_PARAM)
+  const requestedApiId = user ? apiParam : null
   const requestedType = searchParams.get(TYPE_PARAM)
+  const initialType = TYPE_ORDER.find((type) => type === requestedType)
 
   if (requestedApiId && isLoading) return <FormSkeleton />
+  if (requestedApiId && !apis) {
+    return <SavedApiLoadError message={error} type={initialType} onRetry={refetch} />
+  }
+
+  const initialApi = apis?.find((api) => api.id === requestedApiId) ?? null
 
   return (
     <EvaluationForm
-      initialType={TYPE_ORDER.find((type) => type === requestedType)}
-      initialApi={apis?.find((api) => api.id === requestedApiId) ?? null}
+      key={`${requestedType ?? ''}|${apiParam ?? ''}`}
+      initialType={initialType}
+      initialApi={initialApi}
+      missingApi={requestedApiId !== null && initialApi === null}
       restoresDraft={(location.state as RestoreDraftState | null)?.restoreDraft === true}
     />
   )

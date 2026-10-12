@@ -11,6 +11,7 @@ import { ScoreSummary } from '../components/result/ScoreSummary'
 import { ScoringParameters } from '../components/result/ScoringParameters'
 import { SecuritySection } from '../components/result/SecuritySection'
 import { StatusNotice } from '../components/result/StatusNotice'
+import { Button } from '../components/ui/Button'
 import { Notice } from '../components/ui/Notice'
 import { Tabs, type TabItem } from '../components/ui/Tabs'
 import { FOCUS_RING, GLASS } from '../components/ui/classes'
@@ -154,20 +155,23 @@ export function EvaluationResultPage() {
   const { id } = useParams()
   const location = useLocation()
   const { user } = useSession()
-  const { evaluation, isLoading, isPolling, error } = useEvaluationPolling(id)
+  const { evaluation, isLoading, isPolling, isFetching, error, refetch } = useEvaluationPolling(id)
   const hasAccount = user !== null
   const savedApiFailed = (location.state as ResultLocationState | null)?.savedApiFailed === true
 
   if (isLoading) return <ResultSkeleton />
 
-  if (error || !evaluation) {
+  if (!evaluation) {
     return (
       <>
         <Notice tone="error" title="Não foi possível carregar a avaliação.">
           {error ?? 'Avaliação não encontrada.'}
           {hasAccount ? null : ' Se ela foi criada com uma conta, entre para abrir o resultado.'}
         </Notice>
-        <div className="flex flex-wrap gap-x-5 gap-y-2">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <Button loading={isFetching} onClick={refetch}>
+            Tentar de novo
+          </Button>
           {hasAccount ? null : (
             <Link
               to={LOGIN_PATH}
@@ -199,6 +203,11 @@ export function EvaluationResultPage() {
       {savedApiFailed && hasAccount ? (
         <Notice tone="warning" title="A avaliação foi criada, mas a API não foi salva.">
           Use "Salvar API" acima para tentar de novo.
+        </Notice>
+      ) : null}
+      {error ? (
+        <Notice tone="warning" title="Não foi possível atualizar o resultado.">
+          {error} Os dados abaixo são da última atualização; a página continua tentando.
         </Notice>
       ) : null}
       <StatusNotice evaluation={evaluation} />

@@ -10,7 +10,9 @@ export interface UseEvaluationPollingResult {
   evaluation: EvaluationRecord | undefined
   isLoading: boolean
   isPolling: boolean
+  isFetching: boolean
   error: string | null
+  refetch: () => void
 }
 
 export function useEvaluationPolling(
@@ -23,13 +25,10 @@ export function useEvaluationPolling(
     enabled: !!evaluationId,
     refetchIntervalInBackground: false,
     refetchInterval: (queryState) => {
-      const hasError = queryState.state.status === 'error'
-      if (hasError) return false
+      const { data, status } = queryState.state
+      if (!data) return status === 'error' ? false : POLLING_INTERVAL_MS
 
-      const latestStatus = queryState.state.data?.status
-      if (!latestStatus) return POLLING_INTERVAL_MS
-
-      return isStatusActive(latestStatus) ? POLLING_INTERVAL_MS : false
+      return isStatusActive(data.status) ? POLLING_INTERVAL_MS : false
     },
   })
 
@@ -40,6 +39,8 @@ export function useEvaluationPolling(
     evaluation: query.data,
     isLoading: query.isLoading,
     isPolling,
+    isFetching: query.isFetching,
     error: query.error?.message ?? null,
+    refetch: () => void query.refetch(),
   }
 }

@@ -110,7 +110,7 @@ function EvaluationForm({ initialType, initialApi, restoresDraft }: EvaluationFo
   const queryClient = useQueryClient()
   const { user } = useSession()
   const { apis } = useSavedApis()
-  const [form, setForm] = useState<EvaluationFormState>(() => {
+  const [enteredForm, setEnteredForm] = useState<EvaluationFormState>(() => {
     const draft = restoresDraft ? readFormDraft() : null
     if (draft) return draft
 
@@ -124,7 +124,9 @@ function EvaluationForm({ initialType, initialApi, restoresDraft }: EvaluationFo
 
   const hasAccount = user !== null
   const savedApis = hasAccount ? (apis ?? []) : null
-  const selectedApi = savedApis?.find((api) => api.id === form.savedApiId) ?? null
+  const selectedApi = savedApis?.find((api) => api.id === enteredForm.savedApiId) ?? null
+  const form =
+    selectedApi || !enteredForm.savedApiId ? enteredForm : { ...enteredForm, savedApiId: '' }
   const errors = rejection ? pruneErrors(rejection.errors, rejection.form, form) : {}
 
   const leaving = useRef({ form, keepsDraft: false })
@@ -153,7 +155,7 @@ function EvaluationForm({ initialType, initialApi, restoresDraft }: EvaluationFo
   }, [])
 
   const update = (patch: Partial<EvaluationFormState>) => {
-    setForm((current) => ({ ...current, ...patch }))
+    setEnteredForm((current) => ({ ...current, ...patch }))
   }
 
   const revealErrors = (next: FormErrors) => {

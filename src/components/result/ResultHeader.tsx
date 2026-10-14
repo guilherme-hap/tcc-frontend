@@ -3,7 +3,7 @@ import { ArrowLeft, Bookmark, Check, Download, Link2, Lock, type LucideIcon } fr
 import { Link } from 'react-router-dom'
 import type { EvaluationRecord, EvaluationVisibility } from '../../types'
 import { downloadJson } from '../../utils/download'
-import { formatDateTime } from '../../utils/format'
+import { formatDateTime, formatDuration } from '../../utils/format'
 import { TYPE_TITLES, VISIBILITY_LABELS } from '../../utils/labels'
 import { HISTORY_PATH, SAVED_APIS_PATH } from '../../utils/routes'
 import { Badge, type BadgeTone } from '../ui/Badge'
@@ -25,6 +25,10 @@ const VISIBILITY_ICONS: Record<EvaluationVisibility, LucideIcon> = {
   anonymous: Link2,
 }
 
+function executionTime({ startedAt, finishedAt }: EvaluationRecord): number | null {
+  return startedAt && finishedAt ? Date.parse(finishedAt) - Date.parse(startedAt) : null
+}
+
 interface ResultHeaderProps {
   evaluation: EvaluationRecord
   isActive: boolean
@@ -42,6 +46,7 @@ export function ResultHeader({
 }: ResultHeaderProps) {
   const [naming, setNaming] = useState(false)
   const { visibility, passed } = evaluation
+  const elapsed = executionTime(evaluation)
 
   return (
     <div className="flex flex-col gap-3">
@@ -104,6 +109,12 @@ export function ResultHeader({
         ) : null}
         <dt className="text-ink-secondary">Criada em</dt>
         <dd className="font-mono text-ink tabular-nums">{formatDateTime(evaluation.createdAt)}</dd>
+        {elapsed === null ? null : (
+          <>
+            <dt className="text-ink-secondary max-sm:mt-1.5">Tempo de execução</dt>
+            <dd className="font-mono text-ink tabular-nums">{formatDuration(elapsed)}</dd>
+          </>
+        )}
       </dl>
     </div>
   )

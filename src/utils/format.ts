@@ -1,4 +1,5 @@
 const LOCALE = 'pt-BR'
+const MILLISECONDS_PER_MINUTE = 60_000
 
 export function formatNumber(value: number, maximumFractionDigits = 2): string {
   return value.toLocaleString(LOCALE, { maximumFractionDigits })
@@ -15,6 +16,13 @@ export function formatPercent(fraction: number, maximumFractionDigits = 1): stri
 export function formatMilliseconds(value: number): string {
   if (value >= 1000) return `${formatNumber(value / 1000)} s`
   return `${formatNumber(value, 1)} ms`
+}
+
+export function formatDuration(milliseconds: number): string {
+  if (milliseconds < MILLISECONDS_PER_MINUTE) return formatMilliseconds(milliseconds)
+
+  const seconds = Math.round(milliseconds / 1000)
+  return `${formatNumber(Math.floor(seconds / 60))} min ${seconds % 60} s`
 }
 
 export function formatDateTime(iso: string): string {

@@ -114,6 +114,8 @@ export interface EvaluationRecord {
   failedPillars: IFailedPillar[] | null
   errorMessage: string | null
   errorCode: string | null
+  startedAt: string | null
+  finishedAt: string | null
   createdAt: string
   updatedAt: string
 }

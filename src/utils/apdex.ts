@@ -1,0 +1,1 @@
+export const FRUSTRATED_MULTIPLIER = 4

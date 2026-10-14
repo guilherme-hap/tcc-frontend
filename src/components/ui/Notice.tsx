@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { CircleX, Info, LoaderCircle, TriangleAlert, type LucideIcon } from 'lucide-react'
 import { Icon } from './Icon'
-import { GLASS } from './classes'
+import { CARD } from './classes'
 
 type NoticeTone = 'info' | 'warning' | 'error'
 
@@ -40,7 +40,7 @@ export function Notice({ tone = 'info', title, busy = false, children }: NoticeP
   return (
     <div
       role={tone === 'error' ? 'alert' : 'status'}
-      className={`flex gap-3 px-4 py-3 ${GLASS} ${BORDER_CLASSES[tone]}`}
+      className={`flex gap-3 px-4 py-3 ${CARD} ${BORDER_CLASSES[tone]}`}
     >
       <span className={`flex h-5 items-center ${ICON_CLASSES[tone]}`}>
         <Icon

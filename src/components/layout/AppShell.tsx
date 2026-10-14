@@ -13,10 +13,11 @@ import {
   SAVED_APIS_PATH,
   type AuthRedirectState,
 } from '../../utils/routes'
+import { BrandMark } from '../ui/BrandMark'
 import { LinkButton } from '../ui/LinkButton'
 import { Notice } from '../ui/Notice'
 import { TextLink } from '../ui/TextLink'
-import { FOCUS_RING } from '../ui/classes'
+import { FOCUS_RING, PAGE_CONTAINER } from '../ui/classes'
 
 const NAV_ITEMS = [
   { to: HOME_PATH, label: 'Início' },
@@ -37,7 +38,7 @@ function AccountNav({ user, showNewEvaluation }: NavProps & { user: AuthUser }) 
             key={item.to}
             to={item.to}
             end
-            className={`inline-flex h-8 items-center rounded-md px-2.5 text-[13px] font-medium text-ink-secondary transition-colors duration-150 hover:text-ink aria-[current=page]:bg-glass-raised aria-[current=page]:text-ink ${FOCUS_RING}`}
+            className={`inline-flex h-8 items-center rounded-md px-2.5 text-[13px] font-medium text-ink-secondary transition-colors duration-150 hover:text-ink aria-[current=page]:bg-surface-raised aria-[current=page]:text-ink ${FOCUS_RING}`}
           >
             {item.label}
           </NavLink>
@@ -45,7 +46,7 @@ function AccountNav({ user, showNewEvaluation }: NavProps & { user: AuthUser }) 
       </nav>
       <div className="ml-auto flex min-w-0 flex-wrap items-center gap-2">
         {showNewEvaluation ? (
-          <LinkButton to={NEW_EVALUATION_PATH} icon={Plus}>
+          <LinkButton to={NEW_EVALUATION_PATH} variant="primary" icon={Plus}>
             Nova avaliação
           </LinkButton>
         ) : null}
@@ -74,7 +75,7 @@ function VisitorNav({ showNewEvaluation }: NavProps) {
   return (
     <nav aria-label="Principal" className="ml-auto flex flex-wrap items-center gap-2">
       {showNewEvaluation ? (
-        <LinkButton to={NEW_EVALUATION_PATH} icon={Plus}>
+        <LinkButton to={NEW_EVALUATION_PATH} variant="primary" icon={Plus}>
           Nova avaliação
         </LinkButton>
       ) : null}
@@ -111,15 +112,16 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen">
-      <header className="z-10 border-b border-border bg-bg/70 backdrop-blur-overlay sm:sticky sm:top-0">
+      <header className="z-10 border-b border-border bg-surface/70 backdrop-blur-overlay sm:sticky sm:top-0">
         <div
-          className={`mx-auto flex min-h-14 w-full max-w-7xl flex-wrap items-center gap-y-2 px-4 py-2.5 sm:px-6 ${user ? 'gap-x-5' : 'gap-x-3'}`}
+          className={`mx-auto flex min-h-13 w-full flex-wrap items-center gap-y-2 px-4 py-2 sm:px-6 ${isResult ? '' : 'max-w-7xl'} ${user ? 'gap-x-5' : 'gap-x-3'}`}
         >
           <Link
             to={HOME_PATH}
             aria-current={!user && isHome ? 'page' : undefined}
-            className={`rounded-sm font-display text-[15px] font-semibold tracking-[-0.01em] text-ink ${FOCUS_RING}`}
+            className={`inline-flex items-center gap-2.5 rounded-sm text-[15px] font-bold text-ink [font-variation-settings:"wdth"_108] ${FOCUS_RING}`}
           >
+            <BrandMark />
             Auditor de APIs
           </Link>
           {user ? (
@@ -141,8 +143,16 @@ export function AppShell() {
           )}
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pt-6 pb-10 sm:px-6">
-        {expired && !user ? <ExpiredSessionNotice /> : null}
+      <main className={isResult ? 'flex w-full flex-col' : PAGE_CONTAINER}>
+        {expired && !user ? (
+          isResult ? (
+            <div className="px-4 pt-4 sm:px-6">
+              <ExpiredSessionNotice />
+            </div>
+          ) : (
+            <ExpiredSessionNotice />
+          )
+        ) : null}
         <Outlet />
       </main>
     </div>

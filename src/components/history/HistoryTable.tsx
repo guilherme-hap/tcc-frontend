@@ -23,10 +23,10 @@ function ScoreCell({ score }: ScoreCellProps) {
       </span>
       <span
         aria-hidden="true"
-        className="h-1.5 flex-1 overflow-hidden rounded-full bg-glass-raised"
+        className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-raised"
       >
         <span
-          className="block h-full rounded-full bg-linear-to-r from-accent to-accent-ink"
+          className="block h-full rounded-full bg-measure"
           style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
         />
       </span>

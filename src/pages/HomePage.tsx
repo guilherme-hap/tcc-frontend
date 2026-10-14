@@ -7,7 +7,7 @@ import { Icon } from '../components/ui/Icon'
 import { LinkButton } from '../components/ui/LinkButton'
 import { Notice } from '../components/ui/Notice'
 import { Panel } from '../components/ui/Panel'
-import { FOCUS_RING, GLASS, ICON_TILE, OVERLINE } from '../components/ui/classes'
+import { FOCUS_RING, CARD, ICON_TILE, OVERLINE } from '../components/ui/classes'
 import { useSession } from '../hooks'
 import { TYPE_ICONS } from '../utils/icons'
 import { TYPE_INPUTS, TYPE_ORDER, TYPE_SUMMARIES, TYPE_TITLES } from '../utils/labels'
@@ -87,7 +87,7 @@ export function HomePage() {
               <li key={step.title} className="flex items-start gap-3">
                 <span
                   aria-hidden="true"
-                  className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-glass-raised font-mono text-xs font-medium text-ink-secondary"
+                  className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-surface-raised font-mono text-xs font-medium text-ink-secondary"
                 >
                   {index + 1}
                 </span>
@@ -139,7 +139,7 @@ export function HomePage() {
             <li key={type} className="flex min-w-0">
               <Link
                 to={newEvaluationPath(type)}
-                className={`group flex min-w-0 flex-1 flex-col gap-3 border-border p-4 hover:border-border-hover hover:bg-glass-raised ${GLASS} ${FOCUS_RING}`}
+                className={`group flex min-w-0 flex-1 flex-col gap-3 border-border p-4 hover:border-border-hover hover:bg-surface-raised ${CARD} ${FOCUS_RING}`}
               >
                 <span className="flex items-center justify-between gap-3">
                   <span aria-hidden="true" className={ICON_TILE}>

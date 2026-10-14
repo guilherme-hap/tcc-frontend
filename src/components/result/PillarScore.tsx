@@ -10,7 +10,7 @@ export function PillarScore({ score }: PillarScoreProps) {
   return (
     <p className="inline-flex items-baseline gap-2 text-[13px] text-ink-secondary">
       Nota
-      <span className="font-mono text-xl leading-6 font-semibold text-ink tabular-nums">
+      <span className="num text-2xl leading-6 text-ink">
         {formatNumber(score)}
       </span>
     </p>

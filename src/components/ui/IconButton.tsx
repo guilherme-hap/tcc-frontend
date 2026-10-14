@@ -13,8 +13,8 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
 
 const VARIANT_CLASSES: Record<IconButtonVariant, string> = {
   ghost:
-    'text-ink-secondary hover:bg-glass-raised hover:text-ink disabled:hover:bg-transparent disabled:hover:text-ink-secondary',
-  outline: 'border border-border bg-glass-raised text-ink hover:border-border-hover',
+    'text-ink-secondary hover:bg-surface-raised hover:text-ink disabled:hover:bg-transparent disabled:hover:text-ink-secondary',
+  outline: 'border border-border bg-surface-raised text-ink hover:border-border-hover',
 }
 
 export function IconButton({

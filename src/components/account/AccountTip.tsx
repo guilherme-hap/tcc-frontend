@@ -6,7 +6,6 @@ import { LOGIN_PATH, REGISTER_PATH, type AuthRedirectState } from '../../utils/r
 import { Icon } from '../ui/Icon'
 import { IconButton } from '../ui/IconButton'
 import { LinkButton } from '../ui/LinkButton'
-import { OVERLINE } from '../ui/classes'
 
 interface AccountTipProps {
   id: TipId
@@ -15,13 +14,13 @@ interface AccountTipProps {
   children: ReactNode
 }
 
-const SURFACE = 'rounded-card border border-accent-ink/30 bg-accent-dim px-5 py-4 shadow-card'
+const SURFACE = 'rounded-card border border-border bg-surface px-5 py-4 shadow-card'
 
 function TipIcon() {
   return (
     <span
       aria-hidden="true"
-      className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-accent-ink/30 bg-bg/50 text-accent-ink"
+      className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-border-hover bg-surface-raised text-ink-secondary"
     >
       <Icon icon={Lightbulb} size={18} />
     </span>
@@ -51,12 +50,9 @@ export function AccountTip({ id, title, stacked = false, children }: AccountTipP
   if (dismissed) return null
 
   const heading = (
-    <div className="flex min-w-0 flex-col gap-0.5">
-      <p className={`${OVERLINE} text-accent-ink`}>Dica</p>
-      <h2 id={titleId} className="font-medium text-ink">
-        {title}
-      </h2>
-    </div>
+    <h2 id={titleId} className="min-w-0 font-semibold text-ink">
+      {title}
+    </h2>
   )
   const dismissButton = <IconButton icon={X} label="Dispensar dica" onClick={dismiss} />
 

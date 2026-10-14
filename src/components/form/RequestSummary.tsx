@@ -106,7 +106,7 @@ export function RequestSummary({
               <li key={step} className="flex items-start gap-2 text-[13px] text-ink">
                 <span
                   aria-hidden="true"
-                  className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-border bg-glass-raised font-mono text-[11px] font-medium text-ink-secondary"
+                  className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-border bg-surface-raised font-mono text-[11px] font-medium text-ink-secondary"
                 >
                   {index + 1}
                 </span>

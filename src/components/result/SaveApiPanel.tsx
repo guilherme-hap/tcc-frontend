@@ -52,7 +52,7 @@ export function SaveApiPanel({ evaluation, onSaved, onCancel }: SaveApiPanelProp
     <form
       noValidate
       onSubmit={handleSubmit}
-      className="flex flex-wrap items-start gap-3 rounded-card border border-border bg-glass px-5 py-4"
+      className="flex flex-wrap items-start gap-3 rounded-card border border-border bg-surface px-5 py-4"
     >
       <div className="max-w-90 min-w-0 flex-[1_1_16rem]">
         <TextField

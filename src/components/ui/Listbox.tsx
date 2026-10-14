@@ -121,7 +121,7 @@ export function Listbox<T extends string>({
                     onChange(option.value)
                     close()
                   }}
-                  className={`flex h-8 shrink-0 cursor-pointer items-center gap-2 rounded-md px-2 text-left text-sm whitespace-nowrap transition-colors duration-150 hover:bg-glass-raised hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${isSelected ? 'bg-accent-dim text-ink' : 'text-ink-secondary'}`}
+                  className={`flex h-8 shrink-0 cursor-pointer items-center gap-2 rounded-md px-2 text-left text-sm whitespace-nowrap transition-colors duration-150 hover:bg-surface-raised hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${isSelected ? 'bg-accent-dim text-ink' : 'text-ink-secondary'}`}
                 >
                   <span className="flex-1">{option.label}</span>
                   <Icon

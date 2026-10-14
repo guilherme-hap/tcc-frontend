@@ -10,7 +10,7 @@ import { Button } from '../ui/Button'
 import { ConfirmBar } from '../ui/ConfirmBar'
 import { KeyValue } from '../ui/KeyValue'
 import { LinkButton } from '../ui/LinkButton'
-import { GLASS } from '../ui/classes'
+import { CARD } from '../ui/classes'
 
 interface SavedApiCardProps {
   api: SavedApi
@@ -44,7 +44,7 @@ export function SavedApiCard({
       : 'border-border'
 
   return (
-    <li className={`flex min-w-0 flex-col ${GLASS} ${border}`}>
+    <li className={`flex min-w-0 flex-col ${CARD} ${border}`}>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
         <div className="flex min-w-0 flex-col gap-1">
           <h2 className="font-display text-base font-semibold tracking-[-0.01em] wrap-anywhere text-ink">

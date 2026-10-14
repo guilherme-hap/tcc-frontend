@@ -21,7 +21,7 @@ import { securityScoreParts } from '../../utils/scoreParts'
 import { Badge, type BadgeTone } from '../ui/Badge'
 import { Icon } from '../ui/Icon'
 import { Panel } from '../ui/Panel'
-import { GLASS } from '../ui/classes'
+import { CARD } from '../ui/classes'
 import { PillarScore } from './PillarScore'
 import { ScoreBreakdown } from './ScoreBreakdown'
 
@@ -59,7 +59,7 @@ interface CheckCardProps {
 
 function CheckCard({ check }: CheckCardProps) {
   return (
-    <li className={`flex min-w-0 flex-col items-start gap-2 border-border p-4 ${GLASS}`}>
+    <li className={`flex min-w-0 flex-col items-start gap-2 border-border p-4 ${CARD}`}>
       <div className="mb-1 flex w-full items-center justify-between gap-2">
         <span
           aria-hidden="true"

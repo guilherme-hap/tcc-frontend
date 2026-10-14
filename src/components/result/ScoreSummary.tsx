@@ -5,7 +5,7 @@ import { formatNumber, formatPercent } from '../../utils/format'
 import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../../utils/labels'
 import { finalScoreParts } from '../../utils/scoreParts'
 import { Icon } from '../ui/Icon'
-import { FOCUS_RING, GLASS_SURFACE } from '../ui/classes'
+import { FOCUS_RING, CARD_SURFACE } from '../ui/classes'
 import { GateVerdict } from './GateVerdict'
 import { ScoreMeter } from './ScoreMeter'
 import { ScoreRing } from './ScoreRing'
@@ -103,7 +103,7 @@ export function ScoreSummary({ evaluation, isActive, onOpenPillar }: ScoreSummar
   return (
     <section
       aria-label="Notas"
-      className={`flex flex-col items-center gap-5 rounded-xl border-border p-5 sm:flex-row sm:items-center sm:gap-8 sm:p-8 ${GLASS_SURFACE}`}
+      className={`flex flex-col items-center gap-5 rounded-xl border-border p-5 sm:flex-row sm:items-center sm:gap-8 sm:p-8 ${CARD_SURFACE}`}
     >
       {parts && finalScore !== null ? (
         <SegmentedScoreRing

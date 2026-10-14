@@ -13,7 +13,7 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { Icon } from '../components/ui/Icon'
 import { LinkButton } from '../components/ui/LinkButton'
 import { Notice } from '../components/ui/Notice'
-import { GLASS } from '../components/ui/classes'
+import { CARD } from '../components/ui/classes'
 import { useEvaluationHistory } from '../hooks'
 import { formatCount, formatNumber } from '../utils/format'
 import { NEW_EVALUATION_PATH } from '../utils/routes'
@@ -23,7 +23,7 @@ function HistorySkeleton() {
     <div role="status" aria-label="Carregando o histórico" className="flex flex-col">
       {Array.from({ length: HISTORY_PAGE_SIZE / 2 }, (_, index) => (
         <div key={index} className="flex h-13 items-center border-t border-border px-5">
-          <div className="h-4 w-full animate-pulse rounded-sm bg-glass-raised motion-reduce:animate-none" />
+          <div className="h-4 w-full animate-pulse rounded-sm bg-surface-raised motion-reduce:animate-none" />
         </div>
       ))}
     </div>
@@ -88,7 +88,7 @@ export function HistoryPage() {
   return (
     <>
       {heading}
-      <section aria-label="Avaliações" className={`flex min-w-0 flex-col border-border ${GLASS}`}>
+      <section aria-label="Avaliações" className={`flex min-w-0 flex-col border-border ${CARD}`}>
         <HistoryFilters
           filters={filters}
           hasFilters={hasFilters}

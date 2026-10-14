@@ -37,7 +37,7 @@ export function ScoreBreakdown({ title, description, label, score, parts }: Scor
               key={part.id}
               onMouseEnter={() => setActiveId(part.id)}
               onMouseLeave={() => setActiveId(null)}
-              className={`-mx-3 grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1.5 rounded-md border px-3 py-2.5 transition-colors duration-150 ${activeId === part.id ? 'border-border-hover bg-glass-raised' : 'border-transparent'}`}
+              className={`-mx-3 grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1.5 rounded-md border px-3 py-2.5 transition-colors duration-150 ${activeId === part.id ? 'border-border-hover bg-surface-raised' : 'border-transparent'}`}
             >
               <span className="min-w-0 font-medium text-ink">{part.label}</span>
               <span className="font-mono text-[13px] text-ink-secondary tabular-nums">

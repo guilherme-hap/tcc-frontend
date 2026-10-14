@@ -56,14 +56,14 @@ export function Tabs<T extends string>({ label, idPrefix, items, value, onChange
           aria-selected={item.id === value}
           tabIndex={item.id === value ? 0 : -1}
           onClick={() => onChange(item.id)}
-          className="group relative inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-t-md px-3 text-sm font-medium whitespace-nowrap text-ink-secondary transition-colors duration-150 after:absolute after:inset-x-3 after:bottom-0 after:hidden after:h-0.5 after:rounded-t-full after:bg-accent after:shadow-[0_0_12px_0_var(--accent)] hover:bg-glass hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus aria-selected:text-ink aria-selected:after:block"
+          className="group relative inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-t-md px-3 text-sm font-medium whitespace-nowrap text-ink-secondary transition-colors duration-150 after:absolute after:inset-x-3 after:bottom-0 after:hidden after:h-0.5 after:rounded-t-full after:bg-accent after:shadow-[0_0_12px_0_var(--accent)] hover:bg-surface hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus aria-selected:text-ink aria-selected:after:block"
         >
           {item.icon ? (
             <Icon icon={item.icon} className="group-aria-selected:text-accent-ink" />
           ) : null}
           {item.label}
           {item.count !== undefined ? (
-            <span className="rounded-full bg-glass-raised px-1.5 font-mono text-[11px] leading-4 font-medium text-ink-secondary">
+            <span className="rounded-full bg-surface-raised px-1.5 font-mono text-[11px] leading-4 font-medium text-ink-secondary">
               {formatNumber(item.count)}
             </span>
           ) : null}

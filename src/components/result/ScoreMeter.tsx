@@ -16,10 +16,10 @@ export function ScoreMeter({ label, score }: ScoreMeterProps) {
       aria-valuemax={100}
       aria-valuenow={clamped}
       aria-valuetext={`${formatNumber(clamped)} de 100`}
-      className="h-1.5 w-full overflow-hidden rounded-full bg-glass-raised"
+      className="h-1.5 w-full overflow-hidden rounded-full bg-surface-raised"
     >
       <div
-        className="h-full rounded-full bg-linear-to-r from-accent to-accent-ink"
+        className="h-full rounded-full bg-measure"
         style={{ width: `${clamped}%` }}
       />
     </div>

@@ -72,7 +72,7 @@ function RuleRow({ group, maxCount }: RuleRowProps) {
   return (
     <li>
       <details className="group/rule rounded-md border border-border bg-well">
-        <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-2 rounded-md px-4 py-3 transition-colors duration-150 hover:bg-glass focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-2 rounded-md px-4 py-3 transition-colors duration-150 hover:bg-surface focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
           <Icon
             icon={ChevronRight}
             className="text-ink-secondary transition-transform duration-150 group-open/rule:rotate-90"
@@ -82,10 +82,10 @@ function RuleRow({ group, maxCount }: RuleRowProps) {
           <span className="ml-auto flex items-center gap-3">
             <span
               aria-hidden="true"
-              className="hidden h-1.5 w-32 overflow-hidden rounded-full bg-glass-raised sm:block"
+              className="hidden h-1.5 w-32 overflow-hidden rounded-full bg-surface-raised sm:block"
             >
               <span
-                className="block h-full min-w-0.5 rounded-full bg-data-cyan"
+                className="block h-full min-w-0.5 rounded-full bg-measure"
                 style={{ width: `${(group.count / maxCount) * 100}%` }}
               />
             </span>

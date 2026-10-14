@@ -14,7 +14,7 @@ import { StatusNotice } from '../components/result/StatusNotice'
 import { Button } from '../components/ui/Button'
 import { Notice } from '../components/ui/Notice'
 import { TabPanel, Tabs, type TabItem } from '../components/ui/Tabs'
-import { FOCUS_RING, GLASS } from '../components/ui/classes'
+import { FOCUS_RING, CARD } from '../components/ui/classes'
 import { useEvaluationPolling, useSavedApis, useSession } from '../hooks'
 import type { EvaluationRecord, PillarName } from '../types'
 import { PILLAR_ICONS } from '../utils/icons'
@@ -37,9 +37,9 @@ function ResultSkeleton() {
       aria-label="Carregando avaliação"
       className="flex flex-col gap-6"
     >
-      <div className="h-8 w-64 animate-pulse rounded-md bg-glass-raised motion-reduce:animate-none" />
-      <div className={`h-60 animate-pulse border-border motion-reduce:animate-none ${GLASS}`} />
-      <div className={`h-48 animate-pulse border-border motion-reduce:animate-none ${GLASS}`} />
+      <div className="h-8 w-64 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none" />
+      <div className={`h-60 animate-pulse border-border motion-reduce:animate-none ${CARD}`} />
+      <div className={`h-48 animate-pulse border-border motion-reduce:animate-none ${CARD}`} />
     </div>
   )
 }

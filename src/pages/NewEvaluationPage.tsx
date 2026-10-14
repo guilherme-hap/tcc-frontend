@@ -33,7 +33,7 @@ import { Icon } from '../components/ui/Icon'
 import { Notice } from '../components/ui/Notice'
 import { Panel } from '../components/ui/Panel'
 import { TextLink } from '../components/ui/TextLink'
-import { GLASS } from '../components/ui/classes'
+import { CARD } from '../components/ui/classes'
 import {
   EVALUATION_HISTORY_KEY,
   SAVED_APIS_KEY,
@@ -114,8 +114,8 @@ function FormSkeleton() {
       aria-label="Carregando a API salva"
       className="flex flex-col gap-6"
     >
-      <div className="h-8 w-56 animate-pulse rounded-md bg-glass-raised motion-reduce:animate-none" />
-      <div className={`h-72 animate-pulse border-border motion-reduce:animate-none ${GLASS}`} />
+      <div className="h-8 w-56 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none" />
+      <div className={`h-72 animate-pulse border-border motion-reduce:animate-none ${CARD}`} />
     </div>
   )
 }

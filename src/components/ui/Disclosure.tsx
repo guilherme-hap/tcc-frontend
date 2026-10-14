@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { Icon } from './Icon'
-import { GLASS } from './classes'
+import { CARD } from './classes'
 
 interface DisclosureProps {
   title: string
@@ -24,7 +24,7 @@ export function Disclosure({
     <details
       open={open}
       onToggle={onToggle ? (event) => onToggle(event.currentTarget.open) : undefined}
-      className={`group min-w-0 border-border ${GLASS} ${className}`}
+      className={`group min-w-0 border-border ${CARD} ${className}`}
     >
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded-card px-5 py-4 font-display text-base font-semibold tracking-[-0.01em] text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
         <Icon

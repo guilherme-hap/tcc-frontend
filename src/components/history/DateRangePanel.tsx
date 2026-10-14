@@ -38,7 +38,7 @@ function dayClasses(isEdge: boolean, isInside: boolean, isCurrentMonth: boolean,
   if (isEdge) return 'border-transparent bg-accent-fill text-on-accent'
 
   const tone = isCurrentMonth ? 'text-ink' : 'text-ink-muted'
-  const fill = isInside ? 'bg-accent-dim' : 'hover:bg-glass-raised'
+  const fill = isInside ? 'bg-accent-dim' : 'hover:bg-surface-raised'
   return `${isToday ? 'border-border-control' : 'border-transparent'} ${fill} ${tone}`
 }
 
@@ -107,7 +107,7 @@ export function DateRangePanel({ id, range, onChange, onClose }: DateRangePanelP
                 onChange({ from: preset.from, to: preset.to })
                 showMonth(preset.to ?? today)
               }}
-              className={`flex h-8 cursor-pointer items-center rounded-md px-2.5 text-left text-[13px] font-medium transition-colors duration-150 hover:bg-glass-raised hover:text-ink ${isActive ? 'bg-glass-raised text-ink' : 'text-ink-secondary'} ${FOCUS_RING}`}
+              className={`flex h-8 cursor-pointer items-center rounded-md px-2.5 text-left text-[13px] font-medium transition-colors duration-150 hover:bg-surface-raised hover:text-ink ${isActive ? 'bg-surface-raised text-ink' : 'text-ink-secondary'} ${FOCUS_RING}`}
             >
               {preset.label}
             </button>

@@ -2,7 +2,7 @@ import type { EvaluationType } from '../../types'
 import { TYPE_ICONS } from '../../utils/icons'
 import { TYPE_DESCRIPTIONS, TYPE_LABELS, TYPE_ORDER } from '../../utils/labels'
 import { Icon } from '../ui/Icon'
-import { GLASS } from '../ui/classes'
+import { CARD } from '../ui/classes'
 
 interface TypeSelectorProps {
   value: EvaluationType
@@ -17,7 +17,7 @@ export function TypeSelector({ value, onChange }: TypeSelectorProps) {
         {TYPE_ORDER.map((type) => (
           <label
             key={type}
-            className={`group flex cursor-pointer flex-col gap-1.5 border-border px-4 py-3 hover:border-border-hover has-checked:border-accent-ink/55 has-checked:bg-accent-dim has-checked:hover:border-accent-ink/55 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus ${GLASS}`}
+            className={`group flex cursor-pointer flex-col gap-1.5 border-border px-4 py-3 hover:border-border-hover has-checked:border-accent-ink/55 has-checked:bg-accent-dim has-checked:hover:border-accent-ink/55 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus ${CARD}`}
           >
             <input
               type="radio"

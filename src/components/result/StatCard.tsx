@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Icon } from '../ui/Icon'
-import { FOCUS_RING, GLASS, OVERLINE } from '../ui/classes'
+import { FOCUS_RING, CARD, OVERLINE } from '../ui/classes'
 
 interface StatCardProps {
   label: string
@@ -27,7 +27,7 @@ export function StatCard({
   return (
     <div
       aria-busy={loading || undefined}
-      className={`relative flex min-w-0 flex-col gap-3 border-border p-4 ${GLASS} ${onClick ? 'hover:border-border-hover hover:bg-glass-raised' : ''}`}
+      className={`relative flex min-w-0 flex-col gap-3 border-border p-4 ${CARD} ${onClick ? 'hover:border-border-hover hover:bg-surface-raised' : ''}`}
     >
       <div className="flex items-center justify-between gap-2">
         {onClick ? (
@@ -47,7 +47,7 @@ export function StatCard({
         <span
           role="img"
           aria-label="Carregando"
-          className="block h-8 w-3/5 animate-pulse rounded-md bg-glass-raised motion-reduce:animate-none"
+          className="block h-8 w-3/5 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none"
         />
       ) : (
         <p className="font-mono text-[28px] leading-8 font-semibold tracking-[-0.02em] text-ink tabular-nums">

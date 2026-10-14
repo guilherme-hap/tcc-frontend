@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from 'react'
-import { GLASS } from './classes'
+import { CARD } from './classes'
 
 interface PanelProps {
   title: string
@@ -21,7 +21,7 @@ export function Panel({
   const titleId = useId()
 
   return (
-    <section aria-labelledby={titleId} className={`flex min-w-0 flex-col border-border ${GLASS} ${className}`}>
+    <section aria-labelledby={titleId} className={`flex min-w-0 flex-col border-border ${CARD} ${className}`}>
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2 border-b border-border px-5 py-4">
         <div className="flex min-w-0 flex-col gap-1">
           <h2

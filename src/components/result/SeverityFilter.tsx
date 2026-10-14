@@ -41,7 +41,7 @@ export function SeverityFilter({ options, value, onChange }: SeverityFilterProps
               className="relative size-3 shrink-0 rounded-full border border-border-control bg-well after:absolute after:inset-0.5 after:rounded-full after:bg-accent-ink after:opacity-0 after:transition-opacity after:duration-150 group-has-checked:border-accent-ink group-has-checked:after:opacity-100"
             />
             {option.label}
-            <span className="rounded-full bg-glass-raised px-1.5 font-mono text-[11px] leading-4 font-medium text-ink-secondary tabular-nums">
+            <span className="rounded-full bg-surface-raised px-1.5 font-mono text-[11px] leading-4 font-medium text-ink-secondary tabular-nums">
               {formatNumber(option.count)}
             </span>
           </label>

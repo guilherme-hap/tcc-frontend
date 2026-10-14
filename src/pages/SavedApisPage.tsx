@@ -6,7 +6,7 @@ import { SavedApiForm } from '../components/savedApis/SavedApiForm'
 import { Button } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Notice } from '../components/ui/Notice'
-import { GLASS } from '../components/ui/classes'
+import { CARD } from '../components/ui/classes'
 import { SAVED_APIS_KEY, useSavedApis } from '../hooks'
 import { deleteSavedApi } from '../services'
 
@@ -47,7 +47,7 @@ export function SavedApisPage() {
               {Array.from({ length: SKELETON_CARDS }, (_, index) => (
                 <div
                   key={index}
-                  className={`h-52 animate-pulse border-border motion-reduce:animate-none ${GLASS}`}
+                  className={`h-52 animate-pulse border-border motion-reduce:animate-none ${CARD}`}
                 />
               ))}
             </div>

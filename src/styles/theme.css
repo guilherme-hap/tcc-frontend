@@ -1,74 +1,65 @@
 :root {
     color-scheme: dark;
 
-    --bg: #08070d;
-    --surface: #110f19;
-    --surface-raised: #191622;
-    --glass: rgba(255, 255, 255, 0.04);
-    --glass-raised: rgba(255, 255, 255, 0.07);
-    --well: rgba(0, 0, 0, 0.32);
+    --bg: #0a0c11;
+    --surface: #10131a;
+    --surface-raised: #161a23;
+    --well: #0b0d12;
 
-    --border: rgba(255, 255, 255, 0.1);
-    --border-hover: rgba(255, 255, 255, 0.2);
-    --border-control: rgba(255, 255, 255, 0.38);
+    --border: #222733;
+    --border-hover: #2e3442;
+    --border-control: #6b7488;
 
-    --ink: #f2effa;
-    --ink-secondary: #a9a3bd;
-    --ink-muted: #948ea9;
+    --ink: #e9ecf3;
+    --ink-secondary: #a3abbd;
+    --ink-muted: #8b93a7;
 
-    --accent: #7c5cfc;
-    --accent-fill: #6a48ee;
+    --accent: #3d6bff;
+    --accent-fill: #2f5bf0;
     --on-accent: #ffffff;
-    --accent-ink: #b6a5ff;
-    --accent-dim: rgba(124, 92, 252, 0.16);
-    --focus: #b6a5ff;
-    --ember: #ff7a45;
+    --accent-ink: #8fb0ff;
+    --accent-dim: rgba(61, 107, 255, 0.16);
+    --focus: #8fb0ff;
 
-    --data-cyan: #5fd4f4;
-    --data-indigo: #8b9cff;
-    --data-violet: #c59bff;
-    --data-dim: rgba(95, 212, 244, 0.12);
+    --pillar-contract: #3d6bff;
+    --pillar-performance: #7ea2ff;
+    --pillar-security: #bcd0ff;
+    --measure: #7ea2ff;
+    --idle: #2a303c;
 
-    --success: #35d4a0;
-    --success-dim: rgba(53, 212, 160, 0.12);
-    --warning: #e8b93c;
-    --warning-dim: rgba(232, 185, 60, 0.12);
-    --error: #ff5d6c;
-    --error-dim: rgba(255, 93, 108, 0.12);
-
-    --scrim: rgba(4, 3, 8, 0.64);
-    --glow-violet: rgba(124, 92, 252, 0.22);
-    --glow-cyan: rgba(95, 212, 244, 0.1);
+    --success: #3ecf8e;
+    --success-dim: rgba(62, 207, 142, 0.12);
+    --warning: #f5b83d;
+    --warning-dim: rgba(245, 184, 61, 0.12);
+    --error: #f2666a;
+    --error-dim: rgba(242, 102, 106, 0.12);
 }
 
 @theme {
-    --font-display: 'Sora', system-ui, sans-serif;
-    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --font-display: 'Archivo', system-ui, sans-serif;
+    --font-display--font-variation-settings: 'wdth' 96;
+    --font-body: 'Archivo', system-ui, sans-serif;
+    --font-mono: 'Martian Mono', ui-monospace, monospace;
+    --font-mono--font-variation-settings: 'wdth' 87.5;
 
     --breakpoint-lg: 67.5rem;
 
     --radius-sm: 4px;
-    --radius-md: 6px;
+    --radius-md: 8px;
     --radius-lg: 10px;
-    --radius-xl: 14px;
+    --radius-xl: 12px;
     --radius-card: 10px;
 
-    --shadow-card: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 24px 48px -28px rgba(0, 0, 0, 0.7);
-    --shadow-overlay: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 32px 80px -16px rgba(0, 0, 0, 0.85);
-    --shadow-accent: inset 0 1px 0 0 rgba(255, 255, 255, 0.22), 0 8px 24px -8px rgba(124, 92, 252, 0.6);
-    --shadow-accent-hover: inset 0 1px 0 0 rgba(255, 255, 255, 0.3), 0 10px 32px -6px rgba(124, 92, 252, 0.8);
+    --shadow-card: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+    --shadow-overlay: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 24px 64px -16px rgba(0, 0, 0, 0.8);
 
-    --blur-glass: 12px;
-    --blur-overlay: 20px;
+    --blur-overlay: 14px;
 }
 
 @theme inline {
     --color-bg: var(--bg);
     --color-surface: var(--surface);
     --color-surface-raised: var(--surface-raised);
-    --color-glass: var(--glass);
-    --color-glass-raised: var(--glass-raised);
     --color-well: var(--well);
 
     --color-border: var(--border);
@@ -85,12 +76,12 @@
     --color-accent-ink: var(--accent-ink);
     --color-accent-dim: var(--accent-dim);
     --color-focus: var(--focus);
-    --color-ember: var(--ember);
 
-    --color-data-cyan: var(--data-cyan);
-    --color-data-indigo: var(--data-indigo);
-    --color-data-violet: var(--data-violet);
-    --color-data-dim: var(--data-dim);
+    --color-pillar-contract: var(--pillar-contract);
+    --color-pillar-performance: var(--pillar-performance);
+    --color-pillar-security: var(--pillar-security);
+    --color-measure: var(--measure);
+    --color-idle: var(--idle);
 
     --color-success: var(--success);
     --color-success-dim: var(--success-dim);
@@ -98,10 +89,14 @@
     --color-warning-dim: var(--warning-dim);
     --color-error: var(--error);
     --color-error-dim: var(--error-dim);
+}
 
-    --color-scrim: var(--scrim);
-    --color-glow-violet: var(--glow-violet);
-    --color-glow-cyan: var(--glow-cyan);
+@utility num {
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 84;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
 }
 
 @property --ring-value {
@@ -117,13 +112,14 @@ html {
 
 body {
     background-color: var(--bg);
-    background-image:
-        radial-gradient(64% 480px at 14% -8%, var(--glow-violet), transparent 72%),
-        radial-gradient(48% 400px at 90% -8%, var(--glow-cyan), transparent 72%);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
     color: var(--ink);
     font: 400 14px/20px var(--font-body);
+    caret-color: var(--accent-ink);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+}
+
+::selection {
+    background-color: var(--accent-fill);
+    color: var(--on-accent);
 }

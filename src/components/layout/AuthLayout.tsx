@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { HOME_PATH } from '../../utils/routes'
 import { Icon } from '../ui/Icon'
 import { TextLink } from '../ui/TextLink'
-import { FOCUS_RING, GLASS, OVERLINE } from '../ui/classes'
+import { FOCUS_RING, CARD, OVERLINE } from '../ui/classes'
 
 interface Benefit {
   icon: LucideIcon
@@ -65,7 +65,7 @@ export function AuthLayout({ title, lead, note, children }: AuthLayoutProps) {
         </div>
         <section
           aria-labelledby="account-benefits"
-          className={`flex w-full max-w-100 flex-col gap-3 border-border p-4 ${GLASS}`}
+          className={`flex w-full max-w-100 flex-col gap-3 border-border p-4 ${CARD}`}
         >
           <h2 id="account-benefits" className={OVERLINE}>
             Com a sessão aberta

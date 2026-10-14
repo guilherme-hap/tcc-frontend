@@ -1,7 +1,7 @@
 import { useId, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Icon } from './Icon'
-import { GLASS, ICON_TILE } from './classes'
+import { CARD, ICON_TILE } from './classes'
 
 interface EmptyStateProps {
   icon: LucideIcon
@@ -16,7 +16,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
   return (
     <section
       aria-labelledby={titleId}
-      className={`flex flex-col items-center gap-4 border-border px-6 py-16 text-center ${GLASS}`}
+      className={`flex flex-col items-center gap-4 border-border px-6 py-16 text-center ${CARD}`}
     >
       <span aria-hidden="true" className={ICON_TILE}>
         <Icon icon={icon} size={18} />

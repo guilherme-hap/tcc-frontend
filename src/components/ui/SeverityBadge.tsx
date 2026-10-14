@@ -6,7 +6,7 @@ import { Badge, type BadgeTone } from './Badge'
 const SEVERITY_TONES: Record<Severity, BadgeTone> = {
   Error: 'error',
   Warning: 'warning',
-  Info: 'data',
+  Info: 'accent',
   Hint: 'neutral',
   Unknown: 'neutral',
 }

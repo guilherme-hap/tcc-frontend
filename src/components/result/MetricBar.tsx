@@ -10,9 +10,9 @@ export function MetricBar({ label, display, value, max }: MetricBarProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <span aria-hidden="true" className="block h-2.5 overflow-hidden rounded-xs bg-glass-raised">
+      <span aria-hidden="true" className="block h-2.5 overflow-hidden rounded-xs bg-surface-raised">
         <span
-          className="block h-full min-w-1 rounded-xs bg-data-cyan"
+          className="block h-full min-w-1 rounded-xs bg-measure"
           style={{ width: `${share}%` }}
         />
       </span>

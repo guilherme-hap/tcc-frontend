@@ -30,7 +30,7 @@ export function RecentEvaluations() {
           {Array.from({ length: RECENT_LIMIT }, (_, index) => (
             <div
               key={index}
-              className="h-6 animate-pulse rounded-md bg-glass-raised motion-reduce:animate-none"
+              className="h-6 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none"
             />
           ))}
         </div>

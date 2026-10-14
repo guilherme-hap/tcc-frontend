@@ -54,7 +54,7 @@ export function ScoreRing({ score, label, size = 176, loading = false }: ScoreRi
       <span
         aria-hidden="true"
         style={{ mask: RING_MASK, WebkitMask: RING_MASK }}
-        className="absolute inset-0 rounded-full bg-glass-raised"
+        className="absolute inset-0 rounded-full bg-surface-raised"
       />
       {value > 0 ? (
         <span

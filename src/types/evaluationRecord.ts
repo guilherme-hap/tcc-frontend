@@ -89,6 +89,7 @@ export type EvaluationVisibility = 'private' | 'anonymous'
 export interface IEvaluationRequestSettings {
   rulesConfig?: Record<string, boolean>
   loadTestOptions?: Omit<ILoadTestOptions, 'headers' | 'body'>
+  minScore?: number
 }
 
 export interface EvaluationRecord {
@@ -104,6 +105,7 @@ export interface EvaluationRecord {
   performanceResults: IPerformanceTargetResult[] | null
   securityResult: ISecurityCheckResult[] | null
   finalScore: number | null
+  passed: boolean | null
   pillarScores: PillarWeights | null
   scoring: IScoringParameters | null
   scoreBreakdown: IScoreBreakdown | null

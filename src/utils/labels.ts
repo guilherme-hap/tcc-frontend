@@ -86,6 +86,11 @@ export const STATUS_FILTER_STATUSES: Record<EvaluationStatus, EvaluationStatus[]
   FAILED: ['FAILED'],
 }
 
+export const GATE_LABELS: Record<'passed' | 'failed', string> = {
+  passed: 'Aprovada',
+  failed: 'Reprovada',
+}
+
 export const VISIBILITY_LABELS: Record<EvaluationVisibility, string> = {
   private: 'Privada · no histórico',
   anonymous: 'Anônima · abre pelo link',

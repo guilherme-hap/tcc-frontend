@@ -6,6 +6,7 @@ import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../../utils/labels'
 import { finalScoreParts } from '../../utils/scoreParts'
 import { Icon } from '../ui/Icon'
 import { FOCUS_RING, GLASS_SURFACE } from '../ui/classes'
+import { GateVerdict } from './GateVerdict'
 import { ScoreMeter } from './ScoreMeter'
 import { ScoreRing } from './ScoreRing'
 import { SegmentedScoreRing } from './SegmentedScoreRing'
@@ -128,6 +129,7 @@ export function ScoreSummary({ evaluation, isActive, onOpenPillar }: ScoreSummar
             {describeFinalScore(evaluation, isActive, parts !== null)}
           </p>
         </div>
+        <GateVerdict evaluation={evaluation} />
         {evaluationType === 'full' ? (
           <ul className="flex flex-col gap-3">
             {PILLARS_BY_TYPE.full.map((pillar) => (

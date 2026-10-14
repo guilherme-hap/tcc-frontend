@@ -12,6 +12,7 @@ import { Icon } from '../ui/Icon'
 import { StatusBadge } from '../ui/StatusBadge'
 import { TextLink } from '../ui/TextLink'
 import { FOCUS_RING } from '../ui/classes'
+import { GateBadge } from './GateBadge'
 import { SaveApiPanel } from './SaveApiPanel'
 
 const VISIBILITY_TONES: Record<EvaluationVisibility, BadgeTone> = {
@@ -40,7 +41,7 @@ export function ResultHeader({
   onApiSaved,
 }: ResultHeaderProps) {
   const [naming, setNaming] = useState(false)
-  const { visibility } = evaluation
+  const { visibility, passed } = evaluation
 
   return (
     <div className="flex flex-col gap-3">
@@ -54,6 +55,7 @@ export function ResultHeader({
           {TYPE_TITLES[evaluation.evaluationType]}
         </h1>
         <StatusBadge status={evaluation.status} />
+        {passed === null ? null : <GateBadge passed={passed} />}
         <Badge tone={VISIBILITY_TONES[visibility]} icon={VISIBILITY_ICONS[visibility]}>
           {VISIBILITY_LABELS[visibility]}
         </Badge>

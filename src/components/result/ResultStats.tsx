@@ -8,14 +8,8 @@ import type {
 } from '../../types'
 import { formatNumber, formatPercent } from '../../utils/format'
 import { CHECK_STATUS_LABELS } from '../../utils/labels'
+import { CHECK_STATUS_BG } from '../../utils/tones'
 import { StatCard } from './StatCard'
-
-const DOT_CLASSES: Record<SecurityCheckStatus, string> = {
-  pass: 'bg-success',
-  warning: 'bg-warning',
-  missing: 'bg-error',
-  error: 'bg-error',
-}
 
 const PENDING_STATUSES: SecurityCheckStatus[] = ['warning', 'missing', 'error']
 
@@ -74,13 +68,13 @@ const PERFORMANCE_MEASURED: StatSlot = {
   pillar: 'performance',
   label: 'Endpoints medidos',
   icon: Target,
-  content: ({ performanceResults }) => {
+  content: ({ performanceResults, targets }) => {
     if (!performanceResults) return null
     const measured = performanceResults.filter((target) => target.result?.score != null).length
     const requests = sum(performanceResults.map((target) => target.result?.totalRequests ?? 0))
     return {
       value: formatNumber(measured),
-      unit: `de ${formatNumber(performanceResults.length)}`,
+      unit: `de ${formatNumber(targets?.length ?? performanceResults.length)}`,
       hint: `${formatNumber(requests)} requisições enviadas`,
     }
   },
@@ -127,7 +121,7 @@ const SECURITY_PASSED: StatSlot = {
           {securityResult.map((check) => (
             <span
               key={`${check.header}-${check.code}`}
-              className={`h-1.5 flex-1 rounded-full ${DOT_CLASSES[check.status]}`}
+              className={`h-1.5 flex-1 rounded-full ${CHECK_STATUS_BG[check.status]}`}
             />
           ))}
         </div>
@@ -175,7 +169,7 @@ export function ResultStats({ evaluation, isActive, onOpenPillar }: ResultStatsP
   if (cards.length === 0) return null
 
   return (
-    <div className={`grid grid-cols-1 gap-3 ${cards.length > 2 ? 'sm:grid-cols-2' : ''}`}>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
       {cards.map(({ slot, content }) => (
         <StatCard
           key={slot.id}

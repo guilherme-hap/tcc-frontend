@@ -7,8 +7,7 @@ const RING_MASK =
 const ARC_STYLE: CSSProperties = {
   mask: RING_MASK,
   WebkitMask: RING_MASK,
-  background:
-    'conic-gradient(var(--accent) 0turn, var(--accent-ink) calc(var(--ring-value) * 1turn), transparent 0)',
+  background: 'conic-gradient(var(--measure) calc(var(--ring-value) * 1turn), transparent 0)',
 }
 
 const CAP_STYLE: CSSProperties = {
@@ -49,30 +48,27 @@ export function ScoreRing({ score, label, size = 176, loading = false }: ScoreRi
       aria-valuenow={score === null || loading ? undefined : clamped}
       aria-valuetext={valueText}
       style={style}
-      className="relative shrink-0 transition-[--ring-value] duration-600 ease-out motion-reduce:transition-none"
+      className="relative max-w-full shrink-0 transition-[--ring-value] duration-600 ease-out motion-reduce:transition-none"
     >
       <span
         aria-hidden="true"
         style={{ mask: RING_MASK, WebkitMask: RING_MASK }}
-        className="absolute inset-0 rounded-full bg-surface-raised"
+        className="absolute inset-0 rounded-full bg-idle"
       />
       {value > 0 ? (
         <span
           aria-hidden="true"
-          className={`absolute inset-0 rounded-full drop-shadow-[0_0_16px_var(--glow-violet)] ${loading ? 'animate-spin motion-reduce:animate-none' : ''}`}
+          className={`absolute inset-0 rounded-full ${loading ? 'animate-spin motion-reduce:animate-none' : ''}`}
         >
           <span style={ARC_STYLE} className="absolute inset-0 rounded-full" />
           <span className="absolute inset-0">
-            <span style={CAP_STYLE} className="absolute top-0 rounded-full bg-accent" />
+            <span style={CAP_STYLE} className="absolute top-0 rounded-full bg-measure" />
           </span>
           <span
             style={{ transform: 'rotate(calc(var(--ring-value) * 1turn))' }}
             className="absolute inset-0"
           >
-            <span
-              style={CAP_STYLE}
-              className="absolute top-0 rounded-full bg-accent-ink shadow-[0_0_12px_0_var(--accent)]"
-            />
+            <span style={CAP_STYLE} className="absolute top-0 rounded-full bg-measure" />
           </span>
         </span>
       ) : null}
@@ -81,10 +77,7 @@ export function ScoreRing({ score, label, size = 176, loading = false }: ScoreRi
           <span className="text-[13px] font-medium text-ink-secondary">{valueText}</span>
         ) : (
           <>
-            <span
-              style={{ fontSize: Math.round(size * 0.25) }}
-              className="font-display leading-none font-semibold tracking-[-0.03em] text-ink tabular-nums"
-            >
+            <span style={{ fontSize: Math.round(size * 0.27) }} className="num leading-none text-ink">
               {formatNumber(clamped)}
             </span>
             <span className="text-[13px] text-ink-secondary">de 100</span>

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { formatNumber } from '../../utils/format'
 import type { ScorePart } from '../../utils/scoreParts'
+import { OVERLINE } from '../ui/classes'
 
 const GAP = 6
 const LABEL_OFFSET = 14
@@ -68,6 +69,8 @@ interface SegmentedScoreRingProps {
   onActiveChange: (id: string | null) => void
   size?: number
   showLabels?: boolean
+  strokes?: Record<string, string>
+  caption?: string
 }
 
 export function SegmentedScoreRing({
@@ -78,6 +81,8 @@ export function SegmentedScoreRing({
   onActiveChange,
   size = 176,
   showLabels = false,
+  strokes,
+  caption,
 }: SegmentedScoreRingProps) {
   const stroke = Math.max(6, Math.round(size / 18))
   const radius = (size - stroke) / 2
@@ -113,12 +118,6 @@ export function SegmentedScoreRing({
             '--dash': `${segment.fillLength} ${circumference}`,
             transitionDelay: delay,
           } as CSSProperties
-          const tipStyle = {
-            '--tip': `${segment.rotation + (segment.fillLength / circumference) * 360}deg`,
-            '--tip-from': `${segment.rotation}deg`,
-            transformOrigin: `${cx}px ${cy}px`,
-            transitionDelay: delay,
-          } as CSSProperties
 
           return (
             <g
@@ -134,33 +133,20 @@ export function SegmentedScoreRing({
                 strokeLinecap="round"
                 strokeDasharray={`${segment.trackLength} ${circumference}`}
                 transform={rotate}
-                className="stroke-border-hover"
+                className="stroke-idle"
               />
               {segment.fillLength > 0 ? (
-                <>
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={radius}
-                    fill="none"
-                    strokeWidth={stroke}
-                    strokeLinecap="round"
-                    transform={rotate}
-                    style={fillStyle}
-                    className="stroke-accent transition-[stroke-dasharray] duration-700 ease-out [stroke-dasharray:var(--dash)] motion-reduce:transition-none starting:[stroke-dasharray:0_9999]"
-                  />
-                  <g
-                    style={tipStyle}
-                    className="[transform:rotate(var(--tip))] transition-transform duration-700 ease-out motion-reduce:transition-none starting:[transform:rotate(var(--tip-from))]"
-                  >
-                    <circle
-                      cx={cx + radius}
-                      cy={cy}
-                      r={stroke / 2}
-                      className="fill-accent-ink drop-shadow-[0_0_6px_var(--accent)]"
-                    />
-                  </g>
-                </>
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={radius}
+                  fill="none"
+                  strokeWidth={stroke}
+                  strokeLinecap="round"
+                  transform={rotate}
+                  style={fillStyle}
+                  className={`transition-[stroke-dasharray] duration-700 ease-out [stroke-dasharray:var(--dash)] motion-reduce:transition-none starting:[stroke-dasharray:0_9999] ${strokes?.[part.id] ?? 'stroke-measure'}`}
+                />
               ) : null}
               {showLabels ? (
                 <text
@@ -204,7 +190,7 @@ export function SegmentedScoreRing({
             </span>
             <span
               style={{ fontSize: Math.round(size * 0.2) }}
-              className="font-display leading-none font-semibold tracking-[-0.03em] text-ink tabular-nums"
+              className="num leading-none text-ink"
             >
               {formatNumber(active.points)}
             </span>
@@ -214,9 +200,10 @@ export function SegmentedScoreRing({
           </>
         ) : (
           <>
+            {caption ? <span className={OVERLINE}>{caption}</span> : null}
             <span
-              style={{ fontSize: Math.round(size * 0.25) }}
-              className="font-display leading-none font-semibold tracking-[-0.03em] text-ink tabular-nums"
+              style={{ fontSize: Math.round(size * 0.27) }}
+              className="num leading-none text-ink"
             >
               {formatNumber(score)}
             </span>

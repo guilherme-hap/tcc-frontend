@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
-import type { IContractResult, ISpectralIssue, Severity } from '../../types'
+import type { IContractResult } from '../../types'
+import { groupByRule, type RuleGroup } from '../../utils/contractRules'
 import { formatNumber } from '../../utils/format'
 import { SEVERITY_LABELS, SEVERITY_ORDER } from '../../utils/labels'
 import { Badge } from '../ui/Badge'
@@ -15,40 +16,6 @@ import {
 } from './SeverityFilter'
 
 const MAX_VISIBLE_OCCURRENCES = 50
-
-interface RuleGroup {
-  rule: string
-  severity: Severity
-  count: number
-  issues: ISpectralIssue[]
-}
-
-function severityRank(severity: Severity): number {
-  return SEVERITY_ORDER.indexOf(severity)
-}
-
-function groupByRule(result: IContractResult): RuleGroup[] {
-  const groups = new Map<string, RuleGroup>()
-
-  for (const issue of result.issues) {
-    const rule = String(issue.rule)
-    const group = groups.get(rule) ?? { rule, severity: issue.severity, count: 0, issues: [] }
-    if (severityRank(issue.severity) < severityRank(group.severity)) {
-      group.severity = issue.severity
-    }
-    group.issues.push(issue)
-    groups.set(rule, group)
-  }
-
-  return [...groups.values()]
-    .map((group) => ({
-      ...group,
-      count: result.summary.occurrencesByRule[group.rule] ?? group.issues.length,
-    }))
-    .sort(
-      (a, b) => severityRank(a.severity) - severityRank(b.severity) || b.count - a.count,
-    )
-}
 
 function buildFilterOptions(groups: RuleGroup[]): SeverityFilterOption[] {
   const bySeverity = SEVERITY_ORDER.map((severity) => ({
@@ -136,18 +103,20 @@ export function ContractSection({ result, score }: ContractSectionProps) {
 
   return (
     <Panel
-      title="Contrato"
+      title="Regras violadas"
       description={`${formatNumber(violatedRules)} de ${formatNumber(evaluatedRules)} regras aplicáveis violadas. Cada regra conta uma vez na nota, independentemente do número de ocorrências.`}
       aside={<PillarScore score={score} />}
     >
       {groups.length === 0 ? (
         <p className="text-ink-secondary">Nenhuma regra violada.</p>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="@container flex flex-col gap-4">
           {options.length > 2 ? (
             <SeverityFilter options={options} value={active} onChange={setFilter} />
           ) : null}
-          <ul className="flex flex-col gap-2">
+          <ul
+            className={`grid grid-cols-1 items-start gap-2 ${visible.length > 1 ? '@7xl:grid-cols-2' : ''}`}
+          >
             {visible.map((group) => (
               <RuleRow key={group.rule} group={group} maxCount={maxCount} />
             ))}

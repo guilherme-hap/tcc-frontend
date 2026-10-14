@@ -1,13 +1,4 @@
-import {
-  Check,
-  Minus,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  TriangleAlert,
-  X,
-  type LucideIcon,
-} from 'lucide-react'
+import { Shield, ShieldAlert, ShieldCheck, type LucideIcon } from 'lucide-react'
 import type {
   IScoreBreakdown,
   ISecurityCheckResult,
@@ -16,28 +7,13 @@ import type {
   SecurityLayer,
 } from '../../types'
 import { formatPercent } from '../../utils/format'
-import { CHECK_STATUS_LABELS, LAYER_LABELS, LAYER_ORDER } from '../../utils/labels'
+import { LAYER_LABELS, LAYER_ORDER } from '../../utils/labels'
 import { securityScoreParts } from '../../utils/scoreParts'
-import { Badge, type BadgeTone } from '../ui/Badge'
 import { Icon } from '../ui/Icon'
 import { Panel } from '../ui/Panel'
-import { CARD } from '../ui/classes'
+import { CheckStatusBadge } from './CheckStatusBadge'
 import { PillarScore } from './PillarScore'
 import { ScoreBreakdown } from './ScoreBreakdown'
-
-const STATUS_TONES: Record<SecurityCheckStatus, BadgeTone> = {
-  pass: 'success',
-  warning: 'warning',
-  missing: 'error',
-  error: 'error',
-}
-
-const STATUS_ICONS: Record<SecurityCheckStatus, LucideIcon> = {
-  pass: Check,
-  warning: TriangleAlert,
-  missing: Minus,
-  error: X,
-}
 
 const TILE_ICONS: Record<SecurityCheckStatus, LucideIcon> = {
   pass: ShieldCheck,
@@ -59,7 +35,7 @@ interface CheckCardProps {
 
 function CheckCard({ check }: CheckCardProps) {
   return (
-    <li className={`flex min-w-0 flex-col items-start gap-2 border-border p-4 ${CARD}`}>
+    <li className="flex min-w-0 flex-col items-start gap-2 rounded-md border border-border bg-well p-4">
       <div className="mb-1 flex w-full items-center justify-between gap-2">
         <span
           aria-hidden="true"
@@ -67,9 +43,7 @@ function CheckCard({ check }: CheckCardProps) {
         >
           <Icon icon={TILE_ICONS[check.status]} />
         </span>
-        <Badge tone={STATUS_TONES[check.status]} icon={STATUS_ICONS[check.status]}>
-          {CHECK_STATUS_LABELS[check.status]}
-        </Badge>
+        <CheckStatusBadge status={check.status} />
       </div>
       <h4 className="max-w-full font-mono text-[13px] font-medium wrap-anywhere text-ink">
         {check.header}
@@ -98,11 +72,11 @@ export function SecuritySection({ checks, layerWeights, breakdown, score }: Secu
 
   return (
     <Panel
-      title="Segurança"
+      title="Verificações de segurança"
       description="Configuração de transporte e cabeçalhos HTTP observados na URL base, não em cada endpoint."
       aside={<PillarScore score={score} />}
     >
-      <div className="flex flex-col gap-6">
+      <div className="@container flex flex-col gap-6">
         {parts && score !== undefined ? (
           <div className="border-b border-border pb-6">
             <ScoreBreakdown
@@ -114,23 +88,25 @@ export function SecuritySection({ checks, layerWeights, breakdown, score }: Secu
             />
           </div>
         ) : null}
-        {layers.map(({ layer, checks: layerChecks }) => (
-          <section key={layer} className="flex min-w-0 flex-col gap-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-              <h3 className="font-medium text-ink">{LAYER_LABELS[layer]}</h3>
-              {layerWeights ? (
-                <span className="text-[13px] text-ink-secondary">
-                  peso {formatPercent(layerWeights[layer], 2)}
-                </span>
-              ) : null}
-            </div>
-            <ul className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3">
-              {layerChecks.map((check) => (
-                <CheckCard key={`${check.header}-${check.code}`} check={check} />
-              ))}
-            </ul>
-          </section>
-        ))}
+        <div className="grid grid-cols-1 gap-x-8 gap-y-6 @6xl:grid-cols-2">
+          {layers.map(({ layer, checks: layerChecks }) => (
+            <section key={layer} className="flex min-w-0 flex-col gap-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                <h3 className="font-medium text-ink">{LAYER_LABELS[layer]}</h3>
+                {layerWeights ? (
+                  <span className="text-[13px] text-ink-secondary">
+                    peso {formatPercent(layerWeights[layer], 2)}
+                  </span>
+                ) : null}
+              </div>
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3">
+                {layerChecks.map((check) => (
+                  <CheckCard key={`${check.header}-${check.code}`} check={check} />
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
       </div>
     </Panel>
   )

@@ -30,7 +30,7 @@ export function finalScoreParts(breakdown: IScoreBreakdown | null): ScorePart[] 
   return parts ? parts.map((part) => ({ ...part, label: labelOf(PILLAR_LABELS, part.id) })) : null
 }
 
-function describeStatuses(checks: ISecurityCheckResult[]): string {
+export function describeStatuses(checks: ISecurityCheckResult[]): string {
   return CHECK_STATUS_ORDER.map((status) => ({
     status,
     count: checks.filter((check) => check.status === status).length,

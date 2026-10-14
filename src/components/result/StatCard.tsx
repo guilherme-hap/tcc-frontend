@@ -50,10 +50,10 @@ export function StatCard({
           className="block h-8 w-3/5 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none"
         />
       ) : (
-        <p className="font-mono text-[28px] leading-8 font-semibold tracking-[-0.02em] text-ink tabular-nums">
+        <p className="num text-[32px] leading-8 text-ink">
           {value}
           {unit ? (
-            <span className="ml-1.5 font-body text-[13px] leading-5 font-normal tracking-normal text-ink-secondary">
+            <span className="ml-1.5 font-body text-[13px] leading-5 font-normal tracking-normal text-ink-secondary [font-variation-settings:normal]">
               {unit}
             </span>
           ) : null}

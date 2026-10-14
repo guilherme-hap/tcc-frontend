@@ -1,4 +1,5 @@
 import type { IScoringParameters, PillarName } from '../../types'
+import { FRUSTRATED_MULTIPLIER } from '../../utils/apdex'
 import { formatMilliseconds, formatNumber, formatPercent } from '../../utils/format'
 import {
   CHECK_STATUS_LABELS,
@@ -11,9 +12,9 @@ import {
 } from '../../utils/labels'
 import { Disclosure } from '../ui/Disclosure'
 import { KeyValue } from '../ui/KeyValue'
+import { CARD } from '../ui/classes'
 
 const PILLARS: PillarName[] = ['contract', 'performance', 'security']
-const FRUSTRATED_MULTIPLIER = 4
 
 interface ParameterGroupProps {
   title: string
@@ -31,67 +32,74 @@ function ParameterGroup({ title, entries }: ParameterGroupProps) {
 
 interface ScoringParametersProps {
   scoring: IScoringParameters
+  collapsible?: boolean
 }
 
-export function ScoringParameters({ scoring }: ScoringParametersProps) {
+export function ScoringParameters({ scoring, collapsible = true }: ScoringParametersProps) {
   const { pillarWeights, contract, performance, security } = scoring
   const weighted = PILLARS.filter((pillar) => pillarWeights[pillar] !== undefined)
 
-  return (
-    <Disclosure title="Parâmetros usados no cálculo">
-      <div className="grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-2">
-        {weighted.length > 1 ? (
+  const groups = (
+    <div className="grid grid-cols-1 gap-x-10 gap-y-6 @lg:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-5">
+      {weighted.length > 1 ? (
+        <ParameterGroup
+          title="Pesos dos pilares"
+          entries={weighted.map((pillar) => [
+            PILLAR_LABELS[pillar],
+            formatPercent(pillarWeights[pillar] ?? 0, 2),
+          ])}
+        />
+      ) : null}
+      {performance ? (
+        <ParameterGroup
+          title="Apdex"
+          entries={[
+            ['Tempo-alvo T', formatMilliseconds(performance.targetLatency)],
+            [
+              'Limite de frustração F = 4T',
+              formatMilliseconds(performance.targetLatency * FRUSTRATED_MULTIPLIER),
+            ],
+          ]}
+        />
+      ) : null}
+      {contract ? (
+        <ParameterGroup
+          title="Contrato: pesos por severidade"
+          entries={[
+            ...SEVERITY_ORDER.map((severity): [string, string] => [
+              SEVERITY_LABELS[severity],
+              formatNumber(contract.severityWeights[severity] ?? 0, 4),
+            ]),
+            ['Regras aplicáveis', formatNumber(contract.rules.length)],
+          ]}
+        />
+      ) : null}
+      {security ? (
+        <>
           <ParameterGroup
-            title="Pesos dos pilares"
-            entries={weighted.map((pillar) => [
-              PILLAR_LABELS[pillar],
-              formatPercent(pillarWeights[pillar] ?? 0, 2),
+            title="Segurança: pesos das camadas"
+            entries={LAYER_ORDER.map((layer) => [
+              LAYER_LABELS[layer],
+              formatNumber(security.layerWeights[layer], 4),
             ])}
           />
-        ) : null}
-        {performance ? (
           <ParameterGroup
-            title="Apdex"
-            entries={[
-              ['Tempo-alvo T', formatMilliseconds(performance.targetLatency)],
-              [
-                'Limite de frustração F = 4T',
-                formatMilliseconds(performance.targetLatency * FRUSTRATED_MULTIPLIER),
-              ],
-            ]}
+            title="Segurança: valor de cada resultado"
+            entries={CHECK_STATUS_ORDER.map((status) => [
+              CHECK_STATUS_LABELS[status],
+              formatNumber(security.statusScores[status]),
+            ])}
           />
-        ) : null}
-        {contract ? (
-          <ParameterGroup
-            title="Contrato: pesos por severidade"
-            entries={[
-              ...SEVERITY_ORDER.map((severity): [string, string] => [
-                SEVERITY_LABELS[severity],
-                formatNumber(contract.severityWeights[severity] ?? 0, 4),
-              ]),
-              ['Regras aplicáveis', formatNumber(contract.rules.length)],
-            ]}
-          />
-        ) : null}
-        {security ? (
-          <>
-            <ParameterGroup
-              title="Segurança: pesos das camadas"
-              entries={LAYER_ORDER.map((layer) => [
-                LAYER_LABELS[layer],
-                formatNumber(security.layerWeights[layer], 4),
-              ])}
-            />
-            <ParameterGroup
-              title="Segurança: valor de cada resultado"
-              entries={CHECK_STATUS_ORDER.map((status) => [
-                CHECK_STATUS_LABELS[status],
-                formatNumber(security.statusScores[status]),
-              ])}
-            />
-          </>
-        ) : null}
-      </div>
+        </>
+      ) : null}
+    </div>
+  )
+
+  if (!collapsible) return <div className={`@container border-border p-5 ${CARD}`}>{groups}</div>
+
+  return (
+    <Disclosure title="Parâmetros usados no cálculo">
+      <div className="@container">{groups}</div>
     </Disclosure>
   )
 }

@@ -1,5 +1,6 @@
 import type {
   EvaluationStatus,
+  EvaluationStepStatus,
   EvaluationType,
   EvaluationVisibility,
   PillarName,
@@ -74,6 +75,20 @@ export const STATUS_LABELS: Record<EvaluationStatus, string> = {
   COMPLETED: 'Concluída',
   PARTIAL: 'Parcial',
   FAILED: 'Falhou',
+}
+
+export const STEP_STATUS_LABELS: Record<EvaluationStepStatus, string> = {
+  PENDING: 'Aguardando',
+  RUNNING: 'Em execução',
+  COMPLETED: 'Concluído',
+  FAILED: 'Falhou',
+  SKIPPED: 'Pulado',
+  INTERRUPTED: 'Interrompido',
+}
+
+export const PROGRESS_PHASE_LABELS: Record<'QUEUED' | 'RUNNING', string> = {
+  QUEUED: 'Aguardando a vez',
+  RUNNING: 'Medindo',
 }
 
 export const STATUS_ORDER: EvaluationStatus[] = ['PENDING', 'RUNNING', 'COMPLETED', 'PARTIAL', 'FAILED']

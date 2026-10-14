@@ -1,20 +1,21 @@
-import type { EvaluationRecord, IFailedPillar } from '../../types'
+import type { EvaluationRecord, IEvaluationStep } from '../../types'
 import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../../utils/labels'
+import { stepsWithError } from '../../utils/steps'
 import { Notice } from '../ui/Notice'
 
 const ALL_PILLARS_FAILED_CODE = 'EVALUATION_PILLARS_FAILED'
 
-interface FailedPillarListProps {
-  pillars: IFailedPillar[]
+interface StepErrorListProps {
+  steps: IEvaluationStep[]
 }
 
-function FailedPillarList({ pillars }: FailedPillarListProps) {
+function StepErrorList({ steps }: StepErrorListProps) {
   return (
     <ul className="mt-2 flex flex-col gap-1">
-      {pillars.map((failed) => (
-        <li key={failed.pillar}>
-          <span className="font-medium text-ink">{PILLAR_LABELS[failed.pillar]}:</span>{' '}
-          {failed.error}
+      {steps.map((step) => (
+        <li key={step.pillar}>
+          <span className="font-medium text-ink">{PILLAR_LABELS[step.pillar]}:</span>{' '}
+          {step.error}
         </li>
       ))}
     </ul>
@@ -26,7 +27,8 @@ interface StatusNoticeProps {
 }
 
 export function StatusNotice({ evaluation }: StatusNoticeProps) {
-  const { evaluationType, status, failedPillars, errorMessage, errorCode } = evaluation
+  const { evaluationType, status, errorMessage, errorCode } = evaluation
+  const failedSteps = stepsWithError(evaluation)
 
   if (status === 'PENDING') {
     return <Notice busy title="Avaliação na fila. Esta página atualiza sozinha." />
@@ -36,18 +38,18 @@ export function StatusNotice({ evaluation }: StatusNoticeProps) {
     return (
       <Notice busy title="Avaliação em execução. Esta página atualiza sozinha.">
         {PILLARS_BY_TYPE[evaluationType].includes('performance')
-          ? 'O teste de carga roda um endpoint por vez e pode levar alguns minutos.'
-          : null}
+          ? 'Cada pilar aparece assim que termina. O teste de carga roda um endpoint por vez e pode levar alguns minutos.'
+          : 'O resultado aparece assim que o pilar terminar.'}
       </Notice>
     )
   }
 
   if (status === 'FAILED') {
-    if (errorCode === ALL_PILLARS_FAILED_CODE && failedPillars && failedPillars.length > 0) {
+    if (errorCode === ALL_PILLARS_FAILED_CODE && failedSteps.length > 0) {
       return (
         <Notice tone="error" title="A avaliação falhou.">
           <p>Nenhum pilar foi concluído.</p>
-          <FailedPillarList pillars={failedPillars} />
+          <StepErrorList steps={failedSteps} />
         </Notice>
       )
     }
@@ -66,9 +68,7 @@ export function StatusNotice({ evaluation }: StatusNoticeProps) {
           Os pesos não são redistribuídos entre os pilares que concluíram, para que a nota final
           tenha sempre o mesmo significado.
         </p>
-        {failedPillars && failedPillars.length > 0 ? (
-          <FailedPillarList pillars={failedPillars} />
-        ) : null}
+        {failedSteps.length > 0 ? <StepErrorList steps={failedSteps} /> : null}
       </Notice>
     )
   }

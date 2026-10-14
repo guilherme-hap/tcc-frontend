@@ -60,7 +60,13 @@ function renderPillar(evaluation: EvaluationRecord, pillar: PillarName): ReactNo
     return <ContractSection result={evaluation.spectralResult} score={score} />
   }
   if (pillar === 'performance' && evaluation.performanceResults) {
-    return <PerformanceSection results={evaluation.performanceResults} score={score} />
+    return (
+      <PerformanceSection
+        results={evaluation.performanceResults}
+        targets={evaluation.targets}
+        score={score}
+      />
+    )
   }
   if (pillar === 'security' && evaluation.securityResult) {
     return (

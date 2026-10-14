@@ -1,5 +1,5 @@
 import { CircleX } from 'lucide-react'
-import type { IAutocannonResult, IPerformanceTargetResult } from '../../types'
+import type { IAutocannonResult, IPerformanceTarget, IPerformanceTargetResult } from '../../types'
 import { formatMilliseconds, formatNumber, formatPercent } from '../../utils/format'
 import { Badge } from '../ui/Badge'
 import { Icon } from '../ui/Icon'
@@ -30,19 +30,31 @@ function buildStats(result: IAutocannonResult): Stat[] {
 
 interface TargetCardProps {
   target: IPerformanceTargetResult
+  pathParams: Record<string, string> | undefined
   maxLatency: number
 }
 
-function TargetCard({ target, maxLatency }: TargetCardProps) {
+function TargetCard({ target, pathParams, maxLatency }: TargetCardProps) {
   const { result } = target
+  const params = Object.entries(pathParams ?? {})
 
   return (
     <li className="flex flex-col gap-4 rounded-md border border-border bg-well p-4">
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-        <h3 className="flex min-w-0 flex-wrap items-center gap-2 text-[13px]">
-          <Badge mono>{target.method}</Badge>
-          <span className="font-mono font-medium break-all text-ink">{target.path}</span>
-        </h3>
+        <div className="flex min-w-0 flex-col gap-1">
+          <h3 className="flex min-w-0 flex-wrap items-center gap-2 text-[13px]">
+            <Badge mono>{target.method}</Badge>
+            <span className="font-mono font-medium break-all text-ink">{target.path}</span>
+          </h3>
+          {params.length > 0 ? (
+            <p className="text-[13px] text-ink-secondary">
+              Parâmetros informados:{' '}
+              <span className="font-mono break-all text-ink">
+                {params.map(([name, value]) => `${name} = ${value}`).join(' · ')}
+              </span>
+            </p>
+          ) : null}
+        </div>
         {result ? (
           <p className="flex items-baseline gap-2 text-[13px] text-ink-secondary">
             <span className="font-mono text-2xl leading-8 font-semibold text-ink tabular-nums">
@@ -98,10 +110,11 @@ function TargetCard({ target, maxLatency }: TargetCardProps) {
 
 interface PerformanceSectionProps {
   results: IPerformanceTargetResult[]
+  targets: IPerformanceTarget[] | null
   score?: number
 }
 
-export function PerformanceSection({ results, score }: PerformanceSectionProps) {
+export function PerformanceSection({ results, targets, score }: PerformanceSectionProps) {
   const maxLatency = Math.max(0, ...results.map((target) => target.result?.averageLatency ?? 0))
 
   return (
@@ -112,7 +125,12 @@ export function PerformanceSection({ results, score }: PerformanceSectionProps) 
     >
       <ul className="flex flex-col gap-3">
         {results.map((target, index) => (
-          <TargetCard key={index} target={target} maxLatency={maxLatency} />
+          <TargetCard
+            key={index}
+            target={target}
+            pathParams={targets?.[index]?.pathParams}
+            maxLatency={maxLatency}
+          />
         ))}
       </ul>
     </Panel>

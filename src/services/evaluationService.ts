@@ -1,6 +1,7 @@
 import type {
   EvaluationListPage,
   EvaluationListQuery,
+  EvaluationProgress,
   EvaluationQueueResponse,
   EvaluationRecord,
   EvaluationRequest,
@@ -25,6 +26,15 @@ export async function createEvaluation({
 export async function getEvaluation(id: string): Promise<EvaluationRecord> {
   try {
     const { data } = await api.get<EvaluationRecord>(`/api/evaluations/${id}`)
+    return data
+  } catch (err) {
+    handleError(err)
+  }
+}
+
+export async function getEvaluationProgress(id: string): Promise<EvaluationProgress> {
+  try {
+    const { data } = await api.get<EvaluationProgress>(`/api/evaluations/${id}/progress`)
     return data
   } catch (err) {
     handleError(err)

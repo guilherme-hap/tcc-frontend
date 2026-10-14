@@ -17,6 +17,23 @@ export interface IAuditMessage {
   params?: Record<string, string | number>
 }
 
+export interface ILatencySummary {
+  min: number
+  mean: number
+  p50: number
+  p95: number | null
+  p99: number | null
+  p99_9: number | null
+  max: number
+}
+
+export interface IPerformanceSeriesPoint {
+  second: number
+  responses: number
+  meanLatency: number | null
+  errors: number
+}
+
 export interface IAutocannonResult {
   score: number | null
   targetLatency: number
@@ -28,7 +45,10 @@ export interface IAutocannonResult {
   serverErrors: number
   unanswered: number
   errorRate: number
-  averageLatency: number
+  latency: ILatencySummary | null
+  requestsPerSecond: number
+  statusCodes: Record<string, number>
+  series: IPerformanceSeriesPoint[]
   totalRequests: number
   errors: number
   timeouts: number
@@ -53,10 +73,35 @@ export interface ISecurityCheckResult extends IAuditMessage {
   status: SecurityCheckStatus
 }
 
-export interface IFailedPillar {
+export type EvaluationStepStatus =
+  | 'PENDING'
+  | 'RUNNING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'SKIPPED'
+  | 'INTERRUPTED'
+
+export interface IStepProgress {
+  targetIndex: number
+  totalTargets: number
+  phase: 'QUEUED' | 'RUNNING'
+  startedAt: string | null
+  expectedDurationSeconds: number
+  elapsedSeconds: number
+  responses: number
+  errors: number
+  lastSecond: IPerformanceSeriesPoint | null
+}
+
+export interface IEvaluationStep {
   pillar: PillarName
-  error: string
-  code: string
+  stage: number
+  status: EvaluationStepStatus
+  startedAt: string | null
+  finishedAt: string | null
+  error?: string
+  code?: string
+  progress?: IStepProgress
 }
 
 export interface IScoringParameters {
@@ -111,12 +156,20 @@ export interface EvaluationRecord {
   pillarScores: PillarWeights | null
   scoring: IScoringParameters | null
   scoreBreakdown: IScoreBreakdown | null
-  failedPillars: IFailedPillar[] | null
+  steps: IEvaluationStep[] | null
   errorMessage: string | null
   errorCode: string | null
   startedAt: string | null
   finishedAt: string | null
   createdAt: string
+  updatedAt: string
+}
+
+export interface EvaluationProgress {
+  id: string
+  status: EvaluationStatus
+  steps: IEvaluationStep[] | null
+  pillarScores: PillarWeights | null
   updatedAt: string
 }
 

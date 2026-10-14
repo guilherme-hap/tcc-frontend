@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react'
-import type { HttpMethod } from '../../types'
+import type { HttpMethod, ISpecOperation } from '../../types'
 import { Button } from '../ui/Button'
 import { FieldMessages, SelectInput, TextArea, TextInput } from '../ui/Field'
 import { IconButton } from '../ui/IconButton'
@@ -12,15 +12,17 @@ import {
   type FormErrors,
   type TargetDraft,
 } from './formState'
+import { findOperation } from './specOperations'
 
 interface PathParamFieldsProps {
   target: TargetDraft
+  operation: ISpecOperation | undefined
   position: number
   errors: FormErrors
   onChange: (pathParams: Record<string, string>) => void
 }
 
-function PathParamFields({ target, position, errors, onChange }: PathParamFieldsProps) {
+function PathParamFields({ target, operation, position, errors, onChange }: PathParamFieldsProps) {
   const names = pathPlaceholders(target.path.trim())
   const required = target.method === 'DELETE'
 
@@ -37,6 +39,8 @@ function PathParamFields({ target, position, errors, onChange }: PathParamFields
         {names.map((name, index) => {
           const id = `target-${target.id}-param-${index}`
           const error = errors[`targets.${target.id}.pathParams.${name}`]
+          const type = operation?.pathParams.find((param) => param.name === name)?.type
+          const placeholder = required ? 'Obrigatório' : 'Gerado'
 
           return (
             <li key={name} className="flex min-w-0 flex-col gap-1">
@@ -57,7 +61,7 @@ function PathParamFields({ target, position, errors, onChange }: PathParamFields
                   onChange={(event) =>
                     onChange({ ...target.pathParams, [name]: event.target.value })
                   }
-                  placeholder={required ? 'Obrigatório' : 'Gerado'}
+                  placeholder={type ? `${placeholder} (${type})` : placeholder}
                   className="flex-1"
                 />
               </div>
@@ -72,11 +76,12 @@ function PathParamFields({ target, position, errors, onChange }: PathParamFields
 
 interface TargetsFieldProps {
   targets: TargetDraft[]
+  operations?: ISpecOperation[]
   errors: FormErrors
   onChange: (targets: TargetDraft[]) => void
 }
 
-export function TargetsField({ targets, errors, onChange }: TargetsFieldProps) {
+export function TargetsField({ targets, operations, errors, onChange }: TargetsFieldProps) {
   const updateTarget = (id: string, patch: Partial<TargetDraft>) => {
     onChange(targets.map((target) => (target.id === id ? { ...target, ...patch } : target)))
   }
@@ -89,6 +94,8 @@ export function TargetsField({ targets, errors, onChange }: TargetsFieldProps) {
           const methodError = errors[`targets.${target.id}.method`]
           const payloadError = errors[`targets.${target.id}.payload`]
           const position = index + 1
+          const operation = findOperation(operations, target)
+          const withoutBody = operation !== undefined && !operation.hasJsonBody
 
           return (
             <li key={target.id} className="flex flex-col gap-2">
@@ -139,8 +146,21 @@ export function TargetsField({ targets, errors, onChange }: TargetsFieldProps) {
                   <FieldMessages id={`target-${target.id}-path`} error={pathError} />
                 </div>
               ) : null}
+              {operation?.requiresAuth || operation?.deprecated ? (
+                <p className="text-[13px] text-ink-secondary sm:ml-7">
+                  {[
+                    operation.deprecated ? 'Operação marcada como obsoleta na especificação.' : null,
+                    operation.requiresAuth
+                      ? 'Exige autenticação: informe o cabeçalho nas opções do teste de carga.'
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                </p>
+              ) : null}
               <PathParamFields
                 target={target}
+                operation={operation}
                 position={position}
                 errors={errors}
                 onChange={(pathParams) => updateTarget(target.id, { pathParams })}
@@ -154,12 +174,16 @@ export function TargetsField({ targets, errors, onChange }: TargetsFieldProps) {
                     value={target.payload}
                     onChange={(event) => updateTarget(target.id, { payload: event.target.value })}
                     rows={3}
-                    placeholder='{ "name": "Rex" }'
+                    placeholder={withoutBody ? 'Sem corpo' : '{ "name": "Rex" }'}
                   />
                   <FieldMessages
                     id={`target-${target.id}-payload`}
                     error={payloadError}
-                    hint="Payload JSON opcional. Vazio, um payload sintético é gerado a partir da especificação."
+                    hint={
+                      withoutBody
+                        ? 'A especificação não declara corpo JSON para esta operação: sem payload, a requisição vai sem corpo.'
+                        : 'Payload JSON opcional. Vazio, um payload sintético é gerado a partir da especificação.'
+                    }
                   />
                 </div>
               ) : null}

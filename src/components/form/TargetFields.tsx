@@ -16,10 +16,17 @@ interface TargetFieldsProps {
   form: EvaluationFormState
   errors: FormErrors
   savedApis: SavedApi[] | null
+  specBaseUrl?: string
   onChange: (patch: Partial<EvaluationFormState>) => void
 }
 
-export function TargetFields({ form, errors, savedApis, onChange }: TargetFieldsProps) {
+export function TargetFields({
+  form,
+  errors,
+  savedApis,
+  specBaseUrl,
+  onChange,
+}: TargetFieldsProps) {
   const selected = savedApis?.find((api) => api.id === form.savedApiId) ?? null
   const duplicate = selected ? null : findSavedApiBySpec(savedApis, form.openApiUrl)
 
@@ -76,8 +83,12 @@ export function TargetFields({ form, errors, savedApis, onChange }: TargetFields
               optional
               type="url"
               mono
-              placeholder="https://api.exemplo.com"
-              hint="Vazia, usa o primeiro servidor declarado na especificação."
+              placeholder={specBaseUrl ?? 'https://api.exemplo.com'}
+              hint={
+                specBaseUrl
+                  ? `Vazia, usa ${specBaseUrl}, lida da especificação.`
+                  : 'Vazia, usa o primeiro servidor declarado na especificação.'
+              }
               error={errors.apiBaseUrl}
               value={form.apiBaseUrl}
               onChange={(event) => onChange({ apiBaseUrl: event.target.value })}

@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AccountTip } from '../components/account/AccountTip'
 import { ContractRulesFields } from '../components/form/ContractRulesFields'
 import { LoadOptionsFields } from '../components/form/LoadOptionsFields'
+import { OperationPicker } from '../components/form/OperationPicker'
 import { RequestSummary } from '../components/form/RequestSummary'
 import { TargetFields } from '../components/form/TargetFields'
 import { TargetsField } from '../components/form/TargetsField'
@@ -13,8 +14,10 @@ import { WeightsFields } from '../components/form/WeightsFields'
 import { applySavedApi, buildSubmission } from '../components/form/accountState'
 import { clearFormDraft, readFormDraft, saveFormDraft } from '../components/form/formDraft'
 import { pruneErrors } from '../components/form/formErrors'
+import { findOperation } from '../components/form/specOperations'
 import {
   MAX_TARGETS,
+  createHeaderDraft,
   createInitialFormState,
   hasMutatingTarget,
   mapServerIssues,
@@ -31,7 +34,13 @@ import { Notice } from '../components/ui/Notice'
 import { Panel } from '../components/ui/Panel'
 import { TextLink } from '../components/ui/TextLink'
 import { GLASS } from '../components/ui/classes'
-import { EVALUATION_HISTORY_KEY, SAVED_APIS_KEY, useSavedApis, useSession } from '../hooks'
+import {
+  EVALUATION_HISTORY_KEY,
+  SAVED_APIS_KEY,
+  useSavedApis,
+  useSession,
+  useSpecOperations,
+} from '../hooks'
 import { ApiError, createEvaluation, createSavedApi } from '../services'
 import type {
   EvaluationRequest,
@@ -40,6 +49,7 @@ import type {
   SavedApi,
   SavedApiInput,
 } from '../types'
+import { formatCount } from '../utils/format'
 import { TYPE_ORDER } from '../utils/labels'
 import { findSavedApiBySpec } from '../utils/savedApi'
 import {
@@ -160,6 +170,7 @@ function EvaluationForm({
   const [loadOptionsOpen, setLoadOptionsOpen] = useState(false)
   const [contractRulesOpen, setContractRulesOpen] = useState(false)
   const [submitDetails, setSubmitDetails] = useState<IValidationIssue[]>([])
+  const [specRequest, setSpecRequest] = useState<string | null>(null)
 
   const hasAccount = user !== null
   const savedApis = hasAccount ? (apis ?? []) : null
@@ -171,6 +182,14 @@ function EvaluationForm({
     saveApi: enteredForm.saveApi && !duplicateApi,
   }
   const errors = rejection ? pruneErrors(rejection.errors, rejection.form, form) : {}
+  const openApiUrl = form.openApiUrl.trim()
+  const specUrl = specRequest !== null && specRequest === openApiUrl ? specRequest : null
+  const specOperations = useSpecOperations(usesTargets(form.type) ? specUrl : null)
+  const operations = specOperations.spec?.operations
+  const authTargets = form.targets.filter(
+    (target) => findOperation(operations, target)?.requiresAuth,
+  )
+  const hasHeaders = form.headers.some((header) => header.name.trim())
 
   const leaving = useRef({ form, keepsDraft: false })
   const submitted = useRef(false)
@@ -233,6 +252,11 @@ function EvaluationForm({
     })
   }
 
+  const addAuthHeader = () => {
+    update({ headers: [...form.headers, { ...createHeaderDraft(), name: 'Authorization' }] })
+    setLoadOptionsOpen(true)
+  }
+
   const handleKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
     if (event.key !== 'Enter') return
 
@@ -277,7 +301,13 @@ function EvaluationForm({
             <TypeSelector value={form.type} onChange={(type) => update({ type })} />
           </Panel>
 
-          <TargetFields form={form} errors={errors} savedApis={savedApis} onChange={update} />
+          <TargetFields
+            form={form}
+            errors={errors}
+            savedApis={savedApis}
+            specBaseUrl={specOperations.spec?.baseUrl}
+            onChange={update}
+          />
 
           {usesContractRules(form.type) ? (
             <ContractRulesFields
@@ -294,7 +324,7 @@ function EvaluationForm({
             <>
               <Panel
                 title="Endpoints do teste de carga"
-                description="Paths como aparecem na especificação. Cada parâmetro entre chaves recebe o valor informado ou, sem ele, um valor gerado a partir da especificação; os testes rodam um endpoint por vez."
+                description="Escolha na lista de operações da especificação ou digite os paths como aparecem nela. Cada parâmetro entre chaves recebe o valor informado ou, sem ele, um valor gerado a partir da especificação; os testes rodam um endpoint por vez."
                 aside={
                   <Badge mono>
                     {form.targets.length} de {MAX_TARGETS}
@@ -302,11 +332,35 @@ function EvaluationForm({
                 }
               >
                 <div className="flex min-w-0 flex-col gap-5">
+                  <OperationPicker
+                    openApiUrl={openApiUrl}
+                    requested={specUrl !== null}
+                    operations={specOperations}
+                    targets={form.targets}
+                    onRequest={() => setSpecRequest(openApiUrl)}
+                    onClose={() => setSpecRequest(null)}
+                    onChange={(targets) => update({ targets })}
+                  />
                   <TargetsField
                     targets={form.targets}
+                    operations={operations}
                     errors={errors}
                     onChange={(targets) => update({ targets })}
                   />
+                  {authTargets.length > 0 && !hasHeaders ? (
+                    <div className="flex flex-col gap-3 rounded-md border border-border bg-well px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="min-w-0 text-ink-secondary">
+                        {formatCount(
+                          authTargets.length,
+                          'endpoint escolhido exige',
+                          'endpoints escolhidos exigem',
+                        )}{' '}
+                        autenticação. Sem o cabeçalho, as respostas tendem a ser 401 e ficam fora
+                        da amostra do Apdex.
+                      </p>
+                      <Button onClick={addAuthHeader}>Informar cabeçalho</Button>
+                    </div>
+                  ) : null}
                   {hasMutatingTarget(form) ? (
                     <div className="rounded-md border border-warning/40 bg-warning-dim px-4 py-3">
                       <CheckboxField

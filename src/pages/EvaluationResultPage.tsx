@@ -1,71 +1,92 @@
 import { useState, type ReactNode } from 'react'
-import { LayoutDashboard } from 'lucide-react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { AccountTip } from '../components/account/AccountTip'
 import { ContractSection } from '../components/result/ContractSection'
+import { EndpointOverview } from '../components/result/EndpointOverview'
+import { IssuesByEndpoint } from '../components/result/IssuesByEndpoint'
+import { LatencyOverview } from '../components/result/LatencyOverview'
+import { PendingList } from '../components/result/PendingList'
 import { PerformanceSection } from '../components/result/PerformanceSection'
 import { PillarPlaceholder } from '../components/result/PillarPlaceholder'
-import { ResultHeader } from '../components/result/ResultHeader'
-import { ResultStats } from '../components/result/ResultStats'
-import { ScoreSummary } from '../components/result/ScoreSummary'
+import { PillarTile } from '../components/result/PillarTile'
+import { ResultRail } from '../components/result/ResultRail'
+import { ResultToolbar } from '../components/result/ResultToolbar'
 import { ScoringParameters } from '../components/result/ScoringParameters'
+import { SecurityLayers } from '../components/result/SecurityLayers'
 import { SecuritySection } from '../components/result/SecuritySection'
 import { StatusNotice } from '../components/result/StatusNotice'
+import { StepTimeline } from '../components/result/StepTimeline'
+import { pillarPart } from '../components/result/pillarSummary'
+import { sectionPanelId, sectionTabId, type SectionId } from '../components/result/sections'
 import { Button } from '../components/ui/Button'
 import { Notice } from '../components/ui/Notice'
-import { TabPanel, Tabs, type TabItem } from '../components/ui/Tabs'
-import { FOCUS_RING, CARD } from '../components/ui/classes'
-import { useEvaluationPolling, useSavedApis, useSession } from '../hooks'
+import { CARD, FOCUS_RING, PAGE_CONTAINER } from '../components/ui/classes'
+import { useEvaluationPolling, useSavedApis, useSession, type LiveSeries } from '../hooks'
 import type { EvaluationRecord, PillarName } from '../types'
-import { PILLAR_ICONS } from '../utils/icons'
+import { formatNumber, formatPercent } from '../utils/format'
 import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../utils/labels'
 import { LOGIN_PATH, NEW_EVALUATION_PATH, type ResultLocationState } from '../utils/routes'
 import { findSavedApiBySpec } from '../utils/savedApi'
+import { finalScoreParts, securityScoreParts } from '../utils/scoreParts'
+import { performanceProgress } from '../utils/steps'
 
-type TabId = 'overview' | PillarName
-
-const TABS_ID = 'resultado'
-
-const SUMMARY_GRID =
-  'grid grid-cols-1 gap-3 *:only:col-span-full lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]'
+const FRAME = 'lg:grid lg:grid-cols-[23.25rem_minmax(0,1fr)] lg:items-start'
+const BODY = 'flex min-w-0 flex-col gap-5 px-4 pt-5 pb-10 sm:px-6 lg:px-7'
+const CONTRACT_ONLY: PillarName[] = ['contract']
+const SECURITY_ONLY: PillarName[] = ['security']
+const STACK = 'min-w-0 flex-col gap-3'
+const SECTION_TITLE = 'font-display text-[22px] leading-7 font-bold tracking-[-0.01em] text-ink'
 
 function ResultSkeleton() {
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      aria-label="Carregando avaliação"
-      className="flex flex-col gap-6"
-    >
-      <div className="h-8 w-64 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none" />
-      <div className={`h-60 animate-pulse border-border motion-reduce:animate-none ${CARD}`} />
-      <div className={`h-48 animate-pulse border-border motion-reduce:animate-none ${CARD}`} />
+    <div role="status" aria-busy="true" aria-label="Carregando avaliação" className={FRAME}>
+      <div className="flex flex-col items-center gap-5 border-b border-border bg-surface px-6 py-5 lg:h-[calc(100dvh-53px)] lg:border-r lg:border-b-0">
+        <div className="h-7 w-48 animate-pulse self-start rounded-md bg-surface-raised motion-reduce:animate-none" />
+        <div className="size-52 animate-pulse rounded-full bg-surface-raised motion-reduce:animate-none" />
+        <div className="h-40 w-full animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none" />
+      </div>
+      <div className={BODY}>
+        <div className="h-8 w-56 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none" />
+        <div className={`h-44 animate-pulse border-border motion-reduce:animate-none ${CARD}`} />
+        <div className={`h-60 animate-pulse border-border motion-reduce:animate-none ${CARD}`} />
+      </div>
     </div>
   )
 }
 
-function pillarScore(evaluation: EvaluationRecord, pillar: PillarName): number | undefined {
-  return evaluation.pillarScores?.[pillar]
+interface LiveState {
+  isActive: boolean
+  liveSeries: LiveSeries | null
+  receivedAt: number
 }
 
-function hasPillarResult(evaluation: EvaluationRecord, pillar: PillarName): boolean {
-  if (pillar === 'contract') return evaluation.spectralResult !== null
-  if (pillar === 'performance') return evaluation.performanceResults !== null
-  return evaluation.securityResult !== null
-}
-
-function renderPillar(evaluation: EvaluationRecord, pillar: PillarName): ReactNode {
-  const score = pillarScore(evaluation, pillar)
+function renderPillar(
+  evaluation: EvaluationRecord,
+  pillar: PillarName,
+  live: LiveState,
+  standalone = false,
+): ReactNode {
+  const score = standalone ? undefined : evaluation.pillarScores?.[pillar]
+  const progress = performanceProgress(evaluation)
+  const loadTestOptions = evaluation.requestSettings?.loadTestOptions
 
   if (pillar === 'contract' && evaluation.spectralResult) {
     return <ContractSection result={evaluation.spectralResult} score={score} />
   }
-  if (pillar === 'performance' && evaluation.performanceResults) {
+  if (pillar === 'performance' && (evaluation.performanceResults || progress)) {
     return (
       <PerformanceSection
-        results={evaluation.performanceResults}
+        results={evaluation.performanceResults ?? []}
         targets={evaluation.targets}
         score={score}
+        progress={progress}
+        liveSeries={live.liveSeries}
+        receivedAt={live.receivedAt}
+        isActive={live.isActive}
+        limitedRequests={loadTestOptions?.maxRequests !== undefined}
+        targetLatency={
+          loadTestOptions?.targetLatency ?? evaluation.scoring?.performance?.targetLatency
+        }
       />
     )
   }
@@ -82,74 +103,222 @@ function renderPillar(evaluation: EvaluationRecord, pillar: PillarName): ReactNo
   return null
 }
 
-function pillarCount(evaluation: EvaluationRecord, pillar: PillarName): number | undefined {
-  if (pillar === 'contract') return evaluation.spectralResult?.summary.violatedRules
-  if (pillar === 'security') {
-    return evaluation.securityResult?.filter((check) => check.status !== 'pass').length
+function describeFinalScore(evaluation: EvaluationRecord, isActive: boolean): string {
+  const { evaluationType, finalScore, status, scoreBreakdown, securityResult } = evaluation
+
+  if (evaluationType !== 'full') {
+    const pillar = PILLAR_LABELS[evaluationType].toLowerCase()
+    if (status === 'FAILED') return `A nota de ${pillar} não foi calculada porque a avaliação falhou.`
+    if (securityResult && finalScore !== null && securityScoreParts(scoreBreakdown, securityResult)) {
+      return `Com um único pilar, a nota final é a nota de ${pillar}. Cada arco do anel é uma camada: o comprimento é o peso e o preenchimento é a média das verificações.`
+    }
+    return `Com um único pilar, a nota final é a nota de ${pillar}.`
   }
-  return undefined
+  if (finalScore === null && !isActive && status !== 'COMPLETED') {
+    return 'A nota final só é calculada quando os três pilares concluem.'
+  }
+  if (finalScoreParts(scoreBreakdown)) {
+    return 'Soma das notas dos três pilares, cada uma multiplicada pelo seu peso. Cada arco do anel é um pilar: o comprimento é o peso e o preenchimento é a nota.'
+  }
+  return 'Soma das notas dos três pilares, cada uma multiplicada pelo seu peso.'
 }
 
-interface ResultBodyProps {
+function describePillar(evaluation: EvaluationRecord, pillar: PillarName): string | null {
+  const part = pillarPart(evaluation, pillar)
+  if (!part) return null
+
+  return `Peso ${formatPercent(part.weight)}: ${formatNumber(part.points)} de ${formatNumber(part.maxPoints)} pontos da nota final.`
+}
+
+interface SectionProps {
   evaluation: EvaluationRecord
   isActive: boolean
+  liveSeries: LiveSeries | null
+  receivedAt: number
 }
 
-function FullResult({ evaluation, isActive }: ResultBodyProps) {
-  const [tab, setTab] = useState<TabId>('overview')
+interface OverviewProps extends SectionProps {
+  highlighted: PillarName | null
+  onOpen: (pillar: PillarName) => void
+  onHighlight: (pillar: PillarName | null) => void
+}
 
-  const items: TabItem<TabId>[] = [
-    { id: 'overview', label: 'Visão geral', icon: LayoutDashboard },
-    ...PILLARS_BY_TYPE.full.map(
-      (pillar): TabItem<TabId> => ({
-        id: pillar,
-        label: PILLAR_LABELS[pillar],
-        icon: PILLAR_ICONS[pillar],
-        count: pillarCount(evaluation, pillar),
-      }),
-    ),
-  ]
+function Overview({
+  evaluation,
+  isActive,
+  receivedAt,
+  highlighted,
+  onOpen,
+  onHighlight,
+}: OverviewProps) {
+  const { performanceResults, spectralResult, securityResult } = evaluation
+  const targetLatency = evaluation.scoring?.performance?.targetLatency
 
   return (
-    <>
-      <Tabs
-        label="Seções do resultado"
-        idPrefix={TABS_ID}
-        items={items}
-        value={tab}
-        onChange={setTab}
+    <div className="@container flex flex-col gap-3">
+      <div className="grid grid-cols-1 gap-3 @2xl:grid-cols-3">
+        {PILLARS_BY_TYPE.full.map((pillar) => (
+          <PillarTile
+            key={pillar}
+            pillar={pillar}
+            evaluation={evaluation}
+            isActive={isActive}
+            highlighted={highlighted === pillar}
+            onOpen={onOpen}
+            onHighlight={onHighlight}
+          />
+        ))}
+      </div>
+      <StepTimeline
+        evaluation={evaluation}
+        isActive={isActive}
+        receivedAt={receivedAt}
+        onOpenPerformance={() => onOpen('performance')}
       />
-      <TabPanel idPrefix={TABS_ID} tab={tab} className="flex flex-col gap-6">
-        {tab === 'overview' ? (
-          <>
-            <div className={SUMMARY_GRID}>
-              <ScoreSummary evaluation={evaluation} isActive={isActive} onOpenPillar={setTab} />
-              <ResultStats evaluation={evaluation} isActive={isActive} onOpenPillar={setTab} />
-            </div>
-            {evaluation.scoring ? <ScoringParameters scoring={evaluation.scoring} /> : null}
-          </>
-        ) : hasPillarResult(evaluation, tab) ? (
-          renderPillar(evaluation, tab)
+      <div className="grid grid-cols-1 items-start gap-3 @4xl:grid-cols-12 @7xl:grid-cols-3">
+        <div className={`hidden @7xl:flex ${STACK}`}>
+          {spectralResult ? (
+            <>
+              <PendingList evaluation={evaluation} pillars={CONTRACT_ONLY} onOpen={onOpen} />
+              <IssuesByEndpoint result={spectralResult} />
+            </>
+          ) : null}
+        </div>
+        {performanceResults ? (
+          <div className={`flex @4xl:col-span-7 @7xl:col-span-1 ${STACK}`}>
+            <EndpointOverview
+              results={performanceResults}
+              targetLatency={targetLatency}
+              onOpen={() => onOpen('performance')}
+            />
+            <LatencyOverview results={performanceResults} targetLatency={targetLatency} />
+          </div>
         ) : (
-          <PillarPlaceholder pillar={tab} evaluation={evaluation} isActive={isActive} />
+          <div className="hidden @7xl:block" />
         )}
-      </TabPanel>
-    </>
+        <div className={`hidden @7xl:flex ${STACK}`}>
+          {securityResult ? (
+            <PendingList evaluation={evaluation} pillars={SECURITY_ONLY} onOpen={onOpen}>
+              <SecurityLayers evaluation={evaluation} />
+            </PendingList>
+          ) : null}
+        </div>
+        {spectralResult || securityResult ? (
+          <div
+            className={`flex @7xl:hidden ${performanceResults ? '@4xl:col-span-5' : '@4xl:col-span-12'} ${STACK}`}
+          >
+            <PendingList evaluation={evaluation} onOpen={onOpen} />
+            {spectralResult ? <IssuesByEndpoint result={spectralResult} /> : null}
+          </div>
+        ) : null}
+      </div>
+    </div>
   )
 }
 
-function SinglePillarResult({ evaluation, isActive }: ResultBodyProps) {
+interface ResultViewProps extends SectionProps {
+  hasAccount: boolean
+  apiSaved: boolean
+  tip: ReactNode
+  children: ReactNode
+}
+
+function ResultView({
+  evaluation,
+  isActive,
+  liveSeries,
+  receivedAt,
+  hasAccount,
+  apiSaved,
+  tip,
+  children,
+}: ResultViewProps) {
+  const [section, setSection] = useState<SectionId>('overview')
+  const [highlighted, setHighlighted] = useState<PillarName | null>(null)
+  const { scoring } = evaluation
+  const isFull = evaluation.evaluationType === 'full'
   const [pillar] = PILLARS_BY_TYPE[evaluation.evaluationType]
+  const summary = describeFinalScore(evaluation, isActive)
+  const live: LiveState = { isActive, liveSeries, receivedAt }
 
   return (
-    <>
-      <div className={SUMMARY_GRID}>
-        <ScoreSummary evaluation={evaluation} isActive={isActive} />
-        <ResultStats evaluation={evaluation} isActive={isActive} />
+    <div className={FRAME}>
+      <ResultRail
+        evaluation={evaluation}
+        isActive={isActive}
+        hasAccount={hasAccount}
+        section={section}
+        onSectionChange={setSection}
+        highlighted={highlighted}
+        onHighlight={setHighlighted}
+      />
+      <div className={BODY}>
+        {children}
+        <ResultToolbar
+          evaluation={evaluation}
+          isActive={isActive}
+          hasAccount={hasAccount}
+          apiSaved={apiSaved}
+        >
+          {!isFull ? (
+            <p className="max-w-[72ch] text-ink-secondary">{summary}</p>
+          ) : section === 'overview' ? (
+            <>
+              <h2 className={SECTION_TITLE}>Visão geral</h2>
+              <p className="max-w-[72ch] text-ink-secondary">{summary}</p>
+            </>
+          ) : section === 'scoring' ? (
+            <h2 className={SECTION_TITLE}>Parâmetros usados no cálculo</h2>
+          ) : (
+            <>
+              <h2 className={SECTION_TITLE}>{PILLAR_LABELS[section]}</h2>
+              <p className="max-w-[72ch] text-ink-secondary">
+                {describePillar(evaluation, section)}
+              </p>
+            </>
+          )}
+        </ResultToolbar>
+        {isFull ? (
+          <div
+            role="tabpanel"
+            id={sectionPanelId(section)}
+            aria-labelledby={sectionTabId(section)}
+            tabIndex={0}
+            className={`flex flex-col gap-3 rounded-card ${FOCUS_RING}`}
+          >
+            {section === 'overview' ? (
+              <Overview
+                evaluation={evaluation}
+                isActive={isActive}
+                liveSeries={liveSeries}
+                receivedAt={receivedAt}
+                highlighted={highlighted}
+                onOpen={setSection}
+                onHighlight={setHighlighted}
+              />
+            ) : section === 'scoring' ? (
+              scoring ? (
+                <ScoringParameters scoring={scoring} collapsible={false} />
+              ) : null
+            ) : (
+              (renderPillar(evaluation, section, live) ?? (
+                <PillarPlaceholder pillar={section} evaluation={evaluation} isActive={isActive} />
+              ))
+            )}
+          </div>
+        ) : (
+          <>
+            <StepTimeline evaluation={evaluation} isActive={isActive} receivedAt={receivedAt} />
+            {renderPillar(evaluation, pillar, live, true) ??
+              (evaluation.status === 'FAILED' ? null : (
+                <PillarPlaceholder pillar={pillar} evaluation={evaluation} isActive={isActive} />
+              ))}
+            {scoring ? <ScoringParameters scoring={scoring} /> : null}
+          </>
+        )}
+        {tip}
       </div>
-      {renderPillar(evaluation, pillar)}
-      {evaluation.scoring ? <ScoringParameters scoring={evaluation.scoring} /> : null}
-    </>
+    </div>
   )
 }
 
@@ -157,8 +326,17 @@ export function EvaluationResultPage() {
   const { id } = useParams()
   const location = useLocation()
   const { user } = useSession()
-  const { evaluation, isLoading, isPaused, isPolling, isFetching, error, refetch } =
-    useEvaluationPolling(id)
+  const {
+    evaluation,
+    liveSeries,
+    progressReceivedAt,
+    isLoading,
+    isPaused,
+    isPolling,
+    isFetching,
+    error,
+    refetch,
+  } = useEvaluationPolling(id)
   const { apis } = useSavedApis()
   const hasAccount = user !== null
   const apiSaved = evaluation ? findSavedApiBySpec(apis, evaluation.openApiUrl) !== null : false
@@ -167,7 +345,11 @@ export function EvaluationResultPage() {
   if (isLoading) {
     return (
       <>
-        {isPaused ? <Notice title="Aguardando a conexão para carregar a avaliação." /> : null}
+        {isPaused ? (
+          <div className="px-4 pt-4 sm:px-6">
+            <Notice title="Aguardando a conexão para carregar a avaliação." />
+          </div>
+        ) : null}
         <ResultSkeleton />
       </>
     )
@@ -175,7 +357,7 @@ export function EvaluationResultPage() {
 
   if (!evaluation) {
     return (
-      <>
+      <div className={PAGE_CONTAINER}>
         <Notice tone="error" title="Não foi possível carregar a avaliação.">
           {error ?? 'Avaliação não encontrada.'}
           {hasAccount ? null : ' Se ela foi criada com uma conta, entre para abrir o resultado.'}
@@ -200,22 +382,34 @@ export function EvaluationResultPage() {
             Iniciar uma nova avaliação
           </Link>
         </div>
-      </>
+      </div>
     )
   }
 
   return (
-    <>
-      <ResultHeader
-        key={evaluation.id}
-        evaluation={evaluation}
-        isActive={isPolling}
-        hasAccount={hasAccount}
-        apiSaved={apiSaved}
-      />
+    <ResultView
+      key={evaluation.id}
+      evaluation={evaluation}
+      isActive={isPolling}
+      liveSeries={liveSeries}
+      receivedAt={progressReceivedAt}
+      hasAccount={hasAccount}
+      apiSaved={apiSaved}
+      tip={
+        !hasAccount && evaluation.visibility === 'anonymous' ? (
+          <AccountTip id="result" title="Esta avaliação não está em nenhum histórico">
+            <p className="max-w-[88ch] text-[13px] text-ink">
+              Ela só abre por este endereço, para qualquer pessoa que o tenha. Com uma conta, as
+              próximas avaliações entram no histórico, ficam privadas e a API pode ser salva para
+              reavaliar sem redigitar.
+            </p>
+          </AccountTip>
+        ) : null
+      }
+    >
       {apiSaveFailed && hasAccount && !apiSaved ? (
         <Notice tone="warning" title="A avaliação foi criada, mas a API não foi salva.">
-          Use "Salvar API" acima para tentar de novo.
+          Use "Salvar API" abaixo para tentar de novo.
         </Notice>
       ) : null}
       {error ? (
@@ -224,20 +418,6 @@ export function EvaluationResultPage() {
         </Notice>
       ) : null}
       <StatusNotice evaluation={evaluation} />
-      {!hasAccount && evaluation.visibility === 'anonymous' ? (
-        <AccountTip id="result" title="Esta avaliação não está em nenhum histórico">
-          <p className="max-w-[88ch] text-[13px] text-ink">
-            Ela só abre por este endereço, para qualquer pessoa que o tenha. Com uma conta, as
-            próximas avaliações entram no histórico, ficam privadas e a API pode ser salva para
-            reavaliar sem redigitar.
-          </p>
-        </AccountTip>
-      ) : null}
-      {evaluation.evaluationType === 'full' ? (
-        <FullResult evaluation={evaluation} isActive={isPolling} />
-      ) : (
-        <SinglePillarResult evaluation={evaluation} isActive={isPolling} />
-      )}
-    </>
+    </ResultView>
   )
 }

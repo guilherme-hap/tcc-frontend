@@ -69,6 +69,16 @@ export const EXECUTION_STEPS: Record<EvaluationType, string[]> = {
   security: ['Segurança: transporte e cabeçalhos da URL base.'],
 }
 
+export interface ExecutionGroup {
+  label: string
+  pillars: PillarName[]
+}
+
+export const FULL_EXECUTION_GROUPS: ExecutionGroup[] = [
+  { label: 'Em paralelo', pillars: ['contract', 'security'] },
+  { label: 'Um endpoint por vez', pillars: ['performance'] },
+]
+
 export const STATUS_LABELS: Record<EvaluationStatus, string> = {
   PENDING: 'Na fila',
   RUNNING: 'Em execução',

@@ -33,11 +33,13 @@ export interface IContractRequest {
   openApiUrl: string
   rulesConfig?: Record<string, boolean>
   severityWeights?: Partial<Record<Severity, number>>
+  minScore?: number
 }
 
 export interface ISecurityRequest {
   openApiUrl: string
   apiBaseUrl?: string
+  minScore?: number
 }
 
 export interface IPerformanceRequest {
@@ -45,6 +47,7 @@ export interface IPerformanceRequest {
   apiBaseUrl?: string
   targets: IPerformanceTarget[]
   loadTestOptions?: ILoadTestOptions
+  minScore?: number
 }
 
 export interface IFullEvaluationRequest extends IPerformanceRequest {

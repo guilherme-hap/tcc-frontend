@@ -23,6 +23,7 @@ function stillApplies(
   if (root === 'apiBaseUrl') {
     return usesBaseUrl(current.type) && current.apiBaseUrl === submitted.apiBaseUrl
   }
+  if (root === 'minScore') return current.minScore === submitted.minScore
   if (root === 'savedApiName') {
     return (
       current.saveApi && !current.savedApiId && current.savedApiName === submitted.savedApiName

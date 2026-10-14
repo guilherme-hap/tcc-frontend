@@ -25,7 +25,7 @@ import {
 } from '../components/form/formState'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
-import { CheckboxField } from '../components/ui/Field'
+import { CheckboxField, TextField } from '../components/ui/Field'
 import { Icon } from '../components/ui/Icon'
 import { Notice } from '../components/ui/Notice'
 import { Panel } from '../components/ui/Panel'
@@ -332,6 +332,26 @@ function EvaluationForm({
               <WeightsFields form={form} errors={errors} onChange={update} />
             </Panel>
           ) : null}
+
+          <Panel
+            title="Critério de aprovação"
+            description="Com uma nota mínima, o resultado diz se a avaliação foi aprovada ou reprovada. A execução e as notas não mudam."
+          >
+            <div className="max-w-90">
+              <TextField
+                id="minScore"
+                label="Nota mínima"
+                optional
+                inputMode="decimal"
+                mono
+                placeholder="Sem nota mínima"
+                hint="De 0 a 100, comparada com a nota final. Avaliação parcial ou que falhou é reprovada."
+                error={errors.minScore}
+                value={form.minScore}
+                onChange={(event) => update({ minScore: event.target.value })}
+              />
+            </div>
+          </Panel>
         </div>
 
         <aside

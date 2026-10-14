@@ -29,6 +29,7 @@ const SERVER_HEADERS_PATH = 'loadTestOptions.headers.'
 const DECIMAL_PATTERN = /^\d+(?:[.,]\d+)?$/
 const INTEGER_PATTERN = /^\d+$/
 const THOUSANDS_PATTERN = /^[1-9]\d{0,2}(?:\.\d{3})+$/
+const MAX_MIN_SCORE = 100
 
 export interface TargetDraft {
   id: string
@@ -64,6 +65,7 @@ export interface EvaluationFormState {
   rulesConfig: Record<string, boolean>
   customSeverityWeights: boolean
   severityWeights: Record<Severity, string>
+  minScore: string
   savedApiId: string
   saveApi: boolean
   savedApiName: string
@@ -123,6 +125,7 @@ export function createInitialFormState(type: EvaluationType = 'full'): Evaluatio
     rulesConfig: {},
     customSeverityWeights: false,
     severityWeights: DEFAULT_SEVERITY_WEIGHTS,
+    minScore: '',
     savedApiId: '',
     saveApi: false,
     savedApiName: '',
@@ -307,6 +310,18 @@ export function buildSeverityWeights(
   return weights
 }
 
+function buildMinScore(form: EvaluationFormState, errors: FormErrors): number | undefined {
+  const raw = form.minScore.trim()
+  if (!raw) return undefined
+
+  const value = parseDecimal(raw)
+  if (!Number.isFinite(value) || value > MAX_MIN_SCORE) {
+    errors.minScore = 'Informe um número de 0 a 100.'
+    return undefined
+  }
+  return value
+}
+
 function assembleRequest(
   form: EvaluationFormState,
   errors: FormErrors,
@@ -323,15 +338,18 @@ function assembleRequest(
   }
 
   const base = { openApiUrl, apiBaseUrl: apiBaseUrl || undefined }
+  const gate = { minScore: buildMinScore(form, errors) }
 
-  if (form.type === 'security') return { type: 'security', payload: base }
+  if (form.type === 'security') return { type: 'security', payload: { ...base, ...gate } }
 
   const contract = {
     rulesConfig: buildRulesConfig(form),
     severityWeights: buildSeverityWeights(form, errors),
   }
 
-  if (form.type === 'contract') return { type: 'contract', payload: { openApiUrl, ...contract } }
+  if (form.type === 'contract') {
+    return { type: 'contract', payload: { openApiUrl, ...contract, ...gate } }
+  }
 
   const performance = {
     ...base,
@@ -340,10 +358,10 @@ function assembleRequest(
   }
 
   return form.type === 'performance'
-    ? { type: 'performance', payload: performance }
+    ? { type: 'performance', payload: { ...performance, ...gate } }
     : {
         type: 'full',
-        payload: { ...performance, ...contract, weights: buildWeights(form, errors) },
+        payload: { ...performance, ...contract, weights: buildWeights(form, errors), ...gate },
       }
 }
 
@@ -365,7 +383,7 @@ export interface ServerIssueMapping {
 }
 
 function fieldKeyForIssue(form: EvaluationFormState, path: string): string | undefined {
-  if (path === 'openApiUrl' || path === 'apiBaseUrl') return path
+  if (path === 'openApiUrl' || path === 'apiBaseUrl' || path === 'minScore') return path
   if (path === 'weights' || path.startsWith('weights.')) return 'weights'
   if (path === 'severityWeights' || path.startsWith('severityWeights.')) return 'severityWeights'
 

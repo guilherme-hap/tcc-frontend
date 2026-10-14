@@ -67,6 +67,9 @@ function buildFacts(form: EvaluationFormState, account: SummaryAccount | null): 
     })
   }
 
+  const minScore = form.minScore.trim()
+  facts.push({ label: 'Nota mínima', value: minScore || 'Sem nota mínima', mono: minScore !== '' })
+
   return facts
 }
 

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SAVED_APIS_KEY } from '../../hooks'
-import { ApiError, createSavedApi, updateSavedApi } from '../../services'
+import { ApiError, SAVED_API_EXISTS_CODE, createSavedApi, updateSavedApi } from '../../services'
 import type { SavedApi } from '../../types'
 import { INVALID_URL_MESSAGE, isHttpUrl, issuesByField } from '../../utils/validation'
 import { Button } from '../ui/Button'
@@ -42,7 +42,13 @@ export function SavedApiForm({ editing, onDone }: SavedApiFormProps) {
       onDone()
     },
     onError: (error) => {
-      if (error instanceof ApiError) setErrors(issuesByField(error.issues, FIELDS))
+      if (!(error instanceof ApiError)) return
+
+      setErrors(
+        error.code === SAVED_API_EXISTS_CODE
+          ? { openApiUrl: error.message }
+          : issuesByField(error.issues, FIELDS),
+      )
     },
   })
 

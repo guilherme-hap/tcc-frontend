@@ -3,6 +3,8 @@ import { api, handleError } from './api'
 
 const BASE_PATH = '/api/user/apis'
 
+export const SAVED_API_EXISTS_CODE = 'SAVED_API_ALREADY_EXISTS'
+
 export async function listSavedApis(): Promise<SavedApi[]> {
   try {
     const { data } = await api.get<SavedApi[]>(BASE_PATH)

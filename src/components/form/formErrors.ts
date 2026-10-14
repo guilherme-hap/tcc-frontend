@@ -68,6 +68,10 @@ function stillApplies(
     const now = current.targets.find((target) => target.id === id)
     const then = submitted.targets.find((target) => target.id === id)
     if (!usesTargets(current.type) || !now || !then || now.method !== then.method) return false
+    if (field === 'pathParams') {
+      const name = key.slice(`targets.${id}.pathParams.`.length)
+      return now.path === then.path && now.pathParams[name] === then.pathParams[name]
+    }
     return field === 'path' || field === 'payload' ? now[field] === then[field] : true
   }
   return true

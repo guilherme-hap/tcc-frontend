@@ -8,9 +8,67 @@ import {
   MAX_TARGETS,
   acceptsBody,
   createTargetDraft,
+  pathPlaceholders,
   type FormErrors,
   type TargetDraft,
 } from './formState'
+
+interface PathParamFieldsProps {
+  target: TargetDraft
+  position: number
+  errors: FormErrors
+  onChange: (pathParams: Record<string, string>) => void
+}
+
+function PathParamFields({ target, position, errors, onChange }: PathParamFieldsProps) {
+  const names = pathPlaceholders(target.path.trim())
+  const required = target.method === 'DELETE'
+
+  if (names.length === 0) return null
+
+  return (
+    <fieldset className="flex min-w-0 flex-col gap-2 sm:ml-7">
+      <legend className="mb-2 text-[13px] text-ink-secondary">
+        {required
+          ? 'Valores dos parâmetros do path. Em DELETE todos são obrigatórios: nenhum valor é gerado, para não excluir dados reais.'
+          : 'Valores dos parâmetros do path. Vazio, o valor é gerado a partir da especificação.'}
+      </legend>
+      <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+        {names.map((name, index) => {
+          const id = `target-${target.id}-param-${index}`
+          const error = errors[`targets.${target.id}.pathParams.${name}`]
+
+          return (
+            <li key={name} className="flex min-w-0 flex-col gap-1">
+              <div className="flex min-w-0 items-center gap-2">
+                <label
+                  htmlFor={id}
+                  className="max-w-2/5 shrink-0 truncate font-mono text-[13px] text-ink-secondary"
+                >
+                  {`{${name}}`}
+                </label>
+                <TextInput
+                  id={id}
+                  mono
+                  aria-label={`Valor de {${name}} no endpoint ${position}`}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? `${id}-message` : undefined}
+                  value={target.pathParams[name] ?? ''}
+                  onChange={(event) =>
+                    onChange({ ...target.pathParams, [name]: event.target.value })
+                  }
+                  placeholder={required ? 'Obrigatório' : 'Gerado'}
+                  className="flex-1"
+                />
+              </div>
+              <FieldMessages id={id} error={error} />
+            </li>
+          )
+        })}
+      </ul>
+    </fieldset>
+  )
+}
 
 interface TargetsFieldProps {
   targets: TargetDraft[]
@@ -81,6 +139,12 @@ export function TargetsField({ targets, errors, onChange }: TargetsFieldProps) {
                   <FieldMessages id={`target-${target.id}-path`} error={pathError} />
                 </div>
               ) : null}
+              <PathParamFields
+                target={target}
+                position={position}
+                errors={errors}
+                onChange={(pathParams) => updateTarget(target.id, { pathParams })}
+              />
               {acceptsBody(target.method) ? (
                 <div className="flex flex-col gap-1.5 sm:ml-7">
                   <TextArea

@@ -27,6 +27,7 @@ export interface IPerformanceTarget {
   path: string
   method?: HttpMethod
   payload?: unknown
+  pathParams?: Record<string, string>
 }
 
 export interface IContractRequest {

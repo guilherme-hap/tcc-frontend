@@ -290,7 +290,7 @@ function EvaluationForm({
             <>
               <Panel
                 title="Endpoints do teste de carga"
-                description="Paths como aparecem na especificação. Parâmetros entre chaves são preenchidos com valores de exemplo; os testes rodam um endpoint por vez."
+                description="Paths como aparecem na especificação. Cada parâmetro entre chaves recebe o valor informado ou, sem ele, um valor gerado a partir da especificação; os testes rodam um endpoint por vez."
                 aside={
                   <Badge mono>
                     {form.targets.length} de {MAX_TARGETS}

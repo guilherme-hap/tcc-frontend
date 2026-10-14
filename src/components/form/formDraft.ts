@@ -1,5 +1,5 @@
 import { TYPE_ORDER } from '../../utils/labels'
-import { createInitialFormState, type EvaluationFormState } from './formState'
+import { createInitialFormState, createTargetDraft, type EvaluationFormState } from './formState'
 
 const STORAGE_KEY = 'auditor.form-draft'
 
@@ -17,7 +17,12 @@ export function readFormDraft(): EvaluationFormState | null {
     if (typeof parsed !== 'object' || parsed === null) return null
 
     const draft = { ...createInitialFormState(), ...parsed }
-    return TYPE_ORDER.includes(draft.type) && Array.isArray(draft.targets) ? draft : null
+    if (!TYPE_ORDER.includes(draft.type) || !Array.isArray(draft.targets)) return null
+
+    return {
+      ...draft,
+      targets: draft.targets.map((target) => ({ ...createTargetDraft(), ...target })),
+    }
   } catch {
     return null
   }

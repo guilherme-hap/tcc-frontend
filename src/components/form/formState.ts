@@ -29,6 +29,7 @@ const SERVER_HEADERS_PATH = 'loadTestOptions.headers.'
 const DECIMAL_PATTERN = /^\d+(?:[.,]\d+)?$/
 const INTEGER_PATTERN = /^\d+$/
 const THOUSANDS_PATTERN = /^[1-9]\d{0,2}(?:\.\d{3})+$/
+const PATH_PLACEHOLDER = /\{([^}]+)\}/g
 const MAX_MIN_SCORE = 100
 
 export interface TargetDraft {
@@ -36,6 +37,7 @@ export interface TargetDraft {
   method: HttpMethod
   path: string
   payload: string
+  pathParams: Record<string, string>
 }
 
 export interface HeaderDraft {
@@ -97,7 +99,7 @@ export const DEFAULT_SEVERITY_WEIGHTS: Record<Severity, string> = {
 }
 
 export function createTargetDraft(): TargetDraft {
-  return { id: crypto.randomUUID(), method: 'GET', path: '', payload: '' }
+  return { id: crypto.randomUUID(), method: 'GET', path: '', payload: '', pathParams: {} }
 }
 
 export function createHeaderDraft(): HeaderDraft {
@@ -157,6 +159,10 @@ export function hasMutatingTarget(form: EvaluationFormState): boolean {
   return usesTargets(form.type) && form.targets.some((target) => isMutatingMethod(target.method))
 }
 
+export function pathPlaceholders(path: string): string[] {
+  return [...new Set(Array.from(path.matchAll(PATH_PLACEHOLDER), (match) => match[1]))]
+}
+
 export function parseDecimal(value: string): number {
   const text = value.trim()
   return DECIMAL_PATTERN.test(text) ? Number(text.replace(',', '.')) : NaN
@@ -192,10 +198,19 @@ function buildTargets(form: EvaluationFormState, errors: FormErrors): IPerforman
 
     if (!path) {
       errors[`targets.${draft.id}.path`] = 'Informe o path do endpoint.'
-    } else if (draft.method === 'DELETE' && path.includes('{')) {
-      errors[`targets.${draft.id}.path`] =
-        'DELETE exige um path concreto, sem parâmetros entre chaves.'
     }
+
+    const pathParams: Record<string, string> = {}
+    for (const name of pathPlaceholders(path)) {
+      const value = draft.pathParams[name]?.trim()
+      if (value) {
+        pathParams[name] = value
+      } else if (draft.method === 'DELETE') {
+        errors[`targets.${draft.id}.pathParams.${name}`] =
+          'Informe o valor: em DELETE nenhum valor é gerado.'
+      }
+    }
+    if (Object.keys(pathParams).length > 0) target.pathParams = pathParams
 
     if (acceptsBody(draft.method) && draft.payload.trim()) {
       try {
@@ -393,11 +408,11 @@ function fieldKeyForIssue(form: EvaluationFormState, path: string): string | und
     return draft ? `headers.${draft.id}` : undefined
   }
 
-  const [root, second, third] = path.split('.')
+  const [root, second, ...rest] = path.split('.')
 
-  if (root === 'targets' && third !== undefined) {
+  if (root === 'targets' && rest.length > 0) {
     const draft = form.targets[Number(second)]
-    return draft ? `targets.${draft.id}.${third}` : undefined
+    return draft ? `targets.${draft.id}.${rest.join('.')}` : undefined
   }
   if (root === 'loadTestOptions' && NUMERIC_OPTION_KEYS.includes(second as NumericOptionKey)) {
     return `options.${second}`

@@ -1,6 +1,8 @@
 import { ArrowRight, Bookmark } from 'lucide-react'
 import type { SavedApi } from '../../types'
 import { SAVED_APIS_PATH } from '../../utils/routes'
+import { findSavedApiBySpec } from '../../utils/savedApi'
+import { Button } from '../ui/Button'
 import { CheckboxField, TextField } from '../ui/Field'
 import { Listbox } from '../ui/Listbox'
 import { Panel } from '../ui/Panel'
@@ -19,6 +21,7 @@ interface TargetFieldsProps {
 
 export function TargetFields({ form, errors, savedApis, onChange }: TargetFieldsProps) {
   const selected = savedApis?.find((api) => api.id === form.savedApiId) ?? null
+  const duplicate = selected ? null : findSavedApiBySpec(savedApis, form.openApiUrl)
 
   return (
     <Panel
@@ -81,7 +84,17 @@ export function TargetFields({ form, errors, savedApis, onChange }: TargetFields
             />
           ) : null}
         </div>
-        {savedApis && !selected ? (
+        {duplicate ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-well px-4 py-3">
+            <p className="min-w-0 text-ink-secondary">
+              Esta especificação já está salva na conta como{' '}
+              <span className="font-medium wrap-anywhere text-ink">{duplicate.name}</span>.
+            </p>
+            <Button onClick={() => onChange(applySavedApi(form, duplicate))}>
+              Usar a API salva
+            </Button>
+          </div>
+        ) : savedApis && !selected ? (
           <div className="flex flex-col gap-3 rounded-md border border-border bg-well px-4 py-3">
             <CheckboxField
               id="saveApi"

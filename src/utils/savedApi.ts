@@ -1,4 +1,11 @@
-import type { ILoadTestOptions, SavedApiDefaults } from '../types'
+import type { ILoadTestOptions, SavedApi, SavedApiDefaults } from '../types'
+
+export function findSavedApiBySpec(
+  apis: SavedApi[] | null | undefined,
+  openApiUrl: string,
+): SavedApi | null {
+  return apis?.find((api) => api.openApiUrl === openApiUrl.trim()) ?? null
+}
 
 export function toSavedDefaults(settings: {
   rulesConfig?: Record<string, boolean>

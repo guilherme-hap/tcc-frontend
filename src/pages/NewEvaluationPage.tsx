@@ -41,6 +41,7 @@ import type {
   SavedApiInput,
 } from '../types'
 import { TYPE_ORDER } from '../utils/labels'
+import { findSavedApiBySpec } from '../utils/savedApi'
 import {
   NEW_EVALUATION_PATH,
   SAVED_API_PARAM,
@@ -164,8 +165,12 @@ function EvaluationForm({
   const hasAccount = user !== null
   const savedApis = hasAccount ? (apis ?? []) : null
   const selectedApi = savedApis?.find((api) => api.id === enteredForm.savedApiId) ?? null
-  const form =
-    selectedApi || !enteredForm.savedApiId ? enteredForm : { ...enteredForm, savedApiId: '' }
+  const duplicateApi = selectedApi ? null : findSavedApiBySpec(savedApis, enteredForm.openApiUrl)
+  const form = {
+    ...enteredForm,
+    savedApiId: selectedApi?.id ?? '',
+    saveApi: enteredForm.saveApi && !duplicateApi,
+  }
   const errors = rejection ? pruneErrors(rejection.errors, rejection.form, form) : {}
 
   const leaving = useRef({ form, keepsDraft: false })

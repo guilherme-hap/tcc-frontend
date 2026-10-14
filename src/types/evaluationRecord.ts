@@ -89,6 +89,8 @@ export type EvaluationVisibility = 'private' | 'anonymous'
 export interface IEvaluationRequestSettings {
   rulesConfig?: Record<string, boolean>
   loadTestOptions?: Omit<ILoadTestOptions, 'headers' | 'body'>
+  severityWeights?: Partial<Record<Severity, number>>
+  weights?: PillarWeights
   minScore?: number
 }
 

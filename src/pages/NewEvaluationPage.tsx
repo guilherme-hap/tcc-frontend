@@ -86,9 +86,8 @@ async function submitEvaluation({ request, savedApi }: Submission) {
 
   try {
     await createSavedApi(savedApi)
-    state.savedApi = 'saved'
   } catch {
-    state.savedApi = 'failed'
+    state.apiSaveFailed = true
   }
   return { evaluationId, state }
 }
@@ -178,9 +177,9 @@ function EvaluationForm({
 
   const mutation = useMutation({
     mutationFn: submitEvaluation,
-    onSuccess: () => {
+    onSuccess: (_result, { savedApi }) => {
       void queryClient.invalidateQueries({ queryKey: [EVALUATION_HISTORY_KEY] })
-      void queryClient.invalidateQueries({ queryKey: [SAVED_APIS_KEY] })
+      return savedApi ? queryClient.invalidateQueries({ queryKey: [SAVED_APIS_KEY] }) : undefined
     },
   })
 

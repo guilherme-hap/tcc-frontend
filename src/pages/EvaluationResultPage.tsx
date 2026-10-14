@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { LayoutDashboard } from 'lucide-react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { AccountTip } from '../components/account/AccountTip'
 import { ContractSection } from '../components/result/ContractSection'
 import { PerformanceSection } from '../components/result/PerformanceSection'
@@ -15,11 +15,12 @@ import { Button } from '../components/ui/Button'
 import { Notice } from '../components/ui/Notice'
 import { TabPanel, Tabs, type TabItem } from '../components/ui/Tabs'
 import { FOCUS_RING, GLASS } from '../components/ui/classes'
-import { useEvaluationPolling, useSession } from '../hooks'
+import { useEvaluationPolling, useSavedApis, useSession } from '../hooks'
 import type { EvaluationRecord, PillarName } from '../types'
 import { PILLAR_ICONS } from '../utils/icons'
 import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../utils/labels'
 import { LOGIN_PATH, NEW_EVALUATION_PATH, type ResultLocationState } from '../utils/routes'
+import { findSavedApiBySpec } from '../utils/savedApi'
 
 type TabId = 'overview' | PillarName
 
@@ -155,17 +156,13 @@ function SinglePillarResult({ evaluation, isActive }: ResultBodyProps) {
 export function EvaluationResultPage() {
   const { id } = useParams()
   const location = useLocation()
-  const navigate = useNavigate()
   const { user } = useSession()
   const { evaluation, isLoading, isPaused, isPolling, isFetching, error, refetch } =
     useEvaluationPolling(id)
+  const { apis } = useSavedApis()
   const hasAccount = user !== null
-  const savedApi = (location.state as ResultLocationState | null)?.savedApi
-
-  const markApiSaved = () => {
-    const state: ResultLocationState = { savedApi: 'saved' }
-    navigate(location, { replace: true, state })
-  }
+  const apiSaved = evaluation ? findSavedApiBySpec(apis, evaluation.openApiUrl) !== null : false
+  const apiSaveFailed = (location.state as ResultLocationState | null)?.apiSaveFailed === true
 
   if (isLoading) {
     return (
@@ -214,10 +211,9 @@ export function EvaluationResultPage() {
         evaluation={evaluation}
         isActive={isPolling}
         hasAccount={hasAccount}
-        apiSaved={savedApi === 'saved'}
-        onApiSaved={markApiSaved}
+        apiSaved={apiSaved}
       />
-      {savedApi === 'failed' && hasAccount ? (
+      {apiSaveFailed && hasAccount && !apiSaved ? (
         <Notice tone="warning" title="A avaliação foi criada, mas a API não foi salva.">
           Use "Salvar API" acima para tentar de novo.
         </Notice>

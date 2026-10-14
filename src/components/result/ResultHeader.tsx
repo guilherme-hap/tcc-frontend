@@ -34,19 +34,13 @@ interface ResultHeaderProps {
   isActive: boolean
   hasAccount: boolean
   apiSaved: boolean
-  onApiSaved: () => void
 }
 
-export function ResultHeader({
-  evaluation,
-  isActive,
-  hasAccount,
-  apiSaved,
-  onApiSaved,
-}: ResultHeaderProps) {
+export function ResultHeader({ evaluation, isActive, hasAccount, apiSaved }: ResultHeaderProps) {
   const [naming, setNaming] = useState(false)
   const { visibility, passed } = evaluation
   const elapsed = executionTime(evaluation)
+  const showsPanel = hasAccount && naming && !apiSaved
 
   return (
     <div className="flex flex-col gap-3">
@@ -65,7 +59,7 @@ export function ResultHeader({
           {VISIBILITY_LABELS[visibility]}
         </Badge>
         <div className="ml-auto flex flex-wrap gap-2">
-          {!hasAccount || naming ? null : apiSaved ? (
+          {!hasAccount || showsPanel ? null : apiSaved ? (
             <Link
               to={SAVED_APIS_PATH}
               className={`inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-success underline-offset-4 hover:underline ${FOCUS_RING}`}
@@ -88,13 +82,10 @@ export function ResultHeader({
           )}
         </div>
       </div>
-      {hasAccount && naming ? (
+      {showsPanel ? (
         <SaveApiPanel
           evaluation={evaluation}
-          onSaved={() => {
-            setNaming(false)
-            onApiSaved()
-          }}
+          onSaved={() => setNaming(false)}
           onCancel={() => setNaming(false)}
         />
       ) : null}

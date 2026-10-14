@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SAVED_APIS_KEY } from '../../hooks'
-import { createSavedApi } from '../../services'
+import { ApiError, SAVED_API_EXISTS_CODE, createSavedApi } from '../../services'
 import type { EvaluationRecord } from '../../types'
 import { toSavedDefaults } from '../../utils/savedApi'
 import { Button } from '../ui/Button'
@@ -23,6 +23,11 @@ export function SaveApiPanel({ evaluation, onSaved, onCancel }: SaveApiPanelProp
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [SAVED_APIS_KEY] })
       onSaved()
+    },
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === SAVED_API_EXISTS_CODE) {
+        void queryClient.invalidateQueries({ queryKey: [SAVED_APIS_KEY] })
+      }
     },
   })
 

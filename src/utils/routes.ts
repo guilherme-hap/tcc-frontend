@@ -22,7 +22,7 @@ export interface RestoreDraftState {
 export const RESTORE_DRAFT_STATE: RestoreDraftState = { restoreDraft: true }
 
 export interface ResultLocationState {
-  savedApi?: 'saved' | 'failed'
+  apiSaveFailed?: boolean
 }
 
 export function newEvaluationPath(type: EvaluationType): string {

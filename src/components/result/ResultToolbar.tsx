@@ -1,9 +1,11 @@
 import { useState, type ReactNode } from 'react'
-import { Bookmark, Check, Download } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import type { EvaluationRecord } from '../../types'
+import { Bookmark, Check, Download, RotateCw } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import type { EvaluationRecord, SavedApi } from '../../types'
 import { downloadJson } from '../../utils/download'
-import { SAVED_APIS_PATH } from '../../utils/routes'
+import { REEVALUATE_STATE, SAVED_APIS_PATH, newEvaluationPath } from '../../utils/routes'
+import { buildReevaluationForm } from '../form/accountState'
+import { saveFormDraft } from '../form/formDraft'
 import { Button } from '../ui/Button'
 import { Icon } from '../ui/Icon'
 import { FOCUS_RING } from '../ui/classes'
@@ -13,7 +15,7 @@ interface ResultToolbarProps {
   evaluation: EvaluationRecord
   isActive: boolean
   hasAccount: boolean
-  apiSaved: boolean
+  savedApi: SavedApi | null
   children: ReactNode
 }
 
@@ -21,11 +23,18 @@ export function ResultToolbar({
   evaluation,
   isActive,
   hasAccount,
-  apiSaved,
+  savedApi,
   children,
 }: ResultToolbarProps) {
+  const navigate = useNavigate()
   const [naming, setNaming] = useState(false)
+  const apiSaved = savedApi !== null
   const showsPanel = hasAccount && naming && !apiSaved
+
+  const reevaluate = () => {
+    saveFormDraft(buildReevaluationForm(evaluation, savedApi))
+    navigate(newEvaluationPath(evaluation.evaluationType), { state: REEVALUATE_STATE })
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -46,13 +55,18 @@ export function ResultToolbar({
             </Button>
           )}
           {isActive ? null : (
-            <Button
-              icon={Download}
-              className="max-lg:h-11"
-              onClick={() => downloadJson(`avaliacao-${evaluation.id}.json`, evaluation)}
-            >
-              Exportar JSON
-            </Button>
+            <>
+              <Button icon={RotateCw} className="max-lg:h-11" onClick={reevaluate}>
+                Reavaliar
+              </Button>
+              <Button
+                icon={Download}
+                className="max-lg:h-11"
+                onClick={() => downloadJson(`avaliacao-${evaluation.id}.json`, evaluation)}
+              >
+                Exportar JSON
+              </Button>
+            </>
           )}
         </div>
       </div>

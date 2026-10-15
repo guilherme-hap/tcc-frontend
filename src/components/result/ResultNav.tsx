@@ -12,7 +12,7 @@ import {
   pillarHeadline,
   pillarStateLabel,
 } from './pillarSummary'
-import { sectionPanelId, sectionTabId, type SectionId } from './sections'
+import { availableSections, sectionPanelId, sectionTabId, type SectionId } from './sections'
 
 type StepState = 'done' | 'failed' | 'skipped' | 'running' | 'waiting' | 'idle'
 
@@ -127,11 +127,7 @@ export function ResultNav({
   highlighted,
   onHighlight,
 }: ResultNavProps) {
-  const sections: SectionId[] = [
-    'overview',
-    ...FULL_EXECUTION_GROUPS.flatMap((group) => group.pillars),
-    ...(evaluation.scoring ? (['scoring'] as const) : []),
-  ]
+  const sections = availableSections(evaluation.scoring !== null)
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const move = MOVES[event.key]

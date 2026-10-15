@@ -1,17 +1,33 @@
-import type {
-  IContractResult,
-  IPerformanceTargetResult,
-  ISecurityCheckResult,
-} from '../../types'
+import type { IContractResult, IPerformanceTargetResult, ISecurityCheckResult } from '../../types'
 import { groupByRule } from '../../utils/contractRules'
 import { formatNumber } from '../../utils/format'
 import {
   CHECK_STATUS_LABELS,
+  CHECK_STATUS_ORDER,
   LAYER_ORDER,
   SEVERITY_LABELS,
   SEVERITY_ORDER,
 } from '../../utils/labels'
 import { CHECK_STATUS_BG, SEVERITY_BG } from '../../utils/tones'
+
+interface LegendItem {
+  key: string
+  tone: string
+  label: string
+}
+
+function StripLegend({ items }: { items: LegendItem[] }) {
+  return (
+    <ul aria-hidden="true" className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-secondary">
+      {items.map((item) => (
+        <li key={item.key} className="inline-flex items-center gap-1.5">
+          <span className={`size-2 rounded-xs ${item.tone}`} />
+          {item.label}
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 interface ContractStripProps {
   result: IContractResult
@@ -46,18 +62,20 @@ export function ContractStrip({ result }: ContractStripProps) {
           <span key={index} className="h-3.5 rounded-xs bg-border-control" />
         ))}
       </div>
-      <ul aria-hidden="true" className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-secondary">
-        <li className="inline-flex items-center gap-1.5">
-          <span className="size-2 rounded-xs bg-border-control" />
-          sem violação
-        </li>
-        {severities.map((severity) => (
-          <li key={severity} className="inline-flex items-center gap-1.5">
-            <span className={`size-2 rounded-xs ${SEVERITY_BG[severity]}`} />
-            {SEVERITY_LABELS[severity].toLowerCase()}
-          </li>
-        ))}
-      </ul>
+      <StripLegend
+        items={[
+          {
+            key: 'conforming',
+            tone: 'bg-border-control',
+            label: 'sem violação',
+          },
+          ...severities.map((severity) => ({
+            key: severity,
+            tone: SEVERITY_BG[severity],
+            label: SEVERITY_LABELS[severity].toLowerCase(),
+          })),
+        ]}
+      />
     </div>
   )
 }
@@ -77,35 +95,49 @@ export function PerformanceStrip({ results }: PerformanceStripProps) {
     .map((target) => `${target.method} ${target.path}: ${describeTarget(target)}`)
     .join('; ')
 
+  const legend: LegendItem[] = [
+    {
+      key: 'apdex',
+      tone: 'bg-pillar-performance',
+      label: 'Apdex de cada endpoint',
+    },
+    ...(results.some((target) => !target.result)
+      ? [{ key: 'failed', tone: 'bg-error', label: 'falhou' }]
+      : []),
+  ]
+
   return (
-    <div
-      role="img"
-      aria-label={`Apdex por endpoint. ${summary}`}
-      className="flex h-10 items-stretch gap-0.5"
-    >
-      {results.map((target, index) => {
-        const score = target.result?.score
-        const title = `${target.method} ${target.path}: ${describeTarget(target)}`
+    <div className="flex flex-col gap-2">
+      <div
+        role="img"
+        aria-label={`Apdex por endpoint. ${summary}`}
+        className="flex h-10 items-stretch gap-0.5"
+      >
+        {results.map((target, index) => {
+          const score = target.result?.score
+          const title = `${target.method} ${target.path}: ${describeTarget(target)}`
 
-        if (score == null) {
+          if (score == null) {
+            return (
+              <span
+                key={index}
+                title={title}
+                className={`flex-1 rounded-xs border ${target.result ? 'border-dashed border-border-control' : 'border-error/60 bg-error-dim'}`}
+              />
+            )
+          }
+
           return (
-            <span
-              key={index}
-              title={title}
-              className={`flex-1 rounded-xs border ${target.result ? 'border-dashed border-border-control' : 'border-error/60 bg-error-dim'}`}
-            />
+            <span key={index} title={title} className="flex flex-1 items-end rounded-xs bg-idle">
+              <span
+                className="min-h-0.5 w-full rounded-xs bg-pillar-performance"
+                style={{ height: `${Math.min(100, Math.max(0, score))}%` }}
+              />
+            </span>
           )
-        }
-
-        return (
-          <span key={index} title={title} className="flex flex-1 items-end rounded-xs bg-idle">
-            <span
-              className="min-h-0.5 w-full rounded-xs bg-pillar-performance"
-              style={{ height: `${Math.min(100, Math.max(0, score))}%` }}
-            />
-          </span>
-        )
-      })}
+        })}
+      </div>
+      <StripLegend items={legend} />
     </div>
   )
 }
@@ -120,19 +152,30 @@ export function SecurityStrip({ checks }: SecurityStripProps) {
     .map((check) => `${check.header}: ${CHECK_STATUS_LABELS[check.status]}`)
     .join('; ')
 
+  const legend = CHECK_STATUS_ORDER.filter((status) =>
+    ordered.some((check) => check.status === status),
+  ).map((status) => ({
+    key: status,
+    tone: CHECK_STATUS_BG[status],
+    label: CHECK_STATUS_LABELS[status].toLowerCase(),
+  }))
+
   return (
-    <div
-      role="img"
-      aria-label={`Verificações de segurança. ${summary}`}
-      className="flex h-10 gap-0.5"
-    >
-      {ordered.map((check) => (
-        <span
-          key={`${check.header}-${check.code}`}
-          title={`${check.header}: ${CHECK_STATUS_LABELS[check.status]}`}
-          className={`flex-1 rounded-xs ${CHECK_STATUS_BG[check.status]}`}
-        />
-      ))}
+    <div className="flex flex-col gap-2">
+      <div
+        role="img"
+        aria-label={`Verificações de segurança. ${summary}`}
+        className="flex h-10 gap-0.5"
+      >
+        {ordered.map((check) => (
+          <span
+            key={`${check.header}-${check.code}`}
+            title={`${check.header}: ${CHECK_STATUS_LABELS[check.status]}`}
+            className={`flex-1 rounded-xs ${CHECK_STATUS_BG[check.status]}`}
+          />
+        ))}
+      </div>
+      <StripLegend items={legend} />
     </div>
   )
 }

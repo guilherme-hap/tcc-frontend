@@ -169,8 +169,17 @@ export function SegmentedScoreRing({
                 strokeDasharray={`${segment.hitLength} ${circumference}`}
                 transform={`rotate(${segment.hitRotation} ${cx} ${cy})`}
                 pointerEvents="stroke"
-                onMouseEnter={() => onActiveChange(part.id)}
-                onMouseLeave={() => onActiveChange(null)}
+                onPointerEnter={(event) => {
+                  if (event.pointerType === 'mouse') onActiveChange(part.id)
+                }}
+                onPointerLeave={(event) => {
+                  if (event.pointerType === 'mouse') onActiveChange(null)
+                }}
+                onPointerDown={(event) => {
+                  if (event.pointerType !== 'mouse') {
+                    onActiveChange(activeId === part.id ? null : part.id)
+                  }
+                }}
               />
             </g>
           )

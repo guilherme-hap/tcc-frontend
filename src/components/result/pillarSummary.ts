@@ -1,6 +1,6 @@
 import type { EvaluationRecord, IScorePart, PillarName } from '../../types'
 import { groupByRule } from '../../utils/contractRules'
-import { formatCount, formatNumber } from '../../utils/format'
+import { formatCount, formatNumber, formatPercent } from '../../utils/format'
 import { SEVERITY_LABELS, SEVERITY_ORDER, STEP_STATUS_LABELS } from '../../utils/labels'
 import { describeStatuses } from '../../utils/scoreParts'
 import { findStep, isStepUnfinished } from '../../utils/steps'
@@ -90,7 +90,14 @@ export function pillarDetail(evaluation: EvaluationRecord, pillar: PillarName): 
       'endpoints medidos',
     )
 
-    return `${formatNumber(measured)} de ${endpoints} · ${formatCount(requests, 'requisição', 'requisições')}`
+    const serverErrors = performanceResults.reduce(
+      (total, target) => total + (target.result?.serverErrors ?? 0),
+      0,
+    )
+    const base = `${formatNumber(measured)} de ${endpoints} · ${formatCount(requests, 'requisição', 'requisições')}`
+
+    if (serverErrors === 0) return base
+    return `${base} · ${formatCount(serverErrors, 'resposta 5xx', 'respostas 5xx')} (${formatPercent(serverErrors / requests)})`
   }
 
   if (!securityResult) return null

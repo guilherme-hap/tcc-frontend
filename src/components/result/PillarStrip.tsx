@@ -5,7 +5,12 @@ import type {
 } from '../../types'
 import { groupByRule } from '../../utils/contractRules'
 import { formatNumber } from '../../utils/format'
-import { CHECK_STATUS_LABELS, LAYER_ORDER, SEVERITY_LABELS } from '../../utils/labels'
+import {
+  CHECK_STATUS_LABELS,
+  LAYER_ORDER,
+  SEVERITY_LABELS,
+  SEVERITY_ORDER,
+} from '../../utils/labels'
 import { CHECK_STATUS_BG, SEVERITY_BG } from '../../utils/tones'
 
 interface ContractStripProps {
@@ -16,26 +21,43 @@ export function ContractStrip({ result }: ContractStripProps) {
   const groups = groupByRule(result)
   const { evaluatedRules, violatedRules } = result.summary
   const conforming = Math.max(0, evaluatedRules - violatedRules)
+  const severities = SEVERITY_ORDER.filter((severity) =>
+    groups.some((group) => group.severity === severity),
+  )
   const violated = groups
     .map((group) => `${group.rule} (${SEVERITY_LABELS[group.severity]})`)
     .join(', ')
 
   return (
-    <div
-      role="img"
-      aria-label={`${formatNumber(conforming)} de ${formatNumber(evaluatedRules)} regras sem violação.${violated ? ` Violadas: ${violated}.` : ''}`}
-      className="grid grid-cols-[repeat(auto-fill,minmax(0.625rem,1fr))] gap-0.5"
-    >
-      {groups.map((group) => (
-        <span
-          key={group.rule}
-          title={`${group.rule}: ${SEVERITY_LABELS[group.severity]}`}
-          className={`h-3.5 rounded-xs ${SEVERITY_BG[group.severity]}`}
-        />
-      ))}
-      {Array.from({ length: conforming }, (_, index) => (
-        <span key={index} className="h-3.5 rounded-xs bg-success" />
-      ))}
+    <div className="flex flex-col gap-2">
+      <div
+        role="img"
+        aria-label={`${formatNumber(conforming)} de ${formatNumber(evaluatedRules)} regras sem violação.${violated ? ` Violadas: ${violated}.` : ''}`}
+        className="grid grid-cols-[repeat(auto-fill,minmax(0.625rem,1fr))] gap-0.5"
+      >
+        {groups.map((group) => (
+          <span
+            key={group.rule}
+            title={`${group.rule}: ${SEVERITY_LABELS[group.severity]}`}
+            className={`h-3.5 rounded-xs ${SEVERITY_BG[group.severity]}`}
+          />
+        ))}
+        {Array.from({ length: conforming }, (_, index) => (
+          <span key={index} className="h-3.5 rounded-xs bg-border-control" />
+        ))}
+      </div>
+      <ul aria-hidden="true" className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-secondary">
+        <li className="inline-flex items-center gap-1.5">
+          <span className="size-2 rounded-xs bg-border-control" />
+          sem violação
+        </li>
+        {severities.map((severity) => (
+          <li key={severity} className="inline-flex items-center gap-1.5">
+            <span className={`size-2 rounded-xs ${SEVERITY_BG[severity]}`} />
+            {SEVERITY_LABELS[severity].toLowerCase()}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

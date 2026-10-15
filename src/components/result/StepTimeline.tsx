@@ -3,7 +3,7 @@ import type { EvaluationRecord, IEvaluationStep } from '../../types'
 import { useNow } from '../../hooks'
 import { formatDuration } from '../../utils/format'
 import { PILLAR_LABELS } from '../../utils/labels'
-import { groupByStage, stepDuration } from '../../utils/steps'
+import { groupByStage, noticeListsStepErrors, stepDuration } from '../../utils/steps'
 import { PILLAR_BG } from '../../utils/tones'
 import { Icon } from '../ui/Icon'
 import { CARD, FOCUS_RING, OVERLINE } from '../ui/classes'
@@ -77,7 +77,7 @@ function StepRow({ step, evaluation, frame, now, receivedAt, onOpenPerformance }
           />
         ) : null}
       </div>
-      {step.error ? (
+      {step.error && !noticeListsStepErrors(evaluation) ? (
         <p className={`text-[13px] ${step.status === 'FAILED' ? 'text-error' : 'text-warning'}`}>
           {step.error}
         </p>

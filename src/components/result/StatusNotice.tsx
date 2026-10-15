@@ -1,9 +1,7 @@
 import type { EvaluationRecord, IEvaluationStep } from '../../types'
 import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../../utils/labels'
-import { stepsWithError } from '../../utils/steps'
+import { ALL_PILLARS_FAILED_CODE, stepsWithError } from '../../utils/steps'
 import { Notice } from '../ui/Notice'
-
-const ALL_PILLARS_FAILED_CODE = 'EVALUATION_PILLARS_FAILED'
 
 interface StepErrorListProps {
   steps: IEvaluationStep[]

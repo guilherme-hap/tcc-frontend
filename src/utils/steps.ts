@@ -24,8 +24,18 @@ export function isStepUnfinished(step: IEvaluationStep | undefined): boolean {
   return step !== undefined && UNFINISHED_STATUSES.includes(step.status)
 }
 
+export const ALL_PILLARS_FAILED_CODE = 'EVALUATION_PILLARS_FAILED'
+
 export function stepsWithError(evaluation: EvaluationRecord): IEvaluationStep[] {
   return (evaluation.steps ?? []).filter((step) => step.error)
+}
+
+export function noticeListsStepErrors(evaluation: EvaluationRecord): boolean {
+  if (stepsWithError(evaluation).length === 0) return false
+  return (
+    evaluation.status === 'PARTIAL' ||
+    (evaluation.status === 'FAILED' && evaluation.errorCode === ALL_PILLARS_FAILED_CODE)
+  )
 }
 
 export function groupByStage(steps: IEvaluationStep[]): StepStage[] {
@@ -38,7 +48,10 @@ export function performanceProgress(evaluation: EvaluationRecord): IStepProgress
   return step?.status === 'RUNNING' ? step.progress : undefined
 }
 
-export function stepDuration({ startedAt, finishedAt }: IEvaluationStep, now: number): number | null {
+export function stepDuration(
+  { startedAt, finishedAt }: IEvaluationStep,
+  now: number,
+): number | null {
   if (!startedAt) return null
   const end = finishedAt ? Date.parse(finishedAt) : now
   return Math.max(0, end - Date.parse(startedAt))

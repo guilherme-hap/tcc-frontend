@@ -96,11 +96,9 @@ export function PerformanceStrip({ results }: PerformanceStripProps) {
     .join('; ')
 
   const legend: LegendItem[] = [
-    {
-      key: 'apdex',
-      tone: 'bg-pillar-performance',
-      label: 'Apdex de cada endpoint',
-    },
+    ...(results.some((target) => target.result?.score != null)
+      ? [{ key: 'apdex', tone: 'bg-pillar-performance', label: 'Apdex de cada endpoint' }]
+      : []),
     ...(results.some((target) => !target.result)
       ? [{ key: 'failed', tone: 'bg-error', label: 'falhou' }]
       : []),
@@ -137,7 +135,7 @@ export function PerformanceStrip({ results }: PerformanceStripProps) {
           )
         })}
       </div>
-      <StripLegend items={legend} />
+      {legend.length > 0 ? <StripLegend items={legend} /> : null}
     </div>
   )
 }

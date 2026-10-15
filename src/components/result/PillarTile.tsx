@@ -1,13 +1,16 @@
+import { ServerCrash } from 'lucide-react'
 import type { EvaluationRecord, PillarName } from '../../types'
 import { formatNumber, formatPercent } from '../../utils/format'
 import { PILLAR_LABELS } from '../../utils/labels'
 import { findStep } from '../../utils/steps'
 import { PILLAR_BG } from '../../utils/tones'
+import { Icon } from '../ui/Icon'
 import { CARD, FOCUS_RING } from '../ui/classes'
 import { ContractStrip, PerformanceStrip, SecurityStrip } from './PillarStrip'
 import {
   hasPillarFailed,
   hasPillarResult,
+  pillarAlert,
   pillarDetail,
   pillarPart,
   pillarStateLabel,
@@ -56,6 +59,7 @@ export function PillarTile({
   const busy = !ready && !failed && isActive
   const step = findStep(evaluation, pillar)
   const failedTone = step?.status === 'FAILED' ? 'text-error' : 'text-warning'
+  const alert = pillarAlert(evaluation, pillar)
 
   return (
     <section
@@ -70,7 +74,9 @@ export function PillarTile({
           <button
             type="button"
             onClick={() => onOpen(pillar)}
-            onFocus={(event) => onHighlight(event.currentTarget.matches(':focus-visible') ? pillar : null)}
+            onFocus={(event) =>
+              onHighlight(event.currentTarget.matches(':focus-visible') ? pillar : null)
+            }
             onBlur={() => onHighlight(null)}
             className={`cursor-pointer rounded-sm text-left after:absolute after:inset-0 after:rounded-card ${FOCUS_RING}`}
           >
@@ -108,7 +114,13 @@ export function PillarTile({
       {ready ? (
         <>
           <Strip pillar={pillar} evaluation={evaluation} />
-          <p className="text-[13px] text-ink-secondary">{pillarDetail(evaluation, pillar)}</p>
+          {alert ? (
+            <p className="flex items-start gap-1.5 text-[13px] font-medium text-error">
+              <Icon icon={ServerCrash} size={14} className="mt-0.5 shrink-0" />
+              {alert}
+            </p>
+          ) : null}
+          <p className="mt-auto text-[13px] text-ink-secondary">{pillarDetail(evaluation, pillar)}</p>
         </>
       ) : busy ? (
         <span className="block h-10 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none" />

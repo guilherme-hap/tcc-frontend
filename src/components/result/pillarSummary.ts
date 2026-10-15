@@ -34,6 +34,28 @@ export function pillarStateLabel(
   return isActive ? 'Calculando' : 'Sem resultado'
 }
 
+export function serverErrorTotals(
+  evaluation: EvaluationRecord,
+): { serverErrors: number; requests: number } | null {
+  const results = evaluation.performanceResults
+  if (!results) return null
+
+  const serverErrors = results.reduce(
+    (total, target) => total + (target.result?.serverErrors ?? 0),
+    0,
+  )
+  const requests = results.reduce((total, target) => total + (target.result?.totalRequests ?? 0), 0)
+  return serverErrors > 0 && requests > 0 ? { serverErrors, requests } : null
+}
+
+export function pillarAlert(evaluation: EvaluationRecord, pillar: PillarName): string | null {
+  const totals = pillar === 'performance' ? serverErrorTotals(evaluation) : null
+  if (!totals) return null
+
+  const { serverErrors, requests } = totals
+  return `${formatCount(serverErrors, 'resposta 5xx', 'respostas 5xx')} de ${formatCount(requests, 'requisição', 'requisições')} (${formatPercent(serverErrors / requests)})`
+}
+
 export function pillarHeadline(evaluation: EvaluationRecord, pillar: PillarName): string | null {
   const { spectralResult, performanceResults, securityResult } = evaluation
 
@@ -44,6 +66,8 @@ export function pillarHeadline(evaluation: EvaluationRecord, pillar: PillarName)
   }
   if (pillar === 'performance') {
     if (!performanceResults) return null
+    const totals = serverErrorTotals(evaluation)
+    if (totals) return formatCount(totals.serverErrors, 'resposta 5xx', 'respostas 5xx')
     const targets = evaluation.targets?.length ?? performanceResults.length
     return formatCount(targets, 'endpoint', 'endpoints')
   }
@@ -90,14 +114,7 @@ export function pillarDetail(evaluation: EvaluationRecord, pillar: PillarName): 
       'endpoints medidos',
     )
 
-    const serverErrors = performanceResults.reduce(
-      (total, target) => total + (target.result?.serverErrors ?? 0),
-      0,
-    )
-    const base = `${formatNumber(measured)} de ${endpoints} · ${formatCount(requests, 'requisição', 'requisições')}`
-
-    if (serverErrors === 0) return base
-    return `${base} · ${formatCount(serverErrors, 'resposta 5xx', 'respostas 5xx')} (${formatPercent(serverErrors / requests)})`
+    return `${formatNumber(measured)} de ${endpoints} · ${formatCount(requests, 'requisição', 'requisições')}`
   }
 
   if (!securityResult) return null

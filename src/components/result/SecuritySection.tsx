@@ -12,7 +12,6 @@ import { securityScoreParts } from '../../utils/scoreParts'
 import { Icon } from '../ui/Icon'
 import { Panel } from '../ui/Panel'
 import { CheckStatusBadge } from './CheckStatusBadge'
-import { PillarScore } from './PillarScore'
 import { ScoreBreakdown } from './ScoreBreakdown'
 
 const TILE_ICONS: Record<SecurityCheckStatus, LucideIcon> = {
@@ -74,7 +73,6 @@ export function SecuritySection({ checks, layerWeights, breakdown, score }: Secu
     <Panel
       title="Verificações de segurança"
       description="Configuração de transporte e cabeçalhos HTTP observados na URL base, não em cada endpoint."
-      aside={<PillarScore score={score} />}
     >
       <div className="@container flex flex-col gap-6">
         {parts && score !== undefined ? (

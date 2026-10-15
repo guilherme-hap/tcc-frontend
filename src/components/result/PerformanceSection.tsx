@@ -15,7 +15,6 @@ import { ApdexZones } from './ApdexZones'
 import { AuditMessageList } from './AuditMessageList'
 import { LatencyPercentiles } from './LatencyPercentiles'
 import { PerformanceProgress } from './PerformanceProgress'
-import { PillarScore } from './PillarScore'
 import { SeriesChart } from './SeriesChart'
 import { StatusCodeBreakdown } from './StatusCodeBreakdown'
 
@@ -258,7 +257,6 @@ function WaitingTargetCard({ target, isActive }: WaitingTargetCardProps) {
 interface PerformanceSectionProps {
   results: IPerformanceTargetResult[]
   targets: IPerformanceTarget[] | null
-  score?: number
   progress?: IStepProgress
   liveSeries?: LiveSeries | null
   receivedAt?: number
@@ -270,7 +268,6 @@ interface PerformanceSectionProps {
 export function PerformanceSection({
   results,
   targets,
-  score,
   progress,
   liveSeries = null,
   receivedAt = 0,
@@ -285,7 +282,6 @@ export function PerformanceSection({
     <Panel
       title="Endpoints do teste de carga"
       description="Apdex calculado por endpoint; a nota do pilar é a média simples dos endpoints medidos e dos que falharam, que contam como 0; endpoint não medido fica fora da média. Latência, vazão, códigos HTTP e a série por segundo são diagnóstico, por endpoint, e não entram na nota."
-      aside={<PillarScore score={score} />}
     >
       <div className="@container">
         <ul className={`grid grid-cols-1 gap-3 ${count > 1 ? '@7xl:grid-cols-2' : ''}`}>

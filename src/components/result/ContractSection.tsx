@@ -7,7 +7,6 @@ import { SEVERITY_LABELS, SEVERITY_ORDER } from '../../utils/labels'
 import { Badge } from '../ui/Badge'
 import { Icon } from '../ui/Icon'
 import { Panel } from '../ui/Panel'
-import { PillarScore } from './PillarScore'
 import { SeverityBadge } from '../ui/SeverityBadge'
 import {
   SeverityFilter,
@@ -89,10 +88,9 @@ function RuleRow({ group, maxCount }: RuleRowProps) {
 
 interface ContractSectionProps {
   result: IContractResult
-  score?: number
 }
 
-export function ContractSection({ result, score }: ContractSectionProps) {
+export function ContractSection({ result }: ContractSectionProps) {
   const { evaluatedRules, violatedRules } = result.summary
   const [filter, setFilter] = useState<SeverityFilterValue>('all')
   const groups = groupByRule(result)
@@ -105,7 +103,6 @@ export function ContractSection({ result, score }: ContractSectionProps) {
     <Panel
       title="Regras violadas"
       description={`${formatNumber(violatedRules)} de ${formatNumber(evaluatedRules)} regras aplicáveis violadas. Cada regra conta uma vez na nota, independentemente do número de ocorrências.`}
-      aside={<PillarScore score={score} />}
     >
       {groups.length === 0 ? (
         <p className="text-ink-secondary">Nenhuma regra violada.</p>

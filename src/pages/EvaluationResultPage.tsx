@@ -91,14 +91,13 @@ function renderPillar(
   const loadTestOptions = evaluation.requestSettings?.loadTestOptions
 
   if (pillar === 'contract' && evaluation.spectralResult) {
-    return <ContractSection result={evaluation.spectralResult} score={score} />
+    return <ContractSection result={evaluation.spectralResult} />
   }
   if (pillar === 'performance' && (evaluation.performanceResults || progress)) {
     return (
       <PerformanceSection
         results={evaluation.performanceResults ?? []}
         targets={evaluation.targets}
-        score={score}
         progress={progress}
         liveSeries={live.liveSeries}
         receivedAt={live.receivedAt}

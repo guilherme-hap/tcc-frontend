@@ -147,6 +147,7 @@ interface EvaluationFormProps {
   initialApi: SavedApi | null
   missingApi: boolean
   restoresDraft: boolean
+  reevaluated: boolean
 }
 
 function EvaluationForm({
@@ -154,13 +155,14 @@ function EvaluationForm({
   initialApi,
   missingApi,
   restoresDraft,
+  reevaluated,
 }: EvaluationFormProps) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user } = useSession()
   const { apis } = useSavedApis()
+  const [draft] = useState(() => (restoresDraft ? readFormDraft() : null))
   const [enteredForm, setEnteredForm] = useState<EvaluationFormState>(() => {
-    const draft = restoresDraft ? readFormDraft() : null
     if (draft) return draft
 
     const initial = createInitialFormState(initialType)
@@ -280,6 +282,13 @@ function EvaluationForm({
             : 'Informe a especificação OpenAPI e a URL base da API. A avaliação roda em segundo plano e o resultado aparece assim que terminar.'}
         </p>
       </div>
+
+      {reevaluated && draft ? (
+        <Notice title="Parâmetros da avaliação anterior carregados.">
+          Cabeçalhos do teste de carga e a confirmação de métodos que alteram dados não são guardados
+          com a avaliação: confira-os antes de enviar.
+        </Notice>
+      ) : null}
 
       {missingApi ? (
         <Notice tone="warning" title="A API salva deste link não foi encontrada na conta.">
@@ -451,6 +460,7 @@ function EvaluationForm({
 export function NewEvaluationPage() {
   const { user } = useSession()
   const location = useLocation()
+  const restoreState = location.state as RestoreDraftState | null
   const [searchParams] = useSearchParams()
   const { apis, isLoading, error, refetch } = useSavedApis()
   const apiParam = searchParams.get(SAVED_API_PARAM)
@@ -471,7 +481,8 @@ export function NewEvaluationPage() {
       initialType={initialType}
       initialApi={initialApi}
       missingApi={requestedApiId !== null && initialApi === null}
-      restoresDraft={(location.state as RestoreDraftState | null)?.restoreDraft === true}
+      restoresDraft={restoreState?.restoreDraft === true}
+      reevaluated={restoreState?.reevaluated === true}
     />
   )
 }

@@ -10,6 +10,7 @@ export const REGISTER_PATH = '/criar-conta'
 export const LOGOUT_PATH = '/sair'
 export const TYPE_PARAM = 'tipo'
 export const SAVED_API_PARAM = 'api'
+export const SECTION_PARAM = 'secao'
 
 export interface AuthRedirectState {
   from?: string
@@ -17,9 +18,11 @@ export interface AuthRedirectState {
 
 export interface RestoreDraftState {
   restoreDraft?: boolean
+  reevaluated?: boolean
 }
 
 export const RESTORE_DRAFT_STATE: RestoreDraftState = { restoreDraft: true }
+export const REEVALUATE_STATE: RestoreDraftState = { restoreDraft: true, reevaluated: true }
 
 export interface ResultLocationState {
   apiSaveFailed?: boolean

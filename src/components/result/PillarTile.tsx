@@ -70,7 +70,7 @@ export function PillarTile({
           <button
             type="button"
             onClick={() => onOpen(pillar)}
-            onFocus={() => onHighlight(pillar)}
+            onFocus={(event) => onHighlight(event.currentTarget.matches(':focus-visible') ? pillar : null)}
             onBlur={() => onHighlight(null)}
             className={`cursor-pointer rounded-sm text-left after:absolute after:inset-0 after:rounded-card ${FOCUS_RING}`}
           >

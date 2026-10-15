@@ -35,19 +35,20 @@ export function ResultToolbar({
           {!hasAccount || showsPanel ? null : apiSaved ? (
             <Link
               to={SAVED_APIS_PATH}
-              className={`inline-flex h-9 items-center gap-2 rounded-md px-3 text-[13px] font-semibold text-success underline-offset-4 hover:underline ${FOCUS_RING}`}
+              className={`inline-flex h-9 items-center max-lg:h-11 gap-2 rounded-md px-3 text-[13px] font-semibold text-success underline-offset-4 hover:underline ${FOCUS_RING}`}
             >
               <Icon icon={Check} />
               API salva
             </Link>
           ) : (
-            <Button icon={Bookmark} onClick={() => setNaming(true)}>
+            <Button icon={Bookmark} className="max-lg:h-11" onClick={() => setNaming(true)}>
               Salvar API
             </Button>
           )}
           {isActive ? null : (
             <Button
               icon={Download}
+              className="max-lg:h-11"
               onClick={() => downloadJson(`avaliacao-${evaluation.id}.json`, evaluation)}
             >
               Exportar JSON

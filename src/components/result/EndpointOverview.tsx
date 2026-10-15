@@ -101,7 +101,7 @@ export function EndpointOverview({
         <button
           type="button"
           onClick={onOpen}
-          className={`inline-flex cursor-pointer items-center gap-1.5 rounded-sm text-[13px] font-medium text-accent-ink transition-colors duration-150 hover:text-ink ${FOCUS_RING}`}
+          className={`relative inline-flex cursor-pointer items-center gap-1.5 rounded-sm text-[13px] max-lg:before:absolute max-lg:before:-inset-y-3.5 max-lg:before:inset-x-0 max-lg:before:content-[''] font-medium text-accent-ink transition-colors duration-150 hover:text-ink ${FOCUS_RING}`}
         >
           Abrir desempenho
           <Icon icon={ArrowRight} size={14} />

@@ -9,6 +9,7 @@ import { PendingList } from '../components/result/PendingList'
 import { PerformanceSection } from '../components/result/PerformanceSection'
 import { PillarPlaceholder } from '../components/result/PillarPlaceholder'
 import { PillarTile } from '../components/result/PillarTile'
+import { ResultNav } from '../components/result/ResultNav'
 import { ResultRail } from '../components/result/ResultRail'
 import { ResultToolbar } from '../components/result/ResultToolbar'
 import { ScoringParameters } from '../components/result/ScoringParameters'
@@ -21,7 +22,13 @@ import { sectionPanelId, sectionTabId, type SectionId } from '../components/resu
 import { Button } from '../components/ui/Button'
 import { Notice } from '../components/ui/Notice'
 import { CARD, FOCUS_RING, PAGE_CONTAINER } from '../components/ui/classes'
-import { useEvaluationPolling, useSavedApis, useSession, type LiveSeries } from '../hooks'
+import {
+  useEvaluationPolling,
+  useSavedApis,
+  useSession,
+  useWideLayout,
+  type LiveSeries,
+} from '../hooks'
 import type { EvaluationRecord, PillarName } from '../types'
 import { formatNumber, formatPercent } from '../utils/format'
 import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../utils/labels'
@@ -32,6 +39,8 @@ import { performanceProgress } from '../utils/steps'
 
 const FRAME = 'lg:grid lg:grid-cols-[23.25rem_minmax(0,1fr)] lg:items-start'
 const BODY = 'flex min-w-0 flex-col gap-5 px-4 pt-5 pb-10 sm:px-6 lg:px-7'
+const BODY_ID = 'resultado-conteudo'
+const STICKY_NAV_OFFSET = 128
 const CONTRACT_ONLY: PillarName[] = ['contract']
 const SECURITY_ONLY: PillarName[] = ['security']
 const STACK = 'min-w-0 flex-col gap-3'
@@ -153,6 +162,15 @@ function Overview({
 }: OverviewProps) {
   const { performanceResults, spectralResult, securityResult } = evaluation
   const targetLatency = evaluation.scoring?.performance?.targetLatency
+  const timeline = (
+    <StepTimeline
+      evaluation={evaluation}
+      isActive={isActive}
+      receivedAt={receivedAt}
+      onOpenPerformance={() => onOpen('performance')}
+    />
+  )
+  const timelineFirst = isActive || evaluation.status !== 'COMPLETED'
 
   return (
     <div className="@container flex flex-col gap-3">
@@ -169,12 +187,7 @@ function Overview({
           />
         ))}
       </div>
-      <StepTimeline
-        evaluation={evaluation}
-        isActive={isActive}
-        receivedAt={receivedAt}
-        onOpenPerformance={() => onOpen('performance')}
-      />
+      {timelineFirst ? timeline : null}
       <div className="grid grid-cols-1 items-start gap-3 @4xl:grid-cols-12 @7xl:grid-cols-3">
         <div className={`hidden @7xl:flex ${STACK}`}>
           {spectralResult ? (
@@ -212,6 +225,7 @@ function Overview({
           </div>
         ) : null}
       </div>
+      {timelineFirst ? null : timeline}
     </div>
   )
 }
@@ -240,6 +254,30 @@ function ResultView({
   const [pillar] = PILLARS_BY_TYPE[evaluation.evaluationType]
   const summary = describeFinalScore(evaluation, isActive)
   const live: LiveState = { isActive, liveSeries, receivedAt }
+  const wide = useWideLayout()
+
+  const selectSection = (next: SectionId) => {
+    setSection(next)
+    setHighlighted(null)
+    if (wide) return
+    requestAnimationFrame(() => {
+      const body = document.getElementById(BODY_ID)
+      if (body && body.getBoundingClientRect().top < STICKY_NAV_OFFSET) {
+        body.scrollIntoView({ block: 'start' })
+      }
+    })
+  }
+
+  const nav = isFull ? (
+    <ResultNav
+      evaluation={evaluation}
+      isActive={isActive}
+      section={section}
+      onSectionChange={selectSection}
+      highlighted={highlighted}
+      onHighlight={setHighlighted}
+    />
+  ) : null
 
   return (
     <div className={FRAME}>
@@ -247,12 +285,16 @@ function ResultView({
         evaluation={evaluation}
         isActive={isActive}
         hasAccount={hasAccount}
-        section={section}
-        onSectionChange={setSection}
+        nav={nav}
         highlighted={highlighted}
         onHighlight={setHighlighted}
       />
-      <div className={BODY}>
+      {nav && !wide ? (
+        <div className="sticky top-0 z-20 sm:top-[53px] border-b border-border bg-bg px-4 py-2 sm:px-6">
+          {nav}
+        </div>
+      ) : null}
+      <div id={BODY_ID} className={`${BODY} scroll-mt-32`}>
         {children}
         <ResultToolbar
           evaluation={evaluation}
@@ -293,7 +335,7 @@ function ResultView({
                 liveSeries={liveSeries}
                 receivedAt={receivedAt}
                 highlighted={highlighted}
-                onOpen={setSection}
+                onOpen={selectSection}
                 onHighlight={setHighlighted}
               />
             ) : section === 'scoring' ? (

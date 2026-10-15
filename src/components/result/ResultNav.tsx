@@ -1,4 +1,4 @@
-import type { KeyboardEvent, ReactNode } from 'react'
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { Check, Clock, LoaderCircle, Minus, SkipForward, X, type LucideIcon } from 'lucide-react'
 import type { EvaluationRecord, PillarName } from '../../types'
 import { formatNumber } from '../../utils/format'
@@ -44,11 +44,11 @@ const MOVES: Record<string, (index: number, count: number) => number> = {
 }
 
 const TAB =
-  'flex shrink-0 cursor-pointer items-center gap-2.5 rounded-md border px-3 py-2 text-left transition-colors duration-150 lg:w-full'
+  'flex shrink-0 scroll-mx-4 cursor-pointer items-center gap-2.5 rounded-md border px-3 py-2 text-left max-lg:py-2.5 transition-colors duration-150 lg:w-full'
 
 function tabClasses(selected: boolean, highlighted: boolean): string {
-  if (selected) return `${TAB} border-border-control bg-surface-raised text-ink ${FOCUS_RING}`
-  if (highlighted) return `${TAB} border-border-hover bg-surface-raised text-ink ${FOCUS_RING}`
+  if (selected) return `${TAB} border-ink-muted bg-surface-raised text-ink ${FOCUS_RING}`
+  if (highlighted) return `${TAB} border-border-hover bg-bg text-ink ${FOCUS_RING}`
   return `${TAB} border-border bg-bg text-ink-secondary hover:border-border-hover hover:text-ink ${FOCUS_RING}`
 }
 
@@ -79,8 +79,15 @@ interface TabProps {
 }
 
 function Tab({ section, selected, highlighted = false, onSelect, onHighlight, children }: TabProps) {
+  const ref = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (selected) ref.current?.scrollIntoView({ inline: 'nearest', block: 'nearest' })
+  }, [selected])
+
   return (
     <button
+      ref={ref}
       type="button"
       role="tab"
       id={sectionTabId(section)}
@@ -90,7 +97,11 @@ function Tab({ section, selected, highlighted = false, onSelect, onHighlight, ch
       onClick={() => onSelect(section)}
       onMouseEnter={onHighlight ? () => onHighlight(true) : undefined}
       onMouseLeave={onHighlight ? () => onHighlight(false) : undefined}
-      onFocus={onHighlight ? () => onHighlight(true) : undefined}
+      onFocus={
+        onHighlight
+          ? (event) => onHighlight(event.currentTarget.matches(':focus-visible'))
+          : undefined
+      }
       onBlur={onHighlight ? () => onHighlight(false) : undefined}
       className={tabClasses(selected, highlighted)}
     >
@@ -138,7 +149,7 @@ export function ResultNav({
       role="tablist"
       aria-label="Seções do resultado"
       onKeyDown={handleKeyDown}
-      className="relative -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 max-lg:order-last [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-col lg:gap-1.5 lg:overflow-visible lg:px-0 lg:pb-0"
+      className="relative -mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-col lg:gap-1.5 lg:overflow-visible lg:px-0"
     >
       <Tab section="overview" selected={section === 'overview'} onSelect={onSectionChange}>
         <span className="font-semibold">Visão geral</span>

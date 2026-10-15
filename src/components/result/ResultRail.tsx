@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { ArrowLeft, Link2, Lock, type LucideIcon } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { ArrowLeft, ChevronRight, Link2, Lock, type LucideIcon } from 'lucide-react'
+import { useWideLayout } from '../../hooks'
 import type { EvaluationRecord, EvaluationVisibility, PillarName } from '../../types'
 import { formatDateTime, formatDuration } from '../../utils/format'
 import { TYPE_TITLES, VISIBILITY_LABELS } from '../../utils/labels'
@@ -8,16 +9,15 @@ import { finalScoreParts, securityScoreParts } from '../../utils/scoreParts'
 import { PILLAR_STROKE } from '../../utils/tones'
 import { Badge, type BadgeTone } from '../ui/Badge'
 import { StatusBadge } from '../ui/StatusBadge'
+import { Icon } from '../ui/Icon'
 import { TextLink } from '../ui/TextLink'
 import { OVERLINE } from '../ui/classes'
 import { GateBadge } from './GateBadge'
 import { GateVerdict } from './GateVerdict'
-import { ResultNav } from './ResultNav'
 import { ResultStats } from './ResultStats'
 import { ScoreContributions } from './ScoreContributions'
 import { ScoreRing } from './ScoreRing'
 import { SegmentedScoreRing } from './SegmentedScoreRing'
-import type { SectionId } from './sections'
 
 const RING_SIZE = 208
 
@@ -35,12 +35,51 @@ function executionTime({ startedAt, finishedAt }: EvaluationRecord): number | nu
   return startedAt && finishedAt ? Date.parse(finishedAt) - Date.parse(startedAt) : null
 }
 
+interface EvaluationMetaProps {
+  evaluation: EvaluationRecord
+  className: string
+}
+
+function EvaluationMeta({ evaluation, className }: EvaluationMetaProps) {
+  const elapsed = executionTime(evaluation)
+
+  return (
+    <dl
+      className={`grid grid-cols-1 gap-x-4 gap-y-1 text-[13px] sm:grid-cols-[auto_minmax(0,1fr)] ${className}`}
+    >
+      <dt className="text-ink-secondary">Especificação</dt>
+      <dd className="font-mono text-xs leading-5 break-all text-ink max-sm:mb-1.5">
+        {evaluation.openApiUrl}
+      </dd>
+      {evaluation.apiBaseUrl ? (
+        <>
+          <dt className="text-ink-secondary">URL base</dt>
+          <dd className="font-mono text-xs leading-5 break-all text-ink max-sm:mb-1.5">
+            {evaluation.apiBaseUrl}
+          </dd>
+        </>
+      ) : null}
+      <dt className="text-ink-secondary">Criada em</dt>
+      <dd className="font-mono text-xs leading-5 text-ink tabular-nums max-sm:mb-1.5">
+        {formatDateTime(evaluation.createdAt)}
+      </dd>
+      {elapsed === null ? null : (
+        <>
+          <dt className="text-ink-secondary">Tempo de execução</dt>
+          <dd className="font-mono text-xs leading-5 text-ink tabular-nums">
+            {formatDuration(elapsed)}
+          </dd>
+        </>
+      )}
+    </dl>
+  )
+}
+
 interface ResultRailProps {
   evaluation: EvaluationRecord
   isActive: boolean
   hasAccount: boolean
-  section: SectionId
-  onSectionChange: (section: SectionId) => void
+  nav: ReactNode
   highlighted: PillarName | null
   onHighlight: (pillar: PillarName | null) => void
 }
@@ -49,11 +88,11 @@ export function ResultRail({
   evaluation,
   isActive,
   hasAccount,
-  section,
-  onSectionChange,
+  nav,
   highlighted,
   onHighlight,
 }: ResultRailProps) {
+  const wide = useWideLayout()
   const [activePart, setActivePart] = useState<string | null>(null)
   const { evaluationType, finalScore, visibility, passed, scoreBreakdown, securityResult } =
     evaluation
@@ -63,7 +102,6 @@ export function ResultRail({
     evaluationType === 'security' && securityResult && finalScore !== null
       ? securityScoreParts(scoreBreakdown, securityResult)
       : null
-  const elapsed = executionTime(evaluation)
 
   return (
     <aside
@@ -120,14 +158,9 @@ export function ResultRail({
         <GateVerdict evaluation={evaluation} />
       </div>
       {isFull ? (
-        <ResultNav
-          evaluation={evaluation}
-          isActive={isActive}
-          section={section}
-          onSectionChange={onSectionChange}
-          highlighted={highlighted}
-          onHighlight={onHighlight}
-        />
+        wide ? (
+          nav
+        ) : null
       ) : layers ? (
         <section className="flex flex-col gap-2">
           <h2 className={OVERLINE}>Composição da nota</h2>
@@ -136,32 +169,24 @@ export function ResultRail({
       ) : (
         <ResultStats evaluation={evaluation} isActive={isActive} />
       )}
-      <dl className="grid grid-cols-1 gap-x-4 gap-y-1 border-t border-border pt-4 text-[13px] sm:grid-cols-[auto_minmax(0,1fr)] lg:mt-auto">
-        <dt className="text-ink-secondary">Especificação</dt>
-        <dd className="font-mono text-xs leading-5 break-all text-ink max-sm:mb-1.5">
-          {evaluation.openApiUrl}
-        </dd>
-        {evaluation.apiBaseUrl ? (
-          <>
-            <dt className="text-ink-secondary">URL base</dt>
-            <dd className="font-mono text-xs leading-5 break-all text-ink max-sm:mb-1.5">
-              {evaluation.apiBaseUrl}
-            </dd>
-          </>
-        ) : null}
-        <dt className="text-ink-secondary">Criada em</dt>
-        <dd className="font-mono text-xs leading-5 text-ink tabular-nums max-sm:mb-1.5">
-          {formatDateTime(evaluation.createdAt)}
-        </dd>
-        {elapsed === null ? null : (
-          <>
-            <dt className="text-ink-secondary">Tempo de execução</dt>
-            <dd className="font-mono text-xs leading-5 text-ink tabular-nums">
-              {formatDuration(elapsed)}
-            </dd>
-          </>
-        )}
-      </dl>
+      {wide ? (
+        <EvaluationMeta
+          evaluation={evaluation}
+          className="border-t border-border pt-4 lg:mt-auto"
+        />
+      ) : (
+        <details className="group border-t border-border">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-sm text-[13px] font-medium text-ink-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
+            <Icon
+              icon={ChevronRight}
+              size={14}
+              className="transition-transform duration-150 group-open:rotate-90"
+            />
+            Dados da avaliação
+          </summary>
+          <EvaluationMeta evaluation={evaluation} className="pb-1" />
+        </details>
+      )}
     </aside>
   )
 }

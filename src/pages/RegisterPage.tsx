@@ -7,7 +7,7 @@ import { TextField } from '../components/ui/Field'
 import { Notice } from '../components/ui/Notice'
 import { PasswordField } from '../components/ui/PasswordField'
 import { TextLink } from '../components/ui/TextLink'
-import { useSession } from '../hooks'
+import { useDocumentTitle, useFocusFirstInvalid, useSession } from '../hooks'
 import { ApiError, register, startSession } from '../services'
 import {
   HOME_PATH,
@@ -27,6 +27,7 @@ interface RegisterErrors {
 }
 
 export function RegisterPage() {
+  useDocumentTitle('Criar conta')
   const { user } = useSession()
   const location = useLocation()
   const redirect = location.state as AuthRedirectState | null
@@ -34,12 +35,16 @@ export function RegisterPage() {
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [errors, setErrors] = useState<RegisterErrors>({})
+  const { ref: formRef, focusFirstInvalid } = useFocusFirstInvalid<HTMLFormElement>()
 
   const mutation = useMutation({
     mutationFn: register,
     onSuccess: startSession,
     onError: (error) => {
-      if (error instanceof ApiError) setErrors(issuesByField(error.issues, SERVER_FIELDS))
+      if (!(error instanceof ApiError)) return
+
+      setErrors(issuesByField(error.issues, SERVER_FIELDS))
+      focusFirstInvalid()
     },
   })
 
@@ -53,13 +58,15 @@ export function RegisterPage() {
 
     mutation.reset()
     const next: RegisterErrors = {}
-    if (!isEmail(email.trim())) next.email = 'E-mail inválido'
+    if (!email.trim()) next.email = 'Informe o e-mail'
+    else if (!isEmail(email.trim())) next.email = 'E-mail inválido'
     if (password.length < MIN_PASSWORD_LENGTH) {
       next.password = `A senha deve ter ao menos ${MIN_PASSWORD_LENGTH} caracteres`
     } else if (confirmation !== password) {
       next.confirmation = 'As senhas não conferem'
     }
     setErrors(next)
+    focusFirstInvalid()
 
     if (Object.keys(next).length === 0) mutation.mutate({ email: email.trim(), password })
   }
@@ -79,6 +86,7 @@ export function RegisterPage() {
           </TextLink>
         </>
       }
+      benefits
       note="As avaliações feitas antes da conta continuam anônimas: abrem pelo link e não entram no histórico."
     >
       {isEmailInUse ? (
@@ -94,7 +102,7 @@ export function RegisterPage() {
           {failure.message}
         </Notice>
       ) : null}
-      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <form ref={formRef} noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div className="flex flex-col gap-4">
           <TextField
             id="signup-email"
@@ -113,7 +121,6 @@ export function RegisterPage() {
             name="password"
             label="Senha"
             autoComplete="new-password"
-            placeholder={`Ao menos ${MIN_PASSWORD_LENGTH} caracteres`}
             hint={`Ao menos ${MIN_PASSWORD_LENGTH} caracteres.`}
             error={errors.password}
             value={password}

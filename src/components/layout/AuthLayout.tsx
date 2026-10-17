@@ -1,92 +1,62 @@
 import type { ReactNode } from 'react'
-import { ArrowLeft, Bookmark, History, Lock, type LucideIcon } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { HOME_PATH } from '../../utils/routes'
-import { Icon } from '../ui/Icon'
+import { BrandMark } from '../ui/BrandMark'
+import { MetaList, type MetaItem } from '../ui/MetaList'
 import { TextLink } from '../ui/TextLink'
-import { FOCUS_RING, CARD, OVERLINE } from '../ui/classes'
+import { FOCUS_RING, OVERLINE, PAGE_TITLE } from '../ui/classes'
 
-interface Benefit {
-  icon: LucideIcon
-  title: string
-  description: string
-}
-
-const BENEFITS: Benefit[] = [
-  {
-    icon: History,
-    title: 'Histórico.',
-    description: 'Cada avaliação entra em uma lista com busca e filtros.',
-  },
-  {
-    icon: Bookmark,
-    title: 'APIs e conjuntos de regras salvos.',
-    description: 'A próxima avaliação já começa preenchida.',
-  },
-  {
-    icon: Lock,
-    title: 'Resultados privados.',
-    description: 'Só quem criou a avaliação abre o resultado.',
-  },
+const BENEFITS: MetaItem[] = [
+  { label: 'Histórico', value: 'Cada avaliação entra numa lista com busca e filtros.' },
+  { label: 'APIs salvas', value: 'Conjuntos de regras e a próxima avaliação já preenchida.' },
+  { label: 'Privacidade', value: 'Só quem criou a avaliação abre o resultado.' },
 ]
 
 interface AuthLayoutProps {
   title: string
   lead: ReactNode
+  benefits?: boolean
   note?: string
   children: ReactNode
 }
 
-export function AuthLayout({ title, lead, note, children }: AuthLayoutProps) {
+export function AuthLayout({ title, lead, benefits = false, note, children }: AuthLayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="px-4 py-5 sm:px-6">
+    <div className="flex min-h-dvh flex-col">
+      <header className="flex items-center justify-between gap-3 px-4 pt-5 sm:px-6">
+        <Link
+          to={HOME_PATH}
+          className={`inline-flex items-center gap-2.5 rounded-sm text-[15px] font-bold max-lg:min-h-11 text-ink [font-variation-settings:"wdth"_108] ${FOCUS_RING}`}
+        >
+          <BrandMark />
+          Auditor de APIs
+        </Link>
         <TextLink to={HOME_PATH} tone="muted" leadingIcon={ArrowLeft}>
-          Início
+          Voltar ao início
         </TextLink>
-      </div>
-      <main className="flex flex-1 flex-col items-center gap-8 px-4 pt-8 pb-16 sm:px-6">
-        <div className="flex w-full max-w-100 flex-col gap-6">
-          <div className="flex flex-col items-center gap-5 text-center">
-            <Link
-              to={HOME_PATH}
-              className={`rounded-sm font-display text-[15px] font-semibold tracking-[-0.01em] text-ink ${FOCUS_RING}`}
-            >
-              Auditor de APIs
-            </Link>
+      </header>
+
+      <main className="flex flex-1 flex-col items-center px-4 pt-10 pb-12 sm:px-6 lg:pt-20">
+        <div className="flex w-full max-w-104 flex-col gap-6">
+          <div className="flex flex-col gap-6 sm:rounded-card sm:border sm:border-border sm:bg-surface sm:p-6 sm:shadow-card">
             <div className="flex flex-col gap-1.5">
-              <h1 className="font-display text-[28px] leading-[34px] font-semibold tracking-[-0.02em] text-ink">
-                {title}
-              </h1>
+              <h1 className={PAGE_TITLE}>{title}</h1>
               <p className="text-ink-secondary">{lead}</p>
             </div>
+            {children}
           </div>
-          {children}
-        </div>
-        <section
-          aria-labelledby="account-benefits"
-          className={`flex w-full max-w-100 flex-col gap-3 border-border p-4 ${CARD}`}
-        >
-          <h2 id="account-benefits" className={OVERLINE}>
-            Com a sessão aberta
-          </h2>
-          <ul className="flex flex-col gap-2.5 text-[13px] text-ink-secondary">
-            {BENEFITS.map((benefit) => (
-              <li key={benefit.title} className="flex items-start gap-2.5">
-                <span className="flex h-5 items-center text-accent-ink">
-                  <Icon icon={benefit.icon} />
-                </span>
-                <span>
-                  <strong className="font-medium text-ink">{benefit.title}</strong>{' '}
-                  {benefit.description}
-                </span>
-              </li>
-            ))}
-          </ul>
-          {note ? (
-            <p className="border-t border-border pt-3 text-[13px] text-ink-secondary">{note}</p>
+
+          {benefits ? (
+            <section aria-labelledby="account-benefits" className="flex flex-col gap-3">
+              <h2 id="account-benefits" className={OVERLINE}>
+                O que a conta guarda
+              </h2>
+              <MetaList items={BENEFITS} className="gap-y-3" />
+            </section>
           ) : null}
-        </section>
+          {note ? <p className="text-sm text-ink-secondary">{note}</p> : null}
+        </div>
       </main>
     </div>
   )

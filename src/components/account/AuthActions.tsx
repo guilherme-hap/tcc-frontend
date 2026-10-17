@@ -13,7 +13,7 @@ export function AuthActions({ submitLabel, loading }: AuthActionsProps) {
       <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full">
         {submitLabel}
       </Button>
-      <div aria-hidden="true" className="flex items-center gap-3 text-[13px] text-ink-muted">
+      <div aria-hidden="true" className="flex items-center gap-3 text-sm text-ink-muted">
         <span className="h-px flex-1 bg-border" />
         ou
         <span className="h-px flex-1 bg-border" />

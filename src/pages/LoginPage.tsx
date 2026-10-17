@@ -7,7 +7,7 @@ import { TextField } from '../components/ui/Field'
 import { Notice } from '../components/ui/Notice'
 import { PasswordField } from '../components/ui/PasswordField'
 import { TextLink } from '../components/ui/TextLink'
-import { useSession } from '../hooks'
+import { useDocumentTitle, useFocusFirstInvalid, useSession } from '../hooks'
 import { ApiError, login, startSession } from '../services'
 import {
   HOME_PATH,
@@ -23,18 +23,23 @@ const FIELDS = ['email', 'password'] as const
 type LoginErrors = Partial<Record<(typeof FIELDS)[number], string>>
 
 export function LoginPage() {
+  useDocumentTitle('Entrar')
   const { user, expired } = useSession()
   const location = useLocation()
   const redirect = location.state as AuthRedirectState | null
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<LoginErrors>({})
+  const { ref: formRef, focusFirstInvalid } = useFocusFirstInvalid<HTMLFormElement>()
 
   const mutation = useMutation({
     mutationFn: login,
     onSuccess: startSession,
     onError: (error) => {
-      if (error instanceof ApiError) setErrors(issuesByField(error.issues, FIELDS))
+      if (!(error instanceof ApiError)) return
+
+      setErrors(issuesByField(error.issues, FIELDS))
+      focusFirstInvalid()
     },
   })
 
@@ -51,6 +56,7 @@ export function LoginPage() {
     if (!email.trim()) next.email = 'Informe o e-mail'
     if (!password) next.password = 'Informe a senha'
     setErrors(next)
+    focusFirstInvalid()
 
     if (Object.keys(next).length === 0) mutation.mutate({ email: email.trim(), password })
   }
@@ -85,7 +91,7 @@ export function LoginPage() {
           Uma sessão dura 8 horas. Entre de novo para continuar.
         </Notice>
       ) : null}
-      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <form ref={formRef} noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div className="flex flex-col gap-4">
           <TextField
             id="login-email"

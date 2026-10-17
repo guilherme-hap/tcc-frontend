@@ -46,7 +46,7 @@ function OperationRow({ operation, index, selected, disabled, onToggle }: Operat
           <Badge mono>{operation.method}</Badge>
           <label
             htmlFor={inputId}
-            className={`font-mono text-[13px] font-medium break-all ${disabled ? 'text-ink-muted' : 'cursor-pointer text-ink'}`}
+            className={`font-mono text-sm font-medium break-all ${disabled ? 'text-ink-muted' : 'cursor-pointer text-ink'}`}
           >
             {operation.path}
           </label>
@@ -54,7 +54,7 @@ function OperationRow({ operation, index, selected, disabled, onToggle }: Operat
           {operation.requiresAuth ? <Badge>Exige autenticação</Badge> : null}
         </div>
         {operation.summary ? (
-          <p id={`${inputId}-summary`} className="text-[13px] text-ink-secondary">
+          <p id={`${inputId}-summary`} className="text-sm text-ink-secondary">
             {operation.summary}
           </p>
         ) : null}
@@ -146,7 +146,7 @@ export function OperationPicker({
               </span>
             ) : null}
           </p>
-          <p className="text-[13px] text-ink-secondary">
+          <p className="text-sm text-ink-secondary">
             {formatCount(spec.operations.length, 'operação', 'operações')} ·{' '}
             {formatCount(chosen, 'escolhida', 'escolhidas')}
             {full ? ` · limite de ${MAX_TARGETS} endpoints atingido` : ''}

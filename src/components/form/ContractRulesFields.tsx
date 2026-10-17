@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { RotateCcw } from 'lucide-react'
+import { ExternalLink, RotateCcw } from 'lucide-react'
 import { useSpectralRules } from '../../hooks'
 import type { ISpectralCatalogRule } from '../../types'
 import { SEVERITY_LABELS, SEVERITY_ORDER } from '../../utils/labels'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { Disclosure } from '../ui/Disclosure'
+import { Icon } from '../ui/Icon'
 import { Checkbox, CheckboxField, FieldMessages, TextField, TextInput } from '../ui/Field'
 import { Notice } from '../ui/Notice'
 import { SeverityBadge } from '../ui/SeverityBadge'
@@ -44,7 +45,7 @@ function RuleRow({ rule, enabled, onToggle }: RuleRowProps) {
         <div className="flex flex-wrap items-center gap-2">
           <label
             htmlFor={inputId}
-            className="cursor-pointer font-mono text-[13px] font-medium break-all text-ink"
+            className="cursor-pointer font-mono text-sm font-medium break-all text-ink"
           >
             {rule.name}
           </label>
@@ -52,7 +53,7 @@ function RuleRow({ rule, enabled, onToggle }: RuleRowProps) {
           {enabled !== rule.enabledByDefault ? <Badge tone="accent">Alterada</Badge> : null}
         </div>
         {rule.description ? (
-          <p id={descriptionId} lang="en" className="text-[13px] text-ink-secondary">
+          <p id={descriptionId} lang="en" className="text-sm text-ink-secondary">
             {rule.description}
           </p>
         ) : null}
@@ -64,9 +65,11 @@ function RuleRow({ rule, enabled, onToggle }: RuleRowProps) {
               href={rule.documentationUrl}
               target="_blank"
               rel="noreferrer"
-              className={`rounded-sm text-accent-ink underline underline-offset-2 ${FOCUS_RING}`}
+              className={`inline-flex items-center gap-1 rounded-sm text-accent-ink underline underline-offset-2 max-lg:-my-3.5 max-lg:py-3.5 ${FOCUS_RING}`}
             >
               Documentação
+              <Icon icon={ExternalLink} size={12} />
+              <span className="sr-only"> (abre em nova aba)</span>
             </a>
           ) : null}
         </p>

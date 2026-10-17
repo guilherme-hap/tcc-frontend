@@ -6,7 +6,7 @@ import { AccountTip } from '../components/account/AccountTip'
 import { ContractRulesFields } from '../components/form/ContractRulesFields'
 import { LoadOptionsFields } from '../components/form/LoadOptionsFields'
 import { OperationPicker } from '../components/form/OperationPicker'
-import { RequestSummary } from '../components/form/RequestSummary'
+import { MobileSubmitBar, RequestSummary } from '../components/form/RequestSummary'
 import { TargetFields } from '../components/form/TargetFields'
 import { TargetsField } from '../components/form/TargetsField'
 import { TypeSelector } from '../components/form/TypeSelector'
@@ -31,12 +31,15 @@ import { Button } from '../components/ui/Button'
 import { CheckboxField, TextField } from '../components/ui/Field'
 import { Icon } from '../components/ui/Icon'
 import { Notice } from '../components/ui/Notice'
+import { Disclosure } from '../components/ui/Disclosure'
 import { Panel } from '../components/ui/Panel'
 import { TextLink } from '../components/ui/TextLink'
-import { CARD } from '../components/ui/classes'
+import { BODY, CARD, FRAME, PAGE_TITLE } from '../components/ui/classes'
 import {
   EVALUATION_HISTORY_KEY,
   SAVED_APIS_KEY,
+  useDocumentTitle,
+  useFocusFirstInvalid,
   useSavedApis,
   useSession,
   useSpecOperations,
@@ -79,6 +82,8 @@ const TIP_ITEMS: TipItem[] = [
   },
 ]
 
+const SHORTCUT_CONFIRM_MS = 4000
+
 interface Submission {
   request: EvaluationRequest
   savedApi: SavedApiInput | null
@@ -112,7 +117,7 @@ function FormSkeleton() {
       role="status"
       aria-busy="true"
       aria-label="Carregando a API salva"
-      className="flex flex-col gap-6"
+      className={BODY}
     >
       <div className="h-8 w-56 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none" />
       <div className={`h-72 animate-pulse border-border motion-reduce:animate-none ${CARD}`} />
@@ -128,7 +133,7 @@ interface SavedApiLoadErrorProps {
 
 function SavedApiLoadError({ message, type, onRetry }: SavedApiLoadErrorProps) {
   return (
-    <>
+    <div className={BODY}>
       <Notice tone="error" title="Não foi possível carregar a API salva deste link.">
         {message ?? 'Sem resposta do servidor do auditor.'}
       </Notice>
@@ -138,7 +143,7 @@ function SavedApiLoadError({ message, type, onRetry }: SavedApiLoadErrorProps) {
           Continuar sem a API salva
         </TextLink>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -170,9 +175,12 @@ function EvaluationForm({
   })
   const [rejection, setRejection] = useState<Rejection | null>(null)
   const [loadOptionsOpen, setLoadOptionsOpen] = useState(false)
+  const [weightsOpen, setWeightsOpen] = useState(false)
   const [contractRulesOpen, setContractRulesOpen] = useState(false)
   const [submitDetails, setSubmitDetails] = useState<IValidationIssue[]>([])
   const [specRequest, setSpecRequest] = useState<string | null>(null)
+  const [shortcutPending, setShortcutPending] = useState(false)
+  const { ref: formRef, focusFirstInvalid } = useFocusFirstInvalid<HTMLFormElement>()
 
   const hasAccount = user !== null
   const savedApis = hasAccount ? (apis ?? []) : null
@@ -184,6 +192,7 @@ function EvaluationForm({
     saveApi: enteredForm.saveApi && !duplicateApi,
   }
   const errors = rejection ? pruneErrors(rejection.errors, rejection.form, form) : {}
+  const hasErrors = Object.keys(errors).length > 0
   const openApiUrl = form.openApiUrl.trim()
   const specUrl = specRequest !== null && specRequest === openApiUrl ? specRequest : null
   const specOperations = useSpecOperations(usesTargets(form.type) ? specUrl : null)
@@ -209,6 +218,13 @@ function EvaluationForm({
   })
 
   useEffect(() => {
+    if (!shortcutPending) return
+
+    const timer = setTimeout(() => setShortcutPending(false), SHORTCUT_CONFIRM_MS)
+    return () => clearTimeout(timer)
+  }, [shortcutPending])
+
+  useEffect(() => {
     clearFormDraft()
     return () => {
       if (leaving.current.keepsDraft && !submitted.current) saveFormDraft(leaving.current.form)
@@ -223,12 +239,14 @@ function EvaluationForm({
     setRejection({ form, errors: next })
     if (hasLoadOptionError(next)) setLoadOptionsOpen(true)
     if (next.severityWeights) setContractRulesOpen(true)
+    focusFirstInvalid()
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (mutation.isPending) return
 
+    setShortcutPending(false)
     mutation.reset()
     setSubmitDetails([])
     const result = buildSubmission(form, hasAccount)
@@ -264,6 +282,11 @@ function EvaluationForm({
 
     if (event.ctrlKey || event.metaKey) {
       event.preventDefault()
+      if (usesTargets(form.type) && !shortcutPending) {
+        setShortcutPending(true)
+        return
+      }
+      setShortcutPending(false)
       event.currentTarget.requestSubmit()
     } else if (event.target instanceof HTMLInputElement) {
       event.preventDefault()
@@ -271,45 +294,39 @@ function EvaluationForm({
   }
 
   return (
-    <>
-      <div className="flex flex-col gap-2">
-        <h1 className="font-display text-2xl leading-8 font-semibold tracking-[-0.01em] text-ink">
-          Nova avaliação
-        </h1>
-        <p className="max-w-[64ch] text-ink-secondary">
-          {hasAccount
-            ? 'Parta de uma API salva ou informe a especificação OpenAPI e a URL base. A avaliação roda em segundo plano e o resultado entra no histórico assim que terminar.'
-            : 'Informe a especificação OpenAPI e a URL base da API. A avaliação roda em segundo plano e o resultado aparece assim que terminar.'}
-        </p>
-      </div>
+    <form
+      ref={formRef}
+      noValidate
+      onSubmit={handleSubmit}
+      onKeyDown={handleKeyDown}
+      className={FRAME}
+    >
+      <div className={BODY}>
+        <div className="flex flex-col gap-1">
+          <h1 className={PAGE_TITLE}>Nova avaliação</h1>
+          <p className="max-w-[72ch] text-ink-secondary">
+            {hasAccount
+              ? 'Parta de uma API salva ou informe a especificação OpenAPI e a URL base. A avaliação roda em segundo plano e o resultado entra no histórico assim que terminar.'
+              : 'Informe a especificação OpenAPI e a URL base da API. A avaliação roda em segundo plano e o resultado aparece assim que terminar.'}
+          </p>
+        </div>
 
-      {reevaluated && draft ? (
-        <Notice title="Parâmetros da avaliação anterior carregados.">
-          Cabeçalhos do teste de carga e a confirmação de métodos que alteram dados não são guardados
-          com a avaliação: confira-os antes de enviar.
-        </Notice>
-      ) : null}
+        {reevaluated && draft ? (
+          <Notice title="Parâmetros da avaliação anterior carregados.">
+            Cabeçalhos do teste de carga e a confirmação de métodos que alteram dados não são guardados
+            com a avaliação: confira-os antes de enviar.
+          </Notice>
+        ) : null}
 
-      {missingApi ? (
-        <Notice tone="warning" title="A API salva deste link não foi encontrada na conta.">
-          Ela pode ter sido excluída. Preencha os campos à mão ou escolha outra API salva.
-        </Notice>
-      ) : null}
+        {missingApi ? (
+          <Notice tone="warning" title="A API salva deste link não foi encontrada na conta.">
+            Ela pode ter sido excluída. Preencha os campos à mão ou escolha outra API salva.
+          </Notice>
+        ) : null}
 
-      <form
-        noValidate
-        onSubmit={handleSubmit}
-        onKeyDown={handleKeyDown}
-        className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_400px]"
-      >
+        <TypeSelector value={form.type} onChange={(type) => update({ type })} />
+
         <div className="flex min-w-0 flex-col gap-4">
-          <Panel
-            title="Tipo de avaliação"
-            description="Define quais pilares rodam e quais campos o pedido exige."
-          >
-            <TypeSelector value={form.type} onChange={(type) => update({ type })} />
-          </Panel>
-
           <TargetFields
             form={form}
             errors={errors}
@@ -395,9 +412,14 @@ function EvaluationForm({
           ) : null}
 
           {form.type === 'full' ? (
-            <Panel title="Pesos dos pilares" description="Quanto cada pilar vale na nota final.">
+            <Disclosure
+              title="Pesos dos pilares"
+              aside={form.customWeights ? 'Personalizados' : 'Um terço cada'}
+              open={weightsOpen || errors.weights !== undefined}
+              onToggle={setWeightsOpen}
+            >
               <WeightsFields form={form} errors={errors} onChange={update} />
-            </Panel>
+            </Disclosure>
           ) : null}
 
           <Panel
@@ -421,43 +443,45 @@ function EvaluationForm({
           </Panel>
         </div>
 
-        <aside
-          aria-label="Resumo do pedido"
-          className="flex min-w-0 flex-col gap-4 rounded-card [scrollbar-color:var(--border-hover)_transparent] [scrollbar-width:thin] lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6.5rem)] lg:overflow-y-auto"
-        >
-          <RequestSummary
-            form={form}
-            account={hasAccount ? { savedApiName: selectedApi?.name ?? null } : null}
-            hasErrors={Object.keys(errors).length > 0}
-            isSending={mutation.isPending}
-            submitError={mutation.isError ? mutation.error.message : null}
-            submitDetails={submitDetails}
-          />
-          {hasAccount ? null : (
-            <AccountTip
-              id="new-evaluation"
-              title="Entre antes de iniciar para guardar esta avaliação"
-              stacked
-            >
-              <ul className="flex flex-col gap-2 text-[13px] text-ink">
-                {TIP_ITEMS.map((item) => (
-                  <li key={item.text} className="flex items-start gap-2">
-                    <span className="flex h-5 items-center text-accent-ink">
-                      <Icon icon={item.icon} size={14} />
-                    </span>
-                    {item.text}
-                  </li>
-                ))}
-              </ul>
-            </AccountTip>
-          )}
-        </aside>
-      </form>
-    </>
+        {hasAccount ? null : (
+          <AccountTip id="new-evaluation" title="Entre antes de iniciar para guardar esta avaliação">
+            <ul className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-ink">
+              {TIP_ITEMS.map((item) => (
+                <li key={item.text} className="flex items-start gap-2">
+                  <span className="flex h-5 items-center text-accent-ink">
+                    <Icon icon={item.icon} size={14} />
+                  </span>
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+          </AccountTip>
+        )}
+      </div>
+
+      <RequestSummary
+        form={form}
+        account={hasAccount ? { savedApiName: selectedApi?.name ?? null } : null}
+        hasErrors={hasErrors}
+        onGoToError={focusFirstInvalid}
+        isSending={mutation.isPending}
+        submitError={mutation.isError ? mutation.error.message : null}
+        submitDetails={submitDetails}
+        shortcutPending={shortcutPending}
+      />
+      <MobileSubmitBar
+        form={form}
+        isSending={mutation.isPending}
+        message={
+          mutation.isError ? 'A avaliação não foi aceita' : hasErrors ? 'Revise os campos destacados' : null
+        }
+      />
+    </form>
   )
 }
 
 export function NewEvaluationPage() {
+  useDocumentTitle('Nova avaliação')
   const { user } = useSession()
   const location = useLocation()
   const restoreState = location.state as RestoreDraftState | null

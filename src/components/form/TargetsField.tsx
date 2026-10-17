@@ -30,7 +30,7 @@ function PathParamFields({ target, operation, position, errors, onChange }: Path
 
   return (
     <fieldset className="flex min-w-0 flex-col gap-2 sm:ml-7">
-      <legend className="mb-2 text-[13px] text-ink-secondary">
+      <legend className="mb-2 text-sm text-ink-secondary">
         {required
           ? 'Valores dos parâmetros do path. Em DELETE todos são obrigatórios: nenhum valor é gerado, para não excluir dados reais.'
           : 'Valores dos parâmetros do path. Vazio, o valor é gerado a partir da especificação.'}
@@ -47,7 +47,7 @@ function PathParamFields({ target, operation, position, errors, onChange }: Path
               <div className="flex min-w-0 items-center gap-2">
                 <label
                   htmlFor={id}
-                  className="max-w-2/5 shrink-0 truncate font-mono text-[13px] text-ink-secondary"
+                  className="max-w-2/5 shrink-0 truncate font-mono text-sm text-ink-secondary"
                 >
                   {`{${name}}`}
                 </label>
@@ -147,7 +147,7 @@ export function TargetsField({ targets, operations, errors, onChange }: TargetsF
                 </div>
               ) : null}
               {operation?.requiresAuth || operation?.deprecated ? (
-                <p className="text-[13px] text-ink-secondary sm:ml-7">
+                <p className="text-sm text-ink-secondary sm:ml-7">
                   {[
                     operation.deprecated ? 'Operação marcada como obsoleta na especificação.' : null,
                     operation.requiresAuth

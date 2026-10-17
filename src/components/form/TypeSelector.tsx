@@ -1,8 +1,7 @@
 import type { EvaluationType } from '../../types'
-import { TYPE_ICONS } from '../../utils/icons'
 import { TYPE_DESCRIPTIONS, TYPE_LABELS, TYPE_ORDER } from '../../utils/labels'
-import { Icon } from '../ui/Icon'
-import { CARD } from '../ui/classes'
+import { TypeStrip } from '../ui/TypeStrip'
+import { OVERLINE } from '../ui/classes'
 
 interface TypeSelectorProps {
   value: EvaluationType
@@ -11,13 +10,13 @@ interface TypeSelectorProps {
 
 export function TypeSelector({ value, onChange }: TypeSelectorProps) {
   return (
-    <fieldset className="min-w-0">
-      <legend className="sr-only">Tipo de avaliação</legend>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(168px,1fr))] gap-3">
+    <fieldset className="flex min-w-0 flex-col gap-2.5">
+      <legend className={`mb-2.5 ${OVERLINE}`}>Tipo de avaliação</legend>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {TYPE_ORDER.map((type) => (
           <label
             key={type}
-            className={`group flex cursor-pointer flex-col gap-1.5 border-border px-4 py-3 hover:border-border-hover has-checked:border-accent-ink/55 has-checked:bg-accent-dim has-checked:hover:border-accent-ink/55 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus ${CARD}`}
+            className="group flex min-h-11 cursor-pointer flex-col gap-2 rounded-md border border-border bg-surface px-3 py-2.5 transition-colors duration-150 hover:border-border-hover has-checked:border-accent-ink/55 has-checked:bg-accent-dim has-checked:hover:border-accent-ink/55 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus"
           >
             <input
               type="radio"
@@ -27,21 +26,20 @@ export function TypeSelector({ value, onChange }: TypeSelectorProps) {
               onChange={() => onChange(type)}
               className="sr-only"
             />
+            <TypeStrip type={type} />
             <span className="flex items-center gap-2">
-              <Icon
-                icon={TYPE_ICONS[type]}
-                className="text-ink-secondary transition-colors duration-150 group-has-checked:text-accent-ink"
-              />
               <span className="flex-1 font-medium text-ink">{TYPE_LABELS[type]}</span>
               <span
                 aria-hidden="true"
                 className="relative size-4 shrink-0 rounded-full border border-border-control bg-well after:absolute after:inset-[3px] after:rounded-full after:bg-accent-ink after:opacity-0 after:transition-opacity after:duration-150 group-has-checked:border-accent-ink group-has-checked:after:opacity-100"
               />
             </span>
-            <span className="text-[13px] text-ink-secondary">{TYPE_DESCRIPTIONS[type]}</span>
           </label>
         ))}
       </div>
+      <p aria-live="polite" className="text-sm text-ink-secondary">
+        {TYPE_DESCRIPTIONS[value]}
+      </p>
     </fieldset>
   )
 }

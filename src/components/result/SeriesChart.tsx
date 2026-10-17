@@ -201,8 +201,8 @@ export function SeriesChart({ points, minSlots = 0, targetLatency }: SeriesChart
       </div>
 
       {points.length > 0 ? (
-        <details className="group text-[13px]">
-          <summary className="cursor-pointer text-ink-secondary hover:text-ink">
+        <details className="group text-sm">
+          <summary className="cursor-pointer text-ink-secondary hover:text-ink max-lg:flex max-lg:min-h-11 max-lg:items-center">
             Ver os dados por segundo
           </summary>
           <div className="relative mt-2 max-h-60 overflow-auto rounded-md border border-border">

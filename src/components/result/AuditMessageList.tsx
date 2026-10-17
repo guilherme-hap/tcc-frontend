@@ -13,7 +13,7 @@ export function AuditMessageList({ messages }: AuditMessageListProps) {
       {messages.map((message) => (
         <li
           key={message.code}
-          className="flex flex-col gap-1.5 text-[13px] sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:gap-x-3"
+          className="flex flex-col gap-1.5 text-sm sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:gap-x-3"
         >
           <div>
             <SeverityBadge severity={message.severity} />

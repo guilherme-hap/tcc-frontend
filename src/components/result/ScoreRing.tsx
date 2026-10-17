@@ -74,13 +74,13 @@ export function ScoreRing({ score, label, size = 176, loading = false }: ScoreRi
       ) : null}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
         {loading || score === null ? (
-          <span className="text-[13px] font-medium text-ink-secondary">{valueText}</span>
+          <span className="text-sm font-medium text-ink-secondary">{valueText}</span>
         ) : (
           <>
             <span style={{ fontSize: Math.round(size * 0.27) }} className="num leading-none text-ink">
               {formatNumber(clamped)}
             </span>
-            <span className="text-[13px] text-ink-secondary">de 100</span>
+            <span className="text-sm text-ink-secondary">de 100</span>
           </>
         )}
       </div>

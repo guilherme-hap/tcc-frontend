@@ -57,7 +57,7 @@ function StepRow({ step, evaluation, frame, now, receivedAt, onOpenPerformance }
   const progress = step.status === 'RUNNING' ? step.progress : undefined
 
   return (
-    <li className="flex min-w-0 flex-col gap-2">
+    <li className="flex min-w-0 flex-col gap-1.5">
       <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
         <span aria-hidden="true" className={`size-2.5 shrink-0 rounded-xs ${PILLAR_BG[step.pillar]}`} />
         <span className="font-semibold text-ink">{PILLAR_LABELS[step.pillar]}</span>
@@ -78,11 +78,11 @@ function StepRow({ step, evaluation, frame, now, receivedAt, onOpenPerformance }
         ) : null}
       </div>
       {step.error && !noticeListsStepErrors(evaluation) ? (
-        <p className={`text-[13px] ${step.status === 'FAILED' ? 'text-error' : 'text-warning'}`}>
+        <p className={`text-sm ${step.status === 'FAILED' ? 'text-error' : 'text-warning'}`}>
           {step.error}
         </p>
       ) : step.status === 'INTERRUPTED' ? (
-        <p className="text-[13px] text-warning">A avaliação terminou antes desta etapa terminar.</p>
+        <p className="text-sm text-warning">A avaliação terminou antes desta etapa terminar.</p>
       ) : null}
       {progress ? (
         <div className="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-well p-3">
@@ -97,7 +97,7 @@ function StepRow({ step, evaluation, frame, now, receivedAt, onOpenPerformance }
             <button
               type="button"
               onClick={onOpenPerformance}
-              className={`inline-flex cursor-pointer items-center gap-1.5 self-start rounded-sm text-[13px] font-medium text-accent-ink transition-colors duration-150 hover:text-ink ${FOCUS_RING}`}
+              className={`inline-flex cursor-pointer items-center gap-1.5 self-start rounded-sm text-sm font-medium text-accent-ink transition-colors duration-150 hover:text-ink ${FOCUS_RING}`}
             >
               Acompanhar o teste em Desempenho
               <Icon icon={ArrowRight} size={14} />
@@ -133,7 +133,7 @@ export function StepTimeline({
   const frame = timeWindow(evaluation, now, isActive)
 
   return (
-    <section className={`flex min-w-0 flex-col gap-3 border-border p-4 ${CARD} ${className}`}>
+    <section className={`flex min-w-0 flex-col gap-4 border-border p-4 ${CARD} ${className}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className={OVERLINE}>Linha do tempo</h3>
         {stages.length > 1 ? (
@@ -142,16 +142,16 @@ export function StepTimeline({
           </span>
         ) : null}
       </div>
-      <ol className="flex flex-col gap-4">
+      <ol className="flex flex-col gap-6">
         {stages.map(({ stage, steps: stageSteps }) => (
-          <li key={stage} className="flex min-w-0 flex-col gap-2.5">
+          <li key={stage} className="flex min-w-0 flex-col gap-3">
             {stages.length > 1 ? (
               <p className="text-xs font-semibold text-ink-secondary">
                 Estágio {stage + 1}
                 {stageSteps.length > 1 ? ' · em paralelo' : ''}
               </p>
             ) : null}
-            <ul className="flex flex-col gap-3">
+            <ul className="flex flex-col gap-4">
               {stageSteps.map((step) => (
                 <StepRow
                   key={step.pillar}

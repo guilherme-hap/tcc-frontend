@@ -1,4 +1,4 @@
-import { CircleX } from 'lucide-react'
+import { CircleX, TriangleAlert } from 'lucide-react'
 import { useNow, type LiveSeries } from '../../hooks'
 import type {
   IAutocannonResult,
@@ -10,7 +10,7 @@ import { formatMilliseconds, formatNumber, formatPercent } from '../../utils/for
 import { Badge } from '../ui/Badge'
 import { Icon } from '../ui/Icon'
 import { Panel } from '../ui/Panel'
-import { OVERLINE } from '../ui/classes'
+import { FOCUS_RING, OVERLINE } from '../ui/classes'
 import { ApdexZones } from './ApdexZones'
 import { AuditMessageList } from './AuditMessageList'
 import { LatencyPercentiles } from './LatencyPercentiles'
@@ -18,24 +18,41 @@ import { PerformanceProgress } from './PerformanceProgress'
 import { SeriesChart } from './SeriesChart'
 import { StatusCodeBreakdown } from './StatusCodeBreakdown'
 
-const SUBHEADING = 'text-[13px] font-medium text-ink'
+const SUBHEADING = 'text-sm font-medium text-ink'
 
 interface Stat {
   label: string
   value: string
 }
 
-function buildStats(result: IAutocannonResult): Stat[] {
-  return [
+interface Counts {
+  shown: Stat[]
+  zeroed: string[]
+}
+
+function buildCounts(result: IAutocannonResult): Counts {
+  const shown: Stat[] = [
     { label: 'Amostra válida', value: formatNumber(result.sampleSize) },
     { label: 'Requisições enviadas', value: formatNumber(result.totalRequests) },
-    { label: 'Respostas 4xx excluídas', value: formatNumber(result.excluded4xx) },
     { label: 'Respostas 5xx', value: formatNumber(result.serverErrors) },
-    { label: 'Falhas de conexão', value: formatNumber(result.errors) },
-    { label: 'Timeouts', value: formatNumber(result.timeouts) },
-    { label: 'Sem resposta ao fim', value: formatNumber(result.unanswered) },
     { label: 'Taxa de erro', value: formatPercent(result.errorRate, 2) },
   ]
+  const optional: { label: string; count: number }[] = [
+    { label: 'Respostas 4xx excluídas', count: result.excluded4xx },
+    { label: 'Falhas de conexão', count: result.errors },
+    { label: 'Timeouts', count: result.timeouts },
+    { label: 'Sem resposta ao fim', count: result.unanswered },
+  ]
+
+  return {
+    shown: [
+      ...shown,
+      ...optional
+        .filter(({ count }) => count > 0)
+        .map(({ label, count }) => ({ label, value: formatNumber(count) })),
+    ],
+    zeroed: optional.filter(({ count }) => count === 0).map(({ label }) => label.toLowerCase()),
+  }
 }
 
 interface TargetHeadingProps {
@@ -49,12 +66,12 @@ function TargetHeading({ method, path, pathParams }: TargetHeadingProps) {
 
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <h3 className="flex min-w-0 flex-wrap items-center gap-2 text-[13px]">
+      <h3 className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
         <Badge mono>{method}</Badge>
         <span className="font-mono font-medium break-all text-ink">{path}</span>
       </h3>
       {params.length > 0 ? (
-        <p className="text-[13px] text-ink-secondary">
+        <p className="text-sm text-ink-secondary">
           Parâmetros informados:{' '}
           <span className="font-mono break-all text-ink">
             {params.map(([name, value]) => `${name} = ${value}`).join(' · ')}
@@ -72,14 +89,9 @@ interface DiagnosticsProps {
 function Diagnostics({ result }: DiagnosticsProps) {
   return (
     <section className="flex min-w-0 flex-col gap-4 border-t border-border pt-4">
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h4 className={OVERLINE}>Diagnóstico</h4>
-          <Badge>Fora da nota</Badge>
-        </div>
-        <p className="text-[13px] text-ink-secondary">
-          Medidas do mesmo teste que não entram na nota: a nota do endpoint é só o Apdex.
-        </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <h4 className={OVERLINE}>Diagnóstico</h4>
+        <Badge>Fora da nota</Badge>
       </div>
 
       <div className="flex min-w-0 flex-col gap-2">
@@ -87,7 +99,7 @@ function Diagnostics({ result }: DiagnosticsProps) {
         {result.latency ? (
           <LatencyPercentiles latency={result.latency} />
         ) : (
-          <p className="text-[13px] text-ink-secondary">
+          <p className="text-sm text-ink-secondary">
             Nenhuma resposta fora de 4xx chegou: não há latência para medir.
           </p>
         )}
@@ -98,7 +110,7 @@ function Diagnostics({ result }: DiagnosticsProps) {
           <h5 className={SUBHEADING}>Vazão média</h5>
           <p className="num text-2xl leading-7 text-ink">
             {formatNumber(result.requestsPerSecond, 1)}
-            <span className="ml-1.5 font-body text-[13px] font-normal tracking-normal text-ink-secondary [font-variation-settings:normal]">
+            <span className="ml-1.5 font-body text-sm font-normal tracking-normal text-ink-secondary [font-variation-settings:normal]">
               resp./s
             </span>
           </p>
@@ -122,19 +134,24 @@ function Diagnostics({ result }: DiagnosticsProps) {
 }
 
 interface TargetCardProps {
+  id: string
   target: IPerformanceTargetResult
   pathParams: Record<string, string> | undefined
 }
 
-function TargetCard({ target, pathParams }: TargetCardProps) {
+function TargetCard({ id, target, pathParams }: TargetCardProps) {
   const { result } = target
+  const counts = result ? buildCounts(result) : null
 
   return (
-    <li className="flex min-w-0 flex-col gap-4 rounded-md border border-border bg-well p-4">
+    <li
+      id={id}
+      className="flex min-w-0 scroll-mt-32 flex-col gap-4 border-t border-border pt-5 first:border-t-0 first:pt-0"
+    >
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
         <TargetHeading method={target.method} path={target.path} pathParams={pathParams} />
         {result ? (
-          <p className="flex items-baseline gap-2 text-[13px] text-ink-secondary">
+          <p className="flex items-baseline gap-2 text-sm text-ink-secondary">
             <span className="font-mono text-2xl leading-8 font-semibold text-ink tabular-nums">
               {result.score !== null ? formatNumber(result.score) : 'Não medido'}
             </span>
@@ -151,16 +168,25 @@ function TargetCard({ target, pathParams }: TargetCardProps) {
               <ApdexZones result={result} />
             </div>
           ) : null}
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-border pt-4 sm:grid-cols-4">
-            {buildStats(result).map((stat) => (
-              <div key={stat.label} className="flex flex-col gap-0.5">
-                <dt className="text-[13px] text-ink-secondary">{stat.label}</dt>
-                <dd className="font-mono text-[13px] font-medium text-ink tabular-nums">
-                  {stat.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          {counts ? (
+            <div className="flex flex-col gap-2">
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
+                {counts.shown.map((stat) => (
+                  <div key={stat.label} className="flex flex-col gap-0.5">
+                    <dt className="text-sm text-ink-secondary">{stat.label}</dt>
+                    <dd className="font-mono text-sm font-medium text-ink tabular-nums">
+                      {stat.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              {counts.zeroed.length > 0 ? (
+                <p className="text-xs text-ink-secondary">
+                  Em zero: {counts.zeroed.join(', ')}.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <AuditMessageList messages={result.warnings} />
           <Diagnostics result={result} />
         </>
@@ -200,7 +226,7 @@ function LiveTargetCard({
   return (
     <li
       aria-busy="true"
-      className="flex min-w-0 flex-col gap-4 rounded-md border border-accent-ink/30 bg-well p-4"
+      className="flex min-w-0 flex-col gap-4 border-t border-border pt-5 first:border-t-0 first:pt-0"
     >
       <TargetHeading
         method={target.method ?? 'GET'}
@@ -243,7 +269,7 @@ interface WaitingTargetCardProps {
 
 function WaitingTargetCard({ target, isActive }: WaitingTargetCardProps) {
   return (
-    <li className="flex min-w-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-md border border-dashed border-border-hover p-4">
+    <li className="flex min-w-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-5 first:border-t-0 first:pt-0">
       <TargetHeading
         method={target.method ?? 'GET'}
         path={target.path}
@@ -251,6 +277,43 @@ function WaitingTargetCard({ target, isActive }: WaitingTargetCardProps) {
       />
       <Badge>{isActive ? 'Aguardando' : 'Não testado'}</Badge>
     </li>
+  )
+}
+
+function targetCardId(index: number): string {
+  return `performance-target-${index}`
+}
+
+interface Problem {
+  index: number
+  target: IPerformanceTargetResult
+  reason: string
+}
+
+function ProblemSummary({ problems, count }: { problems: Problem[]; count: number }) {
+  return (
+    <div role="status" className="flex flex-col gap-2 text-sm">
+      <p className="flex items-center gap-2 font-medium text-error">
+        <Icon icon={TriangleAlert} size={14} />
+        {formatNumber(problems.length)} de {formatNumber(count)} endpoints com problema
+      </p>
+      <ul className="flex flex-col gap-1">
+        {problems.map(({ index, target, reason }) => (
+          <li key={index} className="flex flex-wrap items-baseline gap-x-2">
+            <button
+              type="button"
+              onClick={() =>
+                document.getElementById(targetCardId(index))?.scrollIntoView({ block: 'start' })
+              }
+              className={`cursor-pointer rounded-sm font-mono break-all text-accent-ink underline underline-offset-2 max-lg:min-h-11 ${FOCUS_RING}`}
+            >
+              {target.method} {target.path}
+            </button>
+            <span className="text-ink-secondary">{reason}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
@@ -277,20 +340,38 @@ export function PerformanceSection({
 }: PerformanceSectionProps) {
   const now = useNow(progress?.phase === 'RUNNING')
   const count = Math.max(targets?.length ?? 0, results.length)
+  const problems = results.flatMap((target, index) => {
+    if (!target.result) return [{ index, target, reason: 'o teste falhou' }]
+    if (target.result.serverErrors > 0) {
+      return [
+        { index, target, reason: `${formatNumber(target.result.serverErrors)} respostas 5xx` },
+      ]
+    }
+    return []
+  })
 
   return (
     <Panel
       title="Endpoints do teste de carga"
+      className="section-large"
       description="Apdex calculado por endpoint; a nota do pilar é a média simples dos endpoints medidos e dos que falharam, que contam como 0; endpoint não medido fica fora da média. Latência, vazão, códigos HTTP e a série por segundo são diagnóstico, por endpoint, e não entram na nota."
     >
-      <div className="@container">
-        <ul className={`grid grid-cols-1 gap-3 ${count > 1 ? '@7xl:grid-cols-2' : ''}`}>
+      <div className="@container flex flex-col gap-5">
+        {count > 1 && problems.length > 0 ? <ProblemSummary problems={problems} count={count} /> : null}
+        <ul className="flex flex-col gap-5">
           {Array.from({ length: count }, (_, index) => {
             const result = results[index]
             const target = targets?.[index]
 
             if (result) {
-              return <TargetCard key={index} target={result} pathParams={target?.pathParams} />
+              return (
+                <TargetCard
+                  key={index}
+                  id={targetCardId(index)}
+                  target={result}
+                  pathParams={target?.pathParams}
+                />
+              )
             }
             if (!target) return null
             if (progress?.targetIndex === index) {

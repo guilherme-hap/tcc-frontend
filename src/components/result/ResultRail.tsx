@@ -4,14 +4,15 @@ import { useWideLayout } from '../../hooks'
 import type { EvaluationRecord, EvaluationVisibility, PillarName } from '../../types'
 import { formatDateTime, formatDuration } from '../../utils/format'
 import { TYPE_TITLES, VISIBILITY_LABELS } from '../../utils/labels'
-import { HISTORY_PATH } from '../../utils/routes'
+import { HISTORY_PATH, HOME_PATH } from '../../utils/routes'
 import { finalScoreParts, securityScoreParts } from '../../utils/scoreParts'
 import { PILLAR_STROKE } from '../../utils/tones'
 import { Badge, type BadgeTone } from '../ui/Badge'
 import { StatusBadge } from '../ui/StatusBadge'
 import { Icon } from '../ui/Icon'
+import { MetaList, type MetaItem } from '../ui/MetaList'
 import { TextLink } from '../ui/TextLink'
-import { OVERLINE } from '../ui/classes'
+import { OVERLINE, PAGE_TITLE, RAIL } from '../ui/classes'
 import { GateBadge } from './GateBadge'
 import { GateVerdict } from './GateVerdict'
 import { ResultStats } from './ResultStats'
@@ -42,37 +43,17 @@ interface EvaluationMetaProps {
 
 function EvaluationMeta({ evaluation, className }: EvaluationMetaProps) {
   const elapsed = executionTime(evaluation)
+  const items: MetaItem[] = [{ label: 'Especificação', value: evaluation.openApiUrl, mono: true }]
 
-  return (
-    <dl
-      className={`grid grid-cols-1 gap-x-4 gap-y-1 text-[13px] sm:grid-cols-[auto_minmax(0,1fr)] ${className}`}
-    >
-      <dt className="text-ink-secondary">Especificação</dt>
-      <dd className="font-mono text-xs leading-5 break-all text-ink max-sm:mb-1.5">
-        {evaluation.openApiUrl}
-      </dd>
-      {evaluation.apiBaseUrl ? (
-        <>
-          <dt className="text-ink-secondary">URL base</dt>
-          <dd className="font-mono text-xs leading-5 break-all text-ink max-sm:mb-1.5">
-            {evaluation.apiBaseUrl}
-          </dd>
-        </>
-      ) : null}
-      <dt className="text-ink-secondary">Criada em</dt>
-      <dd className="font-mono text-xs leading-5 text-ink tabular-nums max-sm:mb-1.5">
-        {formatDateTime(evaluation.createdAt)}
-      </dd>
-      {elapsed === null ? null : (
-        <>
-          <dt className="text-ink-secondary">Tempo de execução</dt>
-          <dd className="font-mono text-xs leading-5 text-ink tabular-nums">
-            {formatDuration(elapsed)}
-          </dd>
-        </>
-      )}
-    </dl>
-  )
+  if (evaluation.apiBaseUrl) {
+    items.push({ label: 'URL base', value: evaluation.apiBaseUrl, mono: true })
+  }
+  items.push({ label: 'Criada em', value: formatDateTime(evaluation.createdAt), mono: true })
+  if (elapsed !== null) {
+    items.push({ label: 'Tempo de execução', value: formatDuration(elapsed), mono: true })
+  }
+
+  return <MetaList items={items} className={className} />
 }
 
 interface ResultRailProps {
@@ -106,15 +87,18 @@ export function ResultRail({
   return (
     <aside
       aria-label="Resumo da avaliação"
-      className="flex min-w-0 flex-col gap-5 border-b border-border bg-surface px-4 py-5 [scrollbar-color:var(--border-hover)_transparent] [scrollbar-width:thin] sm:px-6 lg:sticky lg:top-[53px] lg:h-[calc(100dvh-53px)] lg:overflow-y-auto lg:border-r lg:border-b-0"
+      className={RAIL}
     >
       <div className="flex flex-col gap-2">
-        {hasAccount ? (
-          <TextLink to={HISTORY_PATH} tone="muted" leadingIcon={ArrowLeft} className="self-start">
-            Histórico
-          </TextLink>
-        ) : null}
-        <h1 className="font-display text-[22px] leading-7 font-bold tracking-[-0.01em] text-ink">
+        <TextLink
+          to={hasAccount ? HISTORY_PATH : HOME_PATH}
+          tone="muted"
+          leadingIcon={ArrowLeft}
+          className="self-start"
+        >
+          {hasAccount ? 'Histórico' : 'Início'}
+        </TextLink>
+        <h1 className={PAGE_TITLE}>
           {TYPE_TITLES[evaluationType]}
         </h1>
         <div className="flex flex-wrap gap-1.5">
@@ -176,7 +160,7 @@ export function ResultRail({
         />
       ) : (
         <details className="group border-t border-border">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-sm text-[13px] font-medium text-ink-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-sm text-sm font-medium text-ink-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
             <Icon
               icon={ChevronRight}
               size={14}

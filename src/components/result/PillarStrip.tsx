@@ -8,7 +8,7 @@ import {
   SEVERITY_LABELS,
   SEVERITY_ORDER,
 } from '../../utils/labels'
-import { CHECK_STATUS_BG, SEVERITY_BG } from '../../utils/tones'
+import { CHECK_STATUS_MARK, SEVERITY_BG } from '../../utils/tones'
 
 interface LegendItem {
   key: string
@@ -154,7 +154,7 @@ export function SecurityStrip({ checks }: SecurityStripProps) {
     ordered.some((check) => check.status === status),
   ).map((status) => ({
     key: status,
-    tone: CHECK_STATUS_BG[status],
+    tone: CHECK_STATUS_MARK[status],
     label: CHECK_STATUS_LABELS[status].toLowerCase(),
   }))
 
@@ -169,7 +169,7 @@ export function SecurityStrip({ checks }: SecurityStripProps) {
           <span
             key={`${check.header}-${check.code}`}
             title={`${check.header}: ${CHECK_STATUS_LABELS[check.status]}`}
-            className={`flex-1 rounded-xs ${CHECK_STATUS_BG[check.status]}`}
+            className={`flex-1 rounded-xs ${CHECK_STATUS_MARK[check.status]}`}
           />
         ))}
       </div>

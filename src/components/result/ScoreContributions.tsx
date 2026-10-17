@@ -25,7 +25,7 @@ export function ScoreContributions({
           className={`-mx-3 grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1.5 rounded-md border px-3 py-2.5 transition-colors duration-150 ${activeId === part.id ? 'border-border-hover bg-surface-raised' : 'border-transparent'}`}
         >
           <span className="min-w-0 font-medium text-ink">{part.label}</span>
-          <span className="font-mono text-[13px] text-ink-secondary tabular-nums">
+          <span className="font-mono text-sm text-ink-secondary tabular-nums">
             <span className="font-semibold text-ink">{formatNumber(part.points)}</span> de{' '}
             {formatNumber(part.maxPoints)}
           </span>
@@ -33,7 +33,7 @@ export function ScoreContributions({
             <ScoreMeter label={`Nota de ${part.label.toLowerCase()}`} score={part.score} />
           </div>
           {part.detail ? (
-            <span className="col-span-2 text-[13px] text-ink-secondary">{part.detail}</span>
+            <span className="col-span-2 text-sm text-ink-secondary">{part.detail}</span>
           ) : null}
         </li>
       ))}

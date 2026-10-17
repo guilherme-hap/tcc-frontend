@@ -29,7 +29,7 @@ export function PerformanceProgress({
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[13px]">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         <span className="font-medium text-ink">{position}</span>
         {showTarget && target ? (
           <span className="flex min-w-0 items-center gap-2">
@@ -69,7 +69,7 @@ export function PerformanceProgress({
           </span>
         ))}
       </div>
-      <p className="text-[13px] text-ink-secondary">
+      <p className="text-sm text-ink-secondary">
         {phase === 'QUEUED' ? (
           'Na fila do teste de carga: o auditor roda um teste de carga por vez.'
         ) : (

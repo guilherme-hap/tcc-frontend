@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { ArrowRight } from 'lucide-react'
 import type { EvaluationRecord, PillarName, SecurityCheckStatus } from '../../types'
 import { groupByRule, severityRank } from '../../utils/contractRules'
@@ -11,6 +11,17 @@ import { CARD, FOCUS_RING, OVERLINE } from '../ui/classes'
 import { CheckStatusBadge } from './CheckStatusBadge'
 
 const MAX_VISIBLE = 6
+
+function BreakableName({ name }: { name: string }) {
+  const parts = name.split('/')
+
+  return parts.map((part, index) => (
+    <Fragment key={index}>
+      {index > 0 ? <>/<wbr /></> : null}
+      {part}
+    </Fragment>
+  ))
+}
 const ALL_PILLARS: PillarName[] = ['contract', 'security', 'performance']
 
 const CHECK_RANK: Record<SecurityCheckStatus, number> = {
@@ -135,23 +146,23 @@ export function PendingList({
   const { title, empty } = describe(pillars)
 
   return (
-    <section className={`flex min-w-0 flex-col gap-3 border-border p-4 ${CARD} ${className}`}>
+    <section className={`@container flex min-w-0 flex-col gap-3 border-border p-4 ${CARD} ${className}`}>
       <h3 className={OVERLINE}>{title}</h3>
       {children}
       {items.length === 0 ? (
         <p className="text-ink-secondary">{empty}</p>
       ) : (
-        <ul className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+        <ul className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 @lg:grid-cols-[auto_minmax(0,1fr)_auto]">
           {visible.map((item) => (
             <li
               key={item.key}
-              className="col-span-full grid grid-cols-subgrid items-center border-t border-border py-2 first:border-t-0 first:pt-0"
+              className="col-span-full grid grid-cols-subgrid items-center gap-y-1 border-t border-border py-2 first:border-t-0 first:pt-0"
             >
               <span className="justify-self-start">{item.badge}</span>
-              <span className="font-mono text-xs leading-5 wrap-anywhere text-ink">
-                {item.name}
+              <span className="order-last col-span-full font-mono text-xs leading-5 wrap-break-word text-ink @lg:order-none @lg:col-span-1">
+                <BreakableName name={item.name} />
               </span>
-              <span className="text-[13px] whitespace-nowrap text-ink-secondary max-sm:col-start-2">
+              <span className="justify-self-end text-sm whitespace-nowrap text-ink-secondary @lg:justify-self-auto">
                 {item.detail}
               </span>
             </li>
@@ -160,7 +171,7 @@ export function PendingList({
       )}
       <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border pt-3">
         {hidden > 0 ? (
-          <span className="mr-auto text-[13px] text-ink-secondary">
+          <span className="mr-auto text-sm text-ink-secondary">
             E mais {formatCount(hidden, 'pendência', 'pendências')}.
           </span>
         ) : null}
@@ -171,7 +182,7 @@ export function PendingList({
               key={pillar}
               type="button"
               onClick={() => onOpen(pillar)}
-              className={`relative inline-flex cursor-pointer items-center gap-1.5 rounded-sm text-[13px] max-lg:before:absolute max-lg:before:-inset-y-3.5 max-lg:before:inset-x-0 max-lg:before:content-[''] font-medium text-accent-ink transition-colors duration-150 hover:text-ink ${FOCUS_RING}`}
+              className={`relative inline-flex cursor-pointer items-center gap-1.5 rounded-sm text-sm max-lg:before:absolute max-lg:before:-inset-y-3.5 max-lg:before:inset-x-0 max-lg:before:content-[''] font-medium text-accent-ink transition-colors duration-150 hover:text-ink ${FOCUS_RING}`}
             >
               {OPEN_LABELS[pillar]}
               <Icon icon={ArrowRight} size={14} />

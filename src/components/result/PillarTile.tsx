@@ -115,12 +115,12 @@ export function PillarTile({
         <>
           <Strip pillar={pillar} evaluation={evaluation} />
           {alert ? (
-            <p className="flex items-start gap-1.5 text-[13px] font-medium text-error">
+            <p className="flex items-start gap-1.5 text-sm font-medium text-error">
               <Icon icon={ServerCrash} size={14} className="mt-0.5 shrink-0" />
               {alert}
             </p>
           ) : null}
-          <p className="mt-auto text-[13px] text-ink-secondary">{pillarDetail(evaluation, pillar)}</p>
+          <p className="mt-auto text-sm text-ink-secondary">{pillarDetail(evaluation, pillar)}</p>
         </>
       ) : busy ? (
         <span className="block h-10 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none" />

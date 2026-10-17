@@ -64,7 +64,7 @@ export function ApdexZones({ result }: ApdexZonesProps) {
       <ApdexBar result={result} />
       <ul className="flex flex-wrap gap-x-8 gap-y-2">
         {APDEX_ZONES.map((zone) => (
-          <li key={zone.key} className="flex items-start gap-2 text-[13px]">
+          <li key={zone.key} className="flex items-start gap-2 text-sm">
             <span
               aria-hidden="true"
               className={`mt-1.25 size-2.5 shrink-0 rounded-xs ${zone.className}`}

@@ -26,7 +26,7 @@ export function SeverityFilter({ options, value, onChange }: SeverityFilterProps
         {options.map((option) => (
           <label
             key={option.value}
-            className="group inline-flex h-8 cursor-pointer items-center gap-2 rounded-md border border-border bg-well px-2.5 text-[13px] font-medium text-ink-secondary transition-colors duration-150 hover:border-border-hover hover:text-ink has-checked:border-accent-ink/55 has-checked:bg-accent-dim has-checked:text-ink has-checked:hover:border-accent-ink/55 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus"
+            className="group inline-flex h-8 cursor-pointer items-center gap-2 rounded-md border border-border bg-well px-2.5 text-sm font-medium text-ink-secondary transition-colors duration-150 hover:border-border-hover hover:text-ink has-checked:border-accent-ink/55 has-checked:bg-accent-dim has-checked:text-ink has-checked:hover:border-accent-ink/55 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus"
           >
             <input
               type="radio"

@@ -71,5 +71,9 @@ export function StatusNotice({ evaluation }: StatusNoticeProps) {
     )
   }
 
-  return null
+  return (
+    <p role="status" className="sr-only">
+      Avaliação concluída.
+    </p>
+  )
 }

@@ -35,13 +35,13 @@ function EndpointRow({ target }: EndpointRowProps) {
             {result.score !== null ? (
               <span className="num text-lg leading-5 text-ink">{formatNumber(result.score)}</span>
             ) : (
-              <span className="text-[13px] text-ink-secondary">Não medido</span>
+              <span className="text-sm text-ink-secondary">Não medido</span>
             )}
           </td>
         </>
       ) : (
         <td colSpan={2} className="py-2.5 text-right">
-          <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-error">
+          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-error">
             <Icon icon={CircleX} size={14} />
             O teste falhou
           </span>
@@ -101,7 +101,7 @@ export function EndpointOverview({
         <button
           type="button"
           onClick={onOpen}
-          className={`relative inline-flex cursor-pointer items-center gap-1.5 rounded-sm text-[13px] max-lg:before:absolute max-lg:before:-inset-y-3.5 max-lg:before:inset-x-0 max-lg:before:content-[''] font-medium text-accent-ink transition-colors duration-150 hover:text-ink ${FOCUS_RING}`}
+          className={`relative inline-flex cursor-pointer items-center gap-1.5 rounded-sm text-sm max-lg:before:absolute max-lg:before:-inset-y-3.5 max-lg:before:inset-x-0 max-lg:before:content-[''] font-medium text-accent-ink transition-colors duration-150 hover:text-ink ${FOCUS_RING}`}
         >
           Abrir desempenho
           <Icon icon={ArrowRight} size={14} />

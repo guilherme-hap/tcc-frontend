@@ -203,7 +203,7 @@ export function SegmentedScoreRing({
             >
               {formatNumber(active.points)}
             </span>
-            <span className="text-[13px] text-ink-secondary">
+            <span className="text-sm text-ink-secondary">
               de {formatNumber(active.maxPoints)} pontos
             </span>
           </>
@@ -216,7 +216,7 @@ export function SegmentedScoreRing({
             >
               {formatNumber(score)}
             </span>
-            <span className="text-[13px] text-ink-secondary">de 100</span>
+            <span className="text-sm text-ink-secondary">de 100</span>
           </>
         )}
       </div>

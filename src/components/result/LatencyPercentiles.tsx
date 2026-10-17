@@ -21,21 +21,20 @@ interface LatencyPercentilesProps {
 }
 
 export function LatencyPercentiles({ latency }: LatencyPercentilesProps) {
+  const subResolution = [latency.min, latency.p50, latency.p95, latency.p99, latency.max].includes(0)
+
   return (
     <div className="flex min-w-0 flex-col gap-2">
-      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
         {PERCENTILES.map(({ key, label, minSample }) => {
           const value = latency[key]
 
           return (
-            <div
-              key={key}
-              className="flex min-w-0 flex-col gap-1 rounded-md border border-border bg-surface-raised px-3 py-2.5"
-            >
+            <div key={key} className="flex min-w-0 flex-col gap-1">
               <dt className="font-mono text-xs text-ink-secondary">{label}</dt>
               {value === null ? (
                 <dd className="flex flex-col">
-                  <span className="text-[13px] font-medium text-ink-secondary">
+                  <span className="text-sm font-medium text-ink-secondary">
                     Amostra insuficiente
                   </span>
                   <span className="text-xs text-ink-muted">
@@ -49,6 +48,11 @@ export function LatencyPercentiles({ latency }: LatencyPercentilesProps) {
           )
         })}
       </dl>
+      {subResolution ? (
+        <p className="text-xs text-ink-secondary">
+          Os percentis vêm em milissegundos inteiros: "&lt; 1 ms" é mais rápido que a menor medida.
+        </p>
+      ) : null}
       <p className="font-mono text-xs text-ink-secondary">
         mín. {formatMilliseconds(latency.min)} · média {formatMilliseconds(latency.mean)} · p99,9{' '}
         {latency.p99_9 === null

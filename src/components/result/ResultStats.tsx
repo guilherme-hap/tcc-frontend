@@ -1,15 +1,13 @@
 import type { ReactNode } from 'react'
-import { FileText, ListChecks, Server, ShieldAlert, ShieldCheck, Target, type LucideIcon } from 'lucide-react'
 import type {
   EvaluationRecord,
   EvaluationType,
-  PillarName,
   SecurityCheckStatus,
 } from '../../types'
 import { formatNumber, formatPercent } from '../../utils/format'
 import { CHECK_STATUS_LABELS } from '../../utils/labels'
-import { CHECK_STATUS_BG } from '../../utils/tones'
-import { StatCard } from './StatCard'
+import { CHECK_STATUS_MARK } from '../../utils/tones'
+import { OVERLINE } from '../ui/classes'
 
 const PENDING_STATUSES: SecurityCheckStatus[] = ['warning', 'missing', 'error']
 
@@ -18,13 +16,12 @@ interface StatContent {
   unit?: string
   hint: string
   chart?: ReactNode
+  tone?: 'error'
 }
 
 interface StatSlot {
   id: string
-  pillar: PillarName
   label: string
-  icon: LucideIcon
   content: (evaluation: EvaluationRecord) => StatContent | null
 }
 
@@ -34,25 +31,21 @@ function sum(values: number[]): number {
 
 const CONTRACT_CONFORMITY: StatSlot = {
   id: 'contract-conformity',
-  pillar: 'contract',
-  label: 'Conformidade de contrato',
-  icon: FileText,
+  label: 'Regras sem violação',
   content: ({ spectralResult }) => {
     if (!spectralResult) return null
     const { evaluatedRules, violatedRules } = spectralResult.summary
     const conforming = evaluatedRules - violatedRules
     return {
       value: formatPercent(evaluatedRules === 0 ? 1 : conforming / evaluatedRules),
-      hint: `${formatNumber(conforming)} de ${formatNumber(evaluatedRules)} regras aplicáveis sem violação`,
+      hint: `${formatNumber(conforming)} de ${formatNumber(evaluatedRules)} regras aplicáveis`,
     }
   },
 }
 
 const CONTRACT_OCCURRENCES: StatSlot = {
   id: 'contract-occurrences',
-  pillar: 'contract',
   label: 'Ocorrências',
-  icon: ListChecks,
   content: ({ spectralResult }) => {
     if (!spectralResult) return null
     const { violatedRules, occurrencesByRule } = spectralResult.summary
@@ -65,9 +58,7 @@ const CONTRACT_OCCURRENCES: StatSlot = {
 
 const PERFORMANCE_MEASURED: StatSlot = {
   id: 'performance-measured',
-  pillar: 'performance',
   label: 'Endpoints medidos',
-  icon: Target,
   content: ({ performanceResults, targets }) => {
     if (!performanceResults) return null
     const measured = performanceResults.filter((target) => target.result?.score != null).length
@@ -82,15 +73,14 @@ const PERFORMANCE_MEASURED: StatSlot = {
 
 const PERFORMANCE_SERVER_ERRORS: StatSlot = {
   id: 'performance-server-errors',
-  pillar: 'performance',
   label: 'Respostas 5xx',
-  icon: Server,
   content: ({ performanceResults }) => {
     if (!performanceResults) return null
     const requests = sum(performanceResults.map((target) => target.result?.totalRequests ?? 0))
     const serverErrors = sum(performanceResults.map((target) => target.result?.serverErrors ?? 0))
     return {
       value: formatNumber(serverErrors),
+      tone: serverErrors > 0 ? 'error' : undefined,
       hint:
         requests > 0
           ? `${formatPercent(serverErrors / requests, 2)} das requisições enviadas`
@@ -101,9 +91,7 @@ const PERFORMANCE_SERVER_ERRORS: StatSlot = {
 
 const SECURITY_PASSED: StatSlot = {
   id: 'security-passed',
-  pillar: 'security',
   label: 'Verificações atendidas',
-  icon: ShieldCheck,
   content: ({ securityResult }) => {
     if (!securityResult) return null
     const passed = securityResult.filter((check) => check.status === 'pass').length
@@ -121,7 +109,7 @@ const SECURITY_PASSED: StatSlot = {
           {securityResult.map((check) => (
             <span
               key={`${check.header}-${check.code}`}
-              className={`h-1.5 flex-1 rounded-full ${CHECK_STATUS_BG[check.status]}`}
+              className={`h-1.5 flex-1 rounded-full ${CHECK_STATUS_MARK[check.status]}`}
             />
           ))}
         </div>
@@ -132,9 +120,7 @@ const SECURITY_PASSED: StatSlot = {
 
 const SECURITY_PENDING: StatSlot = {
   id: 'security-pending',
-  pillar: 'security',
   label: 'Verificações com pendência',
-  icon: ShieldAlert,
   content: ({ securityResult }) => {
     if (!securityResult) return null
     const count = (status: SecurityCheckStatus) =>
@@ -158,10 +144,9 @@ const SLOTS_BY_TYPE: Record<EvaluationType, StatSlot[]> = {
 interface ResultStatsProps {
   evaluation: EvaluationRecord
   isActive: boolean
-  onOpenPillar?: (pillar: PillarName) => void
 }
 
-export function ResultStats({ evaluation, isActive, onOpenPillar }: ResultStatsProps) {
+export function ResultStats({ evaluation, isActive }: ResultStatsProps) {
   const cards = SLOTS_BY_TYPE[evaluation.evaluationType]
     .map((slot) => ({ slot, content: slot.content(evaluation) }))
     .filter(({ content }) => content !== null || isActive)
@@ -169,21 +154,41 @@ export function ResultStats({ evaluation, isActive, onOpenPillar }: ResultStatsP
   if (cards.length === 0) return null
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
-      {cards.map(({ slot, content }) => (
-        <StatCard
-          key={slot.id}
-          label={slot.label}
-          icon={slot.icon}
-          value={content?.value}
-          unit={content?.unit}
-          hint={content?.hint}
-          loading={content === null}
-          onClick={onOpenPillar && content ? () => onOpenPillar(slot.pillar) : undefined}
-        >
-          {content?.chart}
-        </StatCard>
-      ))}
-    </div>
+    <section aria-label="Medições" className="flex flex-col gap-3">
+      <h2 className={OVERLINE}>Medições</h2>
+      <ul className="flex flex-col divide-y divide-border">
+        {cards.map(({ slot, content }) => (
+          <li
+            key={slot.id}
+            aria-busy={content === null || undefined}
+            className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0"
+          >
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-sm text-ink-secondary">{slot.label}</span>
+              {content === null ? (
+                <span
+                  role="img"
+                  aria-label="Carregando"
+                  className="block h-6 w-16 animate-pulse rounded-md bg-surface-raised motion-reduce:animate-none"
+                />
+              ) : (
+                <span
+                  className={`num text-2xl leading-7 ${content.tone === 'error' ? 'text-error' : 'text-ink'}`}
+                >
+                  {content.value}
+                  {content.unit ? (
+                    <span className="ml-1.5 font-body text-sm leading-5 font-normal tracking-normal text-ink-secondary [font-variation-settings:normal]">
+                      {content.unit}
+                    </span>
+                  ) : null}
+                </span>
+              )}
+            </div>
+            {content?.chart}
+            {content ? <p className="text-xs text-ink-secondary">{content.hint}</p> : null}
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

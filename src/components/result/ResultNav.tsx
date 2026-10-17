@@ -190,7 +190,7 @@ export function ResultNav({
                     className={`size-2.5 shrink-0 rounded-xs ${PILLAR_BG[pillar]}`}
                   />
                   <span className="font-semibold text-ink">{PILLAR_LABELS[pillar]}</span>
-                  <span className="min-w-0 flex-1 truncate text-right text-[13px] text-ink-secondary max-lg:hidden">
+                  <span className="min-w-0 flex-1 text-right text-sm leading-4 text-pretty text-ink-secondary max-lg:hidden">
                     {summary}
                   </span>
                   {score !== undefined ? (
@@ -198,7 +198,7 @@ export function ResultNav({
                       {formatNumber(score)}
                     </span>
                   ) : (
-                    <span className="sr-only lg:hidden">{summary}</span>
+                    <span className="text-xs text-ink-secondary lg:hidden">{summary}</span>
                   )}
                 </Tab>
               )

@@ -27,8 +27,9 @@ import {
 } from '../components/result/sections'
 import { Button } from '../components/ui/Button'
 import { Notice } from '../components/ui/Notice'
-import { CARD, FOCUS_RING, PAGE_CONTAINER } from '../components/ui/classes'
+import { BODY, CARD, FOCUS_RING, FRAME, PAGE_CONTAINER, PAGE_TITLE } from '../components/ui/classes'
 import {
+  useDocumentTitle,
   useEvaluationPolling,
   useSavedApis,
   useSession,
@@ -37,7 +38,7 @@ import {
 } from '../hooks'
 import type { EvaluationRecord, PillarName, SavedApi } from '../types'
 import { formatNumber, formatPercent } from '../utils/format'
-import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../utils/labels'
+import { PILLARS_BY_TYPE, PILLAR_LABELS, STATUS_LABELS, TYPE_TITLES } from '../utils/labels'
 import {
   LOGIN_PATH,
   NEW_EVALUATION_PATH,
@@ -48,14 +49,11 @@ import { findSavedApiBySpec } from '../utils/savedApi'
 import { finalScoreParts, securityScoreParts } from '../utils/scoreParts'
 import { performanceProgress } from '../utils/steps'
 
-const FRAME = 'lg:grid lg:grid-cols-[23.25rem_minmax(0,1fr)] lg:items-start'
-const BODY = 'flex min-w-0 flex-col gap-5 px-4 pt-5 pb-10 sm:px-6 lg:px-7'
 const BODY_ID = 'resultado-conteudo'
 const STICKY_NAV_OFFSET = 128
 const CONTRACT_ONLY: PillarName[] = ['contract']
 const SECURITY_ONLY: PillarName[] = ['security']
 const STACK = 'min-w-0 flex-col gap-3'
-const SECTION_TITLE = 'font-display text-[22px] leading-7 font-bold tracking-[-0.01em] text-ink'
 
 function ResultSkeleton() {
   return (
@@ -323,17 +321,20 @@ function ResultView({
           savedApi={savedApi}
         >
           {!isFull ? (
-            <p className="max-w-[72ch] text-ink-secondary">{summary}</p>
+            <>
+              <h2 className={PAGE_TITLE}>{PILLAR_LABELS[pillar]}</h2>
+              <p className="max-w-[72ch] text-ink-secondary">{summary}</p>
+            </>
           ) : section === 'overview' ? (
             <>
-              <h2 className={SECTION_TITLE}>Visão geral</h2>
+              <h2 className={PAGE_TITLE}>Visão geral</h2>
               <p className="max-w-[72ch] text-ink-secondary">{summary}</p>
             </>
           ) : section === 'scoring' ? (
-            <h2 className={SECTION_TITLE}>Parâmetros usados no cálculo</h2>
+            <h2 className={PAGE_TITLE}>Parâmetros usados no cálculo</h2>
           ) : (
             <>
-              <h2 className={SECTION_TITLE}>{PILLAR_LABELS[section]}</h2>
+              <h2 className={PAGE_TITLE}>{PILLAR_LABELS[section]}</h2>
               <p className="max-w-[72ch] text-ink-secondary">
                 {describePillar(evaluation, section)}
               </p>
@@ -360,7 +361,11 @@ function ResultView({
               />
             ) : section === 'scoring' ? (
               scoring ? (
-                <ScoringParameters scoring={scoring} collapsible={false} />
+                <ScoringParameters
+                  scoring={scoring}
+                  settings={evaluation.requestSettings}
+                  collapsible={false}
+                />
               ) : null
             ) : (
               (renderPillar(evaluation, section, live) ?? (
@@ -370,18 +375,32 @@ function ResultView({
           </div>
         ) : (
           <>
-            <StepTimeline evaluation={evaluation} isActive={isActive} receivedAt={receivedAt} />
+            {isActive || evaluation.status !== 'COMPLETED' ? (
+              <StepTimeline evaluation={evaluation} isActive={isActive} receivedAt={receivedAt} />
+            ) : null}
             {renderPillar(evaluation, pillar, live, true) ??
               (evaluation.status === 'FAILED' ? null : (
                 <PillarPlaceholder pillar={pillar} evaluation={evaluation} isActive={isActive} />
               ))}
-            {scoring ? <ScoringParameters scoring={scoring} /> : null}
+            {scoring ? (
+              <ScoringParameters scoring={scoring} settings={evaluation.requestSettings} />
+            ) : null}
           </>
         )}
         {tip}
       </div>
     </div>
   )
+}
+
+function resultTitle(evaluation: EvaluationRecord | null): string {
+  if (!evaluation) return 'Resultado da avaliação'
+
+  const outcome =
+    evaluation.finalScore !== null
+      ? formatNumber(evaluation.finalScore)
+      : STATUS_LABELS[evaluation.status]
+  return `Resultado · ${TYPE_TITLES[evaluation.evaluationType]} · ${outcome}`
 }
 
 export function EvaluationResultPage() {
@@ -400,6 +419,7 @@ export function EvaluationResultPage() {
     refetch,
   } = useEvaluationPolling(id)
   const { apis } = useSavedApis()
+  useDocumentTitle(resultTitle(evaluation ?? null))
   const hasAccount = user !== null
   const savedApi = evaluation ? findSavedApiBySpec(apis, evaluation.openApiUrl) : null
   const apiSaveFailed = (location.state as ResultLocationState | null)?.apiSaveFailed === true
@@ -460,7 +480,7 @@ export function EvaluationResultPage() {
       tip={
         !hasAccount && evaluation.visibility === 'anonymous' ? (
           <AccountTip id="result" title="Esta avaliação não está em nenhum histórico">
-            <p className="max-w-[88ch] text-[13px] text-ink">
+            <p className="max-w-[88ch] text-sm text-ink">
               Ela só abre por este endereço, para qualquer pessoa que o tenha. Com uma conta, as
               próximas avaliações entram no histórico, ficam privadas e a API pode ser salva para
               reavaliar sem redigitar.

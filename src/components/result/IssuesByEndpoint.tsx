@@ -51,7 +51,7 @@ export function IssuesByEndpoint({ result, className = '' }: IssuesByEndpointPro
         ))}
       </ul>
       {hidden > 0 ? (
-        <p className="border-t border-border pt-3 text-[13px] text-ink-secondary">
+        <p className="border-t border-border pt-3 text-sm text-ink-secondary">
           E mais {formatCount(hidden, 'endpoint', 'endpoints')}.
         </p>
       ) : null}

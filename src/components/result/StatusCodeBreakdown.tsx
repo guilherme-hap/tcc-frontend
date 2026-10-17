@@ -18,7 +18,7 @@ export function StatusCodeBreakdown({ statusCodes }: StatusCodeBreakdownProps) {
   const total = entries.reduce((sum, [, count]) => sum + count, 0)
 
   if (total === 0) {
-    return <p className="text-[13px] text-ink-secondary">Nenhuma resposta HTTP recebida.</p>
+    return <p className="text-sm text-ink-secondary">Nenhuma resposta HTTP recebida.</p>
   }
 
   const describe = (code: string, count: number) =>
@@ -42,7 +42,7 @@ export function StatusCodeBreakdown({ statusCodes }: StatusCodeBreakdownProps) {
       </div>
       <ul className="flex flex-wrap gap-x-5 gap-y-1.5">
         {entries.map(([code, count]) => (
-          <li key={code} className="inline-flex items-center gap-2 text-[13px]">
+          <li key={code} className="inline-flex items-center gap-2 text-sm">
             <span aria-hidden="true" className={`size-2 rounded-xs ${codeTone(code)}`} />
             <span className="font-mono font-medium text-ink">{code}</span>
             <span className="font-mono text-xs text-ink-secondary tabular-nums">

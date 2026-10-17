@@ -1,4 +1,4 @@
-import type { IScoringParameters, PillarName } from '../../types'
+import type { IEvaluationRequestSettings, IScoringParameters, PillarName } from '../../types'
 import { FRUSTRATED_MULTIPLIER } from '../../utils/apdex'
 import { formatMilliseconds, formatNumber, formatPercent } from '../../utils/format'
 import {
@@ -16,9 +16,29 @@ import { CARD } from '../ui/classes'
 
 const PILLARS: PillarName[] = ['contract', 'performance', 'security']
 
+type Entry = [string, string]
+
+type LoadOptions = NonNullable<IEvaluationRequestSettings['loadTestOptions']>
+
+function loadEntries(options: LoadOptions): Entry[] {
+  const { duration, connections, maxRequests, requestsPerSecond, method } = options
+  const entries: Entry[] = []
+
+  if (duration !== undefined) entries.push(['Duração por endpoint', `${formatNumber(duration)} s`])
+  if (connections !== undefined) entries.push(['Conexões', formatNumber(connections)])
+  if (maxRequests !== undefined) entries.push(['Máximo de requisições', formatNumber(maxRequests)])
+  if (requestsPerSecond !== undefined) {
+    entries.push(['Taxa máxima', `${formatNumber(requestsPerSecond)} req/s`])
+  }
+  if (method !== undefined) entries.push(['Método dos alvos', method])
+  if (options.allowMutatingMethods) entries.push(['Métodos que alteram dados', 'Autorizados'])
+  if (options.allowHighLoad) entries.push(['Limites de carga', 'Elevados'])
+  return entries
+}
+
 interface ParameterGroupProps {
   title: string
-  entries: [string, string][]
+  entries: Entry[]
 }
 
 function ParameterGroup({ title, entries }: ParameterGroupProps) {
@@ -32,12 +52,19 @@ function ParameterGroup({ title, entries }: ParameterGroupProps) {
 
 interface ScoringParametersProps {
   scoring: IScoringParameters
+  settings: IEvaluationRequestSettings | null
   collapsible?: boolean
 }
 
-export function ScoringParameters({ scoring, collapsible = true }: ScoringParametersProps) {
+export function ScoringParameters({
+  scoring,
+  settings,
+  collapsible = true,
+}: ScoringParametersProps) {
   const { pillarWeights, contract, performance, security } = scoring
   const weighted = PILLARS.filter((pillar) => pillarWeights[pillar] !== undefined)
+  const minScore = settings?.minScore
+  const load = performance ? loadEntries(settings?.loadTestOptions ?? {}) : []
 
   const groups = (
     <div className="grid grid-cols-1 gap-x-10 gap-y-6 @lg:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-5">
@@ -46,10 +73,16 @@ export function ScoringParameters({ scoring, collapsible = true }: ScoringParame
           title="Pesos dos pilares"
           entries={weighted.map((pillar) => [
             PILLAR_LABELS[pillar],
-            formatPercent(pillarWeights[pillar] ?? 0, 2),
+            formatPercent(pillarWeights[pillar] ?? 0),
           ])}
         />
       ) : null}
+      <ParameterGroup
+        title="Critério de aprovação"
+        entries={[
+          ['Nota mínima', minScore === undefined ? 'Sem nota mínima' : formatNumber(minScore)],
+        ]}
+      />
       {performance ? (
         <ParameterGroup
           title="Apdex"
@@ -60,6 +93,12 @@ export function ScoringParameters({ scoring, collapsible = true }: ScoringParame
               formatMilliseconds(performance.targetLatency * FRUSTRATED_MULTIPLIER),
             ],
           ]}
+        />
+      ) : null}
+      {performance ? (
+        <ParameterGroup
+          title="Teste de carga"
+          entries={load.length > 0 ? load : [['Opções', 'Padrões do auditor']]}
         />
       ) : null}
       {contract ? (

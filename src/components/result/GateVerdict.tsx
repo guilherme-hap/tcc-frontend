@@ -24,7 +24,7 @@ export function GateVerdict({ evaluation }: GateVerdictProps) {
 
   if (passed === null) {
     return (
-      <p className="text-[13px] text-ink-secondary">
+      <p className="text-sm text-ink-secondary">
         Nota mínima do pedido: <span className="font-mono text-ink tabular-nums">{minimum}</span>.
         A aprovação sai quando a avaliação terminar.
       </p>
@@ -32,7 +32,7 @@ export function GateVerdict({ evaluation }: GateVerdictProps) {
   }
 
   return (
-    <p className="flex items-start gap-2 text-[13px] text-ink-secondary">
+    <p className="flex items-start gap-2 text-sm text-ink-secondary">
       <span className={`flex h-5 items-center ${passed ? 'text-success' : 'text-error'}`}>
         <Icon icon={passed ? CircleCheck : CircleX} />
       </span>

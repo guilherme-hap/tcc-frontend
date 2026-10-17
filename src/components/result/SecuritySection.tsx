@@ -1,55 +1,32 @@
-import { Shield, ShieldAlert, ShieldCheck, type LucideIcon } from 'lucide-react'
 import type {
   IScoreBreakdown,
   ISecurityCheckResult,
   IScoringParameters,
-  SecurityCheckStatus,
   SecurityLayer,
 } from '../../types'
 import { formatPercent } from '../../utils/format'
 import { LAYER_LABELS, LAYER_ORDER } from '../../utils/labels'
 import { securityScoreParts } from '../../utils/scoreParts'
-import { Icon } from '../ui/Icon'
 import { Panel } from '../ui/Panel'
 import { CheckStatusBadge } from './CheckStatusBadge'
 import { ScoreBreakdown } from './ScoreBreakdown'
 
-const TILE_ICONS: Record<SecurityCheckStatus, LucideIcon> = {
-  pass: ShieldCheck,
-  warning: ShieldAlert,
-  missing: Shield,
-  error: ShieldAlert,
-}
-
-const TILE_CLASSES: Record<SecurityCheckStatus, string> = {
-  pass: 'border-success/30 bg-success-dim text-success',
-  warning: 'border-warning/30 bg-warning-dim text-warning',
-  missing: 'border-error/30 bg-error-dim text-error',
-  error: 'border-error/30 bg-error-dim text-error',
-}
-
-interface CheckCardProps {
+interface CheckRowProps {
   check: ISecurityCheckResult
 }
 
-function CheckCard({ check }: CheckCardProps) {
+function CheckRow({ check }: CheckRowProps) {
   return (
-    <li className="flex min-w-0 flex-col items-start gap-2 rounded-md border border-border bg-well p-4">
-      <div className="mb-1 flex w-full items-center justify-between gap-2">
-        <span
-          aria-hidden="true"
-          className={`inline-flex size-8 items-center justify-center rounded-md border ${TILE_CLASSES[check.status]}`}
-        >
-          <Icon icon={TILE_ICONS[check.status]} />
-        </span>
+    <li className="flex min-w-0 flex-col gap-1.5 py-3 first:pt-0 last:pb-0">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <h4 className="max-w-full font-mono text-sm font-medium wrap-anywhere text-ink">
+          {check.header}
+        </h4>
         <CheckStatusBadge status={check.status} />
       </div>
-      <h4 className="max-w-full font-mono text-[13px] font-medium wrap-anywhere text-ink">
-        {check.header}
-      </h4>
-      <p className="text-[13px] text-ink">{check.message}</p>
+      <p className="text-sm text-ink">{check.message}</p>
       {check.recommendation ? (
-        <p className="text-[13px] text-ink-secondary">{check.recommendation}</p>
+        <p className="text-sm text-ink-secondary">{check.recommendation}</p>
       ) : null}
     </li>
   )
@@ -72,6 +49,7 @@ export function SecuritySection({ checks, layerWeights, breakdown, score }: Secu
   return (
     <Panel
       title="Verificações de segurança"
+      className="section-large"
       description="Configuração de transporte e cabeçalhos HTTP observados na URL base, não em cada endpoint."
     >
       <div className="@container flex flex-col gap-6">
@@ -92,14 +70,14 @@ export function SecuritySection({ checks, layerWeights, breakdown, score }: Secu
               <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
                 <h3 className="font-medium text-ink">{LAYER_LABELS[layer]}</h3>
                 {layerWeights ? (
-                  <span className="text-[13px] text-ink-secondary">
+                  <span className="text-sm text-ink-secondary">
                     peso {formatPercent(layerWeights[layer], 2)}
                   </span>
                 ) : null}
               </div>
-              <ul className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3">
+              <ul className="flex flex-col divide-y divide-border">
                 {layerChecks.map((check) => (
-                  <CheckCard key={`${check.header}-${check.code}`} check={check} />
+                  <CheckRow key={`${check.header}-${check.code}`} check={check} />
                 ))}
               </ul>
             </section>

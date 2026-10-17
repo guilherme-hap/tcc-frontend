@@ -7,7 +7,7 @@ import { INVALID_URL_MESSAGE, isHttpUrl, issuesByField } from '../../utils/valid
 import { Button } from '../ui/Button'
 import { TextField } from '../ui/Field'
 import { Notice } from '../ui/Notice'
-import { Panel } from '../ui/Panel'
+import { OVERLINE } from '../ui/classes'
 
 const FIELDS = ['name', 'openApiUrl', 'apiBaseUrl'] as const
 
@@ -15,10 +15,11 @@ type SavedApiErrors = Partial<Record<(typeof FIELDS)[number], string>>
 
 interface SavedApiFormProps {
   editing: SavedApi | null
+  showTitle: boolean
   onDone: () => void
 }
 
-export function SavedApiForm({ editing, onDone }: SavedApiFormProps) {
+export function SavedApiForm({ editing, showTitle, onDone }: SavedApiFormProps) {
   const queryClient = useQueryClient()
   const [name, setName] = useState(editing?.name ?? '')
   const [openApiUrl, setOpenApiUrl] = useState(editing?.openApiUrl ?? '')
@@ -67,14 +68,13 @@ export function SavedApiForm({ editing, onDone }: SavedApiFormProps) {
   }
 
   return (
-    <Panel
-      title={editing ? 'Editar API' : 'Salvar API'}
-      description={
-        editing
+    <div className="flex min-w-0 flex-col gap-3">
+      {showTitle ? <h2 className={OVERLINE}>{editing ? 'Editar API' : 'Salvar API'}</h2> : null}
+      <p className="text-sm text-ink-secondary">
+        {editing
           ? 'As alterações valem para as próximas avaliações.'
-          : 'Cadastre uma API sem precisar avaliar agora.'
-      }
-    >
+          : 'Cadastre uma API sem precisar avaliar agora.'}
+      </p>
       <form noValidate onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-4">
         <TextField
           id="api-name"
@@ -126,11 +126,11 @@ export function SavedApiForm({ editing, onDone }: SavedApiFormProps) {
             </Button>
           ) : null}
         </div>
-        <p className="border-t border-border pt-4 text-[13px] text-ink-secondary">
+        <p className="border-t border-border pt-4 text-sm text-ink-secondary">
           As regras do contrato e as opções do teste de carga entram como padrão da API ao marcar
           "Salvar esta API na conta" em uma nova avaliação.
         </p>
       </form>
-    </Panel>
+    </div>
   )
 }

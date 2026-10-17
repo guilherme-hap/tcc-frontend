@@ -35,7 +35,7 @@ export function PasswordField({
           tall
           aria-invalid={error ? true : undefined}
           aria-describedby={hasMessage ? `${id}-message` : undefined}
-          className="w-full pr-11"
+          className="w-full pr-12"
           {...props}
         />
         <button
@@ -43,7 +43,7 @@ export function PasswordField({
           aria-label={`${visible ? 'Ocultar' : 'Mostrar'} ${subject}`}
           aria-pressed={visible}
           onClick={() => setVisible((current) => !current)}
-          className={`absolute top-1 right-1 inline-flex size-8 cursor-pointer items-center justify-center rounded-sm text-ink-secondary transition-colors duration-150 hover:text-ink ${FOCUS_RING}`}
+          className={`absolute top-1 right-1 inline-flex size-8 max-lg:top-0 max-lg:right-0 max-lg:size-11 cursor-pointer items-center justify-center rounded-sm text-ink-secondary transition-colors duration-150 hover:text-ink ${FOCUS_RING}`}
         >
           <Icon icon={visible ? EyeOff : Eye} />
         </button>

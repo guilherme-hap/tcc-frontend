@@ -62,13 +62,6 @@ export const PILLARS_BY_TYPE: Record<EvaluationType, PillarName[]> = {
   security: ['security'],
 }
 
-export const EXECUTION_STEPS: Record<EvaluationType, string[]> = {
-  full: ['Contrato e segurança, em paralelo.', 'Desempenho, um endpoint por vez.'],
-  contract: ['Contrato: análise da especificação com o Spectral.'],
-  performance: ['Desempenho, um endpoint por vez.'],
-  security: ['Segurança: transporte e cabeçalhos da URL base.'],
-}
-
 export interface ExecutionGroup {
   label: string
   pillars: PillarName[]
@@ -78,6 +71,13 @@ export const FULL_EXECUTION_GROUPS: ExecutionGroup[] = [
   { label: 'Em paralelo', pillars: ['contract', 'security'] },
   { label: 'Um endpoint por vez', pillars: ['performance'] },
 ]
+
+export const EXECUTION_GROUPS: Record<EvaluationType, ExecutionGroup[]> = {
+  full: FULL_EXECUTION_GROUPS,
+  contract: [{ label: 'Análise da especificação', pillars: ['contract'] }],
+  performance: [{ label: 'Um endpoint por vez', pillars: ['performance'] }],
+  security: [{ label: 'Transporte e cabeçalhos', pillars: ['security'] }],
+}
 
 export const STATUS_LABELS: Record<EvaluationStatus, string> = {
   PENDING: 'Na fila',

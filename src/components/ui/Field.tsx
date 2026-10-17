@@ -9,9 +9,9 @@ import { Check, ChevronDown } from 'lucide-react'
 import { Icon } from './Icon'
 import { FOCUS_RING } from './classes'
 
-const CONTROL_CLASSES = `min-w-0 rounded-md border border-border-control bg-well px-3 text-sm text-ink transition-colors duration-150 placeholder:text-ink-muted hover:border-ink-muted aria-invalid:border-error aria-invalid:hover:border-error ${FOCUS_RING}`
+const CONTROL_CLASSES = `min-w-0 rounded-md border border-border-control bg-well px-3 text-[14px] text-ink transition-colors duration-150 placeholder:text-ink-muted hover:border-ink-muted aria-invalid:border-error aria-invalid:hover:border-error ${FOCUS_RING}`
 
-const MONO_CLASSES = 'font-mono text-[13px]'
+const MONO_CLASSES = 'font-mono text-sm'
 
 interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   ref?: Ref<HTMLInputElement>
@@ -27,7 +27,7 @@ export function TextInput({
 }: TextInputProps) {
   return (
     <input
-      className={`${tall ? 'h-10' : 'h-9'} ${CONTROL_CLASSES} ${mono ? MONO_CLASSES : ''} ${className}`}
+      className={`${tall ? 'h-10' : 'h-9'} max-lg:h-11 ${CONTROL_CLASSES} ${mono ? MONO_CLASSES : ''} ${className}`}
       {...props}
     />
   )
@@ -41,7 +41,7 @@ export function SelectInput({ className = 'w-full', mono = false, ...props }: Se
   return (
     <span className={`relative inline-flex min-w-0 ${className}`}>
       <select
-        className={`h-9 w-full cursor-pointer appearance-none pr-8 ${CONTROL_CLASSES} ${mono ? MONO_CLASSES : ''} [&>option]:bg-surface [&>option]:text-ink`}
+        className={`h-9 w-full cursor-pointer appearance-none pr-8 max-lg:h-11 ${CONTROL_CLASSES} ${mono ? MONO_CLASSES : ''} [&>option]:bg-surface [&>option]:text-ink`}
         {...props}
       />
       <Icon
@@ -144,7 +144,7 @@ export function Checkbox({ onChange, ...props }: CheckboxProps) {
       <input
         type="checkbox"
         onChange={(event) => onChange(event.target.checked)}
-        className={`peer size-4 cursor-pointer appearance-none rounded-sm border border-border-control bg-well transition-colors duration-150 hover:border-ink-muted checked:border-accent-ink checked:bg-accent-fill checked:hover:border-accent-ink aria-invalid:border-error aria-invalid:hover:border-error ${FOCUS_RING}`}
+        className={`peer size-4 cursor-pointer appearance-none rounded-sm border border-border-control bg-well transition-colors duration-150 hover:border-ink-muted checked:border-accent-ink checked:bg-accent-fill checked:hover:border-accent-ink aria-invalid:border-error aria-invalid:hover:border-error max-lg:before:absolute max-lg:before:-inset-4 max-lg:before:content-[''] ${FOCUS_RING}`}
         {...props}
       />
       <Check

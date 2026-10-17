@@ -33,7 +33,7 @@ export function Disclosure({
         />
         <span className="min-w-0 flex-1">{title}</span>
         {aside ? (
-          <span className="text-right font-body text-[13px] font-normal tracking-normal text-ink-secondary">
+          <span className="text-right font-body text-sm font-normal tracking-normal text-ink-secondary">
             {aside}
           </span>
         ) : null}

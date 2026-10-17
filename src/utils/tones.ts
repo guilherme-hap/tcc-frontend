@@ -12,10 +12,10 @@ export const PILLAR_STROKE: Record<PillarName, string> = {
   security: 'stroke-pillar-security',
 }
 
-export const CHECK_STATUS_BG: Record<SecurityCheckStatus, string> = {
+export const CHECK_STATUS_MARK: Record<SecurityCheckStatus, string> = {
   pass: 'bg-success',
   warning: 'bg-warning',
-  missing: 'bg-error',
+  missing: 'border border-error bg-error-dim',
   error: 'bg-error',
 }
 

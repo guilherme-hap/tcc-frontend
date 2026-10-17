@@ -4,6 +4,16 @@ export const CARD = `rounded-card ${CARD_SURFACE}`
 
 export const PAGE_CONTAINER = 'mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pt-6 pb-10 sm:px-6'
 
+export const FRAME = 'lg:grid lg:grid-cols-[23.25rem_minmax(0,1fr)] lg:items-start'
+
+export const RAIL =
+  'flex min-w-0 flex-col gap-5 border-b border-border bg-surface px-4 py-5 [scrollbar-color:var(--border-hover)_transparent] [scrollbar-width:thin] sm:px-6 lg:sticky lg:top-[53px] lg:h-[calc(100dvh-53px)] lg:overflow-y-auto lg:border-r lg:border-b-0'
+
+export const BODY = 'flex min-w-0 flex-col gap-5 px-4 pt-5 pb-10 sm:px-6 lg:px-7'
+
+export const PAGE_TITLE =
+  'font-display text-[22px] leading-7 font-bold tracking-[-0.01em] text-ink'
+
 export const FOCUS_RING =
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus'
 
@@ -18,7 +28,7 @@ export const ICON_TILE =
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 export type ButtonSize = 'md' | 'lg'
 
-export const BUTTON_BASE = `inline-flex items-center justify-center gap-2 rounded-md border px-3.5 text-[13px] font-semibold whitespace-nowrap transition-[color,background-color,border-color] duration-150 ${FOCUS_RING}`
+export const BUTTON_BASE = `inline-flex items-center justify-center gap-2 rounded-md border px-3.5 text-sm font-semibold whitespace-nowrap transition-[color,background-color,border-color] duration-150 ${FOCUS_RING}`
 
 export const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary: 'border-ink bg-ink text-bg hover:border-white hover:bg-white',
@@ -28,6 +38,6 @@ export const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
 }
 
 export const BUTTON_SIZES: Record<ButtonSize, string> = {
-  md: 'h-9',
-  lg: 'h-10',
+  md: 'h-9 max-lg:h-11',
+  lg: 'h-10 max-lg:h-11',
 }

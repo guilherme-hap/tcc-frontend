@@ -39,7 +39,7 @@ export function TextLink({
       to={to}
       state={state}
       aria-label={label}
-      className={`${TEXT_LINK} ${inline ? '' : 'inline-flex items-center gap-1.5 text-[13px]'} ${TONE_CLASSES[tone]} ${className}`}
+      className={`${TEXT_LINK} ${inline ? '' : 'inline-flex items-center gap-1.5 text-sm max-lg:min-h-11'} ${TONE_CLASSES[tone]} ${className}`}
     >
       {leadingIcon ? <Icon icon={leadingIcon} /> : null}
       {children}

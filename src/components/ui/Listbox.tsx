@@ -92,7 +92,7 @@ export function Listbox<T extends string>({
           aria-labelledby={`${id}-label ${id}-value`}
           aria-describedby={hint ? `${id}-hint` : undefined}
           onClick={() => setOpen((current) => !current)}
-          className={`flex h-9 w-full cursor-pointer items-center gap-2 rounded-md border bg-well px-3 text-sm text-ink transition-colors duration-150 ${open ? 'border-accent-ink' : 'border-border-control hover:border-ink-muted'} ${FOCUS_RING}`}
+          className={`flex h-9 max-lg:h-11 w-full cursor-pointer items-center gap-2 rounded-md border bg-well px-3 text-[14px] text-ink transition-colors duration-150 ${open ? 'border-accent-ink' : 'border-border-control hover:border-ink-muted'} ${FOCUS_RING}`}
         >
           {icon ? <Icon icon={icon} className="text-ink-secondary" /> : null}
           <span id={`${id}-value`} className="min-w-0 flex-1 truncate text-left">
@@ -121,7 +121,7 @@ export function Listbox<T extends string>({
                     onChange(option.value)
                     close()
                   }}
-                  className={`flex h-8 shrink-0 cursor-pointer items-center gap-2 rounded-md px-2 text-left text-sm whitespace-nowrap transition-colors duration-150 hover:bg-surface-raised hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${isSelected ? 'bg-accent-dim text-ink' : 'text-ink-secondary'}`}
+                  className={`flex h-8 shrink-0 cursor-pointer items-center gap-2 rounded-md px-2 text-left text-[14px] whitespace-nowrap transition-colors duration-150 hover:bg-surface-raised hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${isSelected ? 'bg-accent-dim text-ink' : 'text-ink-secondary'}`}
                 >
                   <span className="flex-1">{option.label}</span>
                   <Icon

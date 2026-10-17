@@ -44,6 +44,9 @@
 
     --breakpoint-lg: 67.5rem;
 
+    --text-sm: 0.8125rem;
+    --text-sm--line-height: 1.25rem;
+
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 10px;
@@ -117,6 +120,17 @@ body {
     caret-color: var(--accent-ink);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+}
+
+@utility section-large {
+    --text-xs: 0.875rem;
+    --text-xs--line-height: 1.25rem;
+    --text-sm: 1rem;
+    --text-sm--line-height: 1.5rem;
+    --text-base: 1.125rem;
+    --text-base--line-height: 1.625rem;
+    font-size: 16px;
+    line-height: 24px;
 }
 
 ::selection {

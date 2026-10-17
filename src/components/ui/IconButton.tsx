@@ -29,7 +29,7 @@ export function IconButton({
       type={type}
       aria-label={label}
       title={label}
-      className={`inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40 ${VARIANT_CLASSES[variant]} ${FOCUS_RING}`}
+      className={`inline-flex size-8 shrink-0 max-lg:size-11 cursor-pointer items-center justify-center rounded-md transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40 ${VARIANT_CLASSES[variant]} ${FOCUS_RING}`}
       {...props}
     >
       <Icon icon={icon} />

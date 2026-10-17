@@ -5,15 +5,12 @@ export function formatNumber(value: number, maximumFractionDigits = 2): string {
   return value.toLocaleString(LOCALE, { maximumFractionDigits })
 }
 
-export function formatScore(value: number): string {
-  return value.toLocaleString(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-}
-
 export function formatPercent(fraction: number, maximumFractionDigits = 1): string {
   return `${formatNumber(fraction * 100, maximumFractionDigits)}%`
 }
 
 export function formatMilliseconds(value: number): string {
+  if (value === 0) return '< 1 ms'
   if (value >= 1000) return `${formatNumber(value / 1000)} s`
   return `${formatNumber(value, 1)} ms`
 }

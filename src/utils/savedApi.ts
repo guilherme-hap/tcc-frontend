@@ -23,3 +23,7 @@ export function toSavedDefaults(settings: {
 
   return Object.keys(defaults).length > 0 ? defaults : undefined
 }
+
+export function editButtonId(id: string): string {
+  return `edit-api-${id}`
+}

@@ -1,6 +1,8 @@
 export { CUSTOM_RULES_KEY, useCustomRules } from './useCustomRules'
 export type { UseCustomRulesResult } from './useCustomRules'
 export { useDismissedTip } from './useDismissedTip'
+export { useDocumentTitle } from './useDocumentTitle'
+export { useFocusFirstInvalid } from './useFocusFirstInvalid'
 export type { TipId } from './useDismissedTip'
 export { EVALUATION_HISTORY_KEY, useEvaluationHistory } from './useEvaluationHistory'
 export type { UseEvaluationHistoryResult } from './useEvaluationHistory'

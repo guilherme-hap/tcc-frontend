@@ -30,7 +30,7 @@ export function Panel({
           >
             {title}
           </h2>
-          {description ? <p className="max-w-[72ch] text-ink-secondary">{description}</p> : null}
+          {description ? <p className="max-w-[60ch] text-ink-secondary">{description}</p> : null}
         </div>
         {aside ? <div className="flex flex-wrap items-center gap-2">{aside}</div> : null}
       </header>

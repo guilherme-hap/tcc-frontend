@@ -16,7 +16,7 @@ export function KeyValue({ items }: KeyValueProps) {
       {items.map((item) => (
         <div
           key={item.label}
-          className="flex justify-between gap-6 border-b border-border py-2 text-[13px] last:border-b-0"
+          className="flex justify-between gap-6 border-b border-border py-2 text-sm last:border-b-0"
         >
           <dt className="text-ink-secondary">{item.label}</dt>
           <dd

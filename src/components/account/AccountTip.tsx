@@ -10,7 +10,6 @@ import { LinkButton } from '../ui/LinkButton'
 interface AccountTipProps {
   id: TipId
   title: string
-  stacked?: boolean
   children: ReactNode
 }
 
@@ -43,7 +42,7 @@ function TipLinks() {
   )
 }
 
-export function AccountTip({ id, title, stacked = false, children }: AccountTipProps) {
+export function AccountTip({ id, title, children }: AccountTipProps) {
   const titleId = useId()
   const [dismissed, dismiss] = useDismissedTip(id)
 
@@ -55,22 +54,6 @@ export function AccountTip({ id, title, stacked = false, children }: AccountTipP
     </h2>
   )
   const dismissButton = <IconButton icon={X} label="Dispensar dica" onClick={dismiss} />
-
-  if (stacked) {
-    return (
-      <section aria-labelledby={titleId} className={`flex flex-col gap-3 ${SURFACE}`}>
-        <div className="flex items-start gap-3">
-          <TipIcon />
-          <div className="min-w-0 flex-1">{heading}</div>
-          {dismissButton}
-        </div>
-        {children}
-        <div className="flex flex-wrap items-center gap-2">
-          <TipLinks />
-        </div>
-      </section>
-    )
-  }
 
   return (
     <aside

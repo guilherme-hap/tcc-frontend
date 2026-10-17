@@ -24,9 +24,11 @@ const STATUS_OPTIONS: ListboxOption<EvaluationStatus | typeof ALL>[] = [
   ...STATUS_ORDER.map((status) => ({ value: status, label: STATUS_LABELS[status] })),
 ]
 
+const ANY_DATE = 'Qualquer data'
+
 function describeRange(range: DayRange): string {
   const end = rangeEnd(range)
-  if (range.from === null || end === null) return 'Qualquer data'
+  if (range.from === null || end === null) return ANY_DATE
 
   const from = formatDate(fromDayKey(range.from))
   return end === range.from ? from : `${from} – ${formatDate(fromDayKey(end))}`
@@ -51,7 +53,7 @@ function SearchBox({ value, onCommit }: SearchBoxProps) {
   }, [term, value])
 
   return (
-    <div className="flex min-w-0 flex-[999_1_17.5rem] flex-col gap-1.5">
+    <div className="flex min-w-0 flex-col gap-1.5">
       <label htmlFor={id} className="font-medium text-ink">
         Especificação
       </label>
@@ -64,7 +66,7 @@ function SearchBox({ value, onCommit }: SearchBoxProps) {
           id={id}
           type="search"
           mono
-          placeholder="localhost:4010/openapi.json"
+          placeholder="Trecho da URL da especificação"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           className="w-full pl-9"
@@ -96,12 +98,13 @@ export function HistoryFilters({
   onClear,
 }: HistoryFiltersProps) {
   const rangeId = useId()
+  const rangeLabel = describeRange(filters)
 
   return (
     <div
       role="search"
       aria-label="Filtros do histórico"
-      className="flex flex-wrap items-end gap-x-4 gap-y-3 border-b border-border px-5 py-4"
+      className="flex flex-col gap-4"
     >
       <SearchBox
         key={resetKey}
@@ -113,16 +116,14 @@ export function HistoryFilters({
         options={TYPE_OPTIONS}
         value={filters.type ?? ALL}
         onChange={(type) => onChange({ type: type || null })}
-        className="flex-[1_1_10rem]"
       />
       <Listbox
         label="Status"
         options={STATUS_OPTIONS}
         value={filters.status ?? ALL}
         onChange={(status) => onChange({ status: status || null })}
-        className="flex-[1_1_10rem]"
       />
-      <div className="flex min-w-0 flex-[1_1_13.75rem] flex-col gap-1.5">
+      <div className="flex min-w-0 flex-col gap-1.5">
         <span id={`${rangeId}-label`} className="font-medium text-ink">
           Período
         </span>
@@ -132,19 +133,25 @@ export function HistoryFilters({
           aria-controls={rangePanelId}
           aria-labelledby={`${rangeId}-label ${rangeId}-value`}
           onClick={onToggleRange}
-          className={`flex h-9 w-full cursor-pointer items-center gap-2 rounded-md border bg-well px-3 text-ink transition-colors duration-150 ${rangeOpen ? 'border-accent-ink' : 'border-border-control hover:border-ink-muted'} ${FOCUS_RING}`}
+          className={`flex h-9 max-lg:h-11 w-full cursor-pointer items-center gap-2 rounded-md border bg-well px-3 text-ink transition-colors duration-150 ${rangeOpen ? 'border-accent-ink' : 'border-border-control hover:border-ink-muted'} ${FOCUS_RING}`}
         >
           <Icon icon={CalendarDays} className="text-ink-secondary" />
           <span
             id={`${rangeId}-value`}
-            className="min-w-0 flex-1 truncate text-left font-mono text-[13px] tabular-nums"
+            className={`min-w-0 flex-1 truncate text-left text-sm ${rangeLabel === ANY_DATE ? '' : 'font-mono tabular-nums'}`}
           >
-            {describeRange(filters)}
+            {rangeLabel}
           </span>
           <Icon icon={ChevronDown} size={14} className="text-ink-secondary" />
         </button>
       </div>
-      <Button variant="ghost" icon={RotateCcw} disabled={!hasFilters} onClick={onClear}>
+      <Button
+        variant="ghost"
+        icon={RotateCcw}
+        disabled={!hasFilters}
+        onClick={onClear}
+        className="self-start"
+      >
         Limpar filtros
       </Button>
     </div>

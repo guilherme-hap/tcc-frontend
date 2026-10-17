@@ -14,7 +14,7 @@ import {
 import { formatDate, formatLongDate, formatMonth } from '../../utils/format'
 import { Button } from '../ui/Button'
 import { IconButton } from '../ui/IconButton'
-import { FOCUS_RING, OVERLINE } from '../ui/classes'
+import { CARD, FOCUS_RING, OVERLINE } from '../ui/classes'
 
 const WEEKDAYS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 const GRID_DAYS = 42
@@ -91,7 +91,7 @@ export function DateRangePanel({ id, range, onChange, onClose }: DateRangePanelP
       id={id}
       role="group"
       aria-label="Escolher período"
-      className="flex flex-wrap items-start gap-x-8 gap-y-5 border-b border-border bg-well p-5"
+      className={`flex flex-wrap items-start gap-x-8 gap-y-5 border-border bg-well p-5 ${CARD}`}
     >
       <div className="flex flex-[0_1_11.25rem] flex-col gap-1">
         <span className={`pb-1 ${OVERLINE}`}>Atalhos</span>
@@ -107,7 +107,7 @@ export function DateRangePanel({ id, range, onChange, onClose }: DateRangePanelP
                 onChange({ from: preset.from, to: preset.to })
                 showMonth(preset.to ?? today)
               }}
-              className={`flex h-8 cursor-pointer items-center rounded-md px-2.5 text-left text-[13px] font-medium transition-colors duration-150 hover:bg-surface-raised hover:text-ink ${isActive ? 'bg-surface-raised text-ink' : 'text-ink-secondary'} ${FOCUS_RING}`}
+              className={`flex h-8 cursor-pointer items-center rounded-md px-2.5 text-left text-sm font-medium transition-colors duration-150 hover:bg-surface-raised hover:text-ink ${isActive ? 'bg-surface-raised text-ink' : 'text-ink-secondary'} ${FOCUS_RING}`}
             >
               {preset.label}
             </button>
@@ -160,7 +160,7 @@ export function DateRangePanel({ id, range, onChange, onClose }: DateRangePanelP
                   setCursor(day)
                   onChange(pickDay(range, day))
                 }}
-                className={`h-9 cursor-pointer rounded-md border font-mono text-[13px] tabular-nums transition-colors duration-150 ${dayClasses(isEdge, isInside, monthOf(day) === month, isToday)} ${FOCUS_RING}`}
+                className={`h-9 cursor-pointer rounded-md border font-mono text-sm tabular-nums transition-colors duration-150 ${dayClasses(isEdge, isInside, monthOf(day) === month, isToday)} ${FOCUS_RING}`}
               >
                 {date.getDate()}
               </button>
@@ -173,18 +173,18 @@ export function DateRangePanel({ id, range, onChange, onClose }: DateRangePanelP
         <dl className="flex flex-wrap gap-x-6 gap-y-3">
           <div className="flex flex-col gap-0.5">
             <dt className={OVERLINE}>De</dt>
-            <dd className="font-mono text-[13px] text-ink tabular-nums">
+            <dd className="font-mono text-sm text-ink tabular-nums">
               {range.from ? formatDate(fromDayKey(range.from)) : 'Sem limite'}
             </dd>
           </div>
           <div className="flex flex-col gap-0.5">
             <dt className={OVERLINE}>Até</dt>
-            <dd className="font-mono text-[13px] text-ink tabular-nums">
+            <dd className="font-mono text-sm text-ink tabular-nums">
               {end ? formatDate(fromDayKey(end)) : 'Sem limite'}
             </dd>
           </div>
         </dl>
-        <p className="text-[13px] text-ink-secondary">
+        <p className="text-sm text-ink-secondary">
           Escolha o primeiro e o último dia. Um clique só filtra um único dia.
         </p>
         <div className="flex flex-wrap gap-2">

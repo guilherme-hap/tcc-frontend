@@ -1,38 +1,17 @@
 import type { EvaluationListItem } from '../../types'
-import { formatDateTime, formatScore } from '../../utils/format'
+import { formatDateTime } from '../../utils/format'
 import { TYPE_LABELS } from '../../utils/labels'
 import { evaluationPath } from '../../utils/routes'
+import { MiddleTruncate } from '../ui/MiddleTruncate'
 import { StatusBadge } from '../ui/StatusBadge'
 import { TextLink } from '../ui/TextLink'
+import { TypeStrip } from '../ui/TypeStrip'
 import { OVERLINE } from '../ui/classes'
+import { EvaluationRow } from './EvaluationRow'
+import { ScoreValue } from './ScoreValue'
 
-const HEAD_CELL = `px-2 py-3 text-left first:pl-5 last:pr-5 ${OVERLINE}`
-const BODY_CELL = 'px-2 py-2.5 first:pl-5 last:pr-5'
-
-interface ScoreCellProps {
-  score: number | null
-}
-
-function ScoreCell({ score }: ScoreCellProps) {
-  if (score === null) return <span className="text-[13px] text-ink-secondary">Sem nota</span>
-
-  return (
-    <span className="flex items-center gap-2.5">
-      <span className="w-10 shrink-0 font-mono text-[13px] font-semibold text-ink tabular-nums">
-        {formatScore(score)}
-      </span>
-      <span
-        aria-hidden="true"
-        className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-raised"
-      >
-        <span
-          className="block h-full rounded-full bg-measure"
-          style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
-        />
-      </span>
-    </span>
-  )
-}
+const HEAD_CELL = `px-2 py-3 text-left first:pl-4 last:pr-4 ${OVERLINE}`
+const BODY_CELL = 'px-2 py-3 first:pl-4 last:pr-4'
 
 interface HistoryTableProps {
   items: EvaluationListItem[]
@@ -40,20 +19,30 @@ interface HistoryTableProps {
 }
 
 export function HistoryTable({ items, isRefreshing }: HistoryTableProps) {
+  const dim = isRefreshing ? 'opacity-60' : ''
+
   return (
-    <div className="relative overflow-x-auto [scrollbar-color:var(--border-hover)_transparent] [scrollbar-width:thin]">
+    <>
+      <ul
+        aria-busy={isRefreshing || undefined}
+        aria-label="Avaliações desta conta"
+        className={`flex flex-col transition-opacity duration-150 xl:hidden ${dim}`}
+      >
+        {items.map((item) => (
+          <EvaluationRow key={item.id} item={item} />
+        ))}
+      </ul>
       <table
         aria-busy={isRefreshing || undefined}
-        className={`w-full min-w-225 table-fixed transition-opacity duration-150 ${isRefreshing ? 'opacity-60' : ''}`}
+        className={`hidden w-full table-fixed transition-opacity duration-150 xl:table ${dim}`}
       >
         <caption className="sr-only">Avaliações desta conta</caption>
         <colgroup>
-          <col className="w-33" />
+          <col className="w-32" />
           <col />
-          <col className="w-37" />
-          <col className="w-41.5" />
-          <col className="w-40" />
-          <col className="w-21" />
+          <col className="w-36" />
+          <col className="w-28" />
+          <col className="w-20" />
         </colgroup>
         <thead>
           <tr>
@@ -61,16 +50,13 @@ export function HistoryTable({ items, isRefreshing }: HistoryTableProps) {
               Tipo
             </th>
             <th scope="col" className={HEAD_CELL}>
-              Especificação
+              Especificação e data
             </th>
             <th scope="col" className={HEAD_CELL}>
               Status
             </th>
             <th scope="col" className={HEAD_CELL}>
               Nota final
-            </th>
-            <th scope="col" className={HEAD_CELL}>
-              Criada em
             </th>
             <th scope="col" className={HEAD_CELL}>
               <span className="sr-only">Ações</span>
@@ -83,29 +69,30 @@ export function HistoryTable({ items, isRefreshing }: HistoryTableProps) {
             const createdAt = formatDateTime(item.createdAt)
 
             return (
-              <tr key={item.id} className="h-13 border-t border-border">
-                <td className={`font-medium text-ink ${BODY_CELL}`}>{type}</td>
-                <td
-                  title={item.openApiUrl}
-                  className={`truncate font-mono text-[13px] text-ink-secondary ${BODY_CELL}`}
-                >
-                  {item.openApiUrl}
+              <tr key={item.id} className="relative border-t border-border transition-colors duration-150 hover:bg-surface-raised">
+                <td className={BODY_CELL}>
+                  <span className="flex flex-col gap-1.5">
+                    <span className="font-medium text-ink">{type}</span>
+                    <TypeStrip type={item.evaluationType} className="w-16" />
+                  </span>
+                </td>
+                <td className={BODY_CELL}>
+                  <span className="flex min-w-0 flex-col gap-0.5 font-mono text-xs">
+                    <MiddleTruncate text={item.openApiUrl} className="text-ink" />
+                    <span className="text-ink-secondary tabular-nums">{createdAt}</span>
+                  </span>
                 </td>
                 <td className={BODY_CELL}>
                   <StatusBadge status={item.status} />
                 </td>
                 <td className={BODY_CELL}>
-                  <ScoreCell score={item.finalScore} />
-                </td>
-                <td
-                  className={`font-mono text-[13px] whitespace-nowrap text-ink-secondary tabular-nums ${BODY_CELL}`}
-                >
-                  {createdAt}
+                  <ScoreValue score={item.finalScore} />
                 </td>
                 <td className={BODY_CELL}>
                   <TextLink
                     to={evaluationPath(item.id)}
                     label={`Abrir avaliação ${type.toLowerCase()} de ${createdAt}`}
+                    className="after:absolute after:inset-0"
                   >
                     Abrir
                   </TextLink>
@@ -115,6 +102,6 @@ export function HistoryTable({ items, isRefreshing }: HistoryTableProps) {
           })}
         </tbody>
       </table>
-    </div>
+    </>
   )
 }

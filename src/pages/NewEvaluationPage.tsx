@@ -19,6 +19,7 @@ import {
   MAX_TARGETS,
   createHeaderDraft,
   createInitialFormState,
+  hasLoadOptionError,
   hasMutatingTarget,
   mapServerIssues,
   usesContractRules,
@@ -105,10 +106,6 @@ async function submitEvaluation({ request, savedApi }: Submission) {
     state.apiSaveFailed = true
   }
   return { evaluationId, state }
-}
-
-function hasLoadOptionError(errors: FormErrors): boolean {
-  return Object.keys(errors).some((key) => key.startsWith('options.') || key.startsWith('headers.'))
 }
 
 function FormSkeleton() {

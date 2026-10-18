@@ -1,25 +1,24 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bookmark, ChevronRight } from 'lucide-react'
+import { Bookmark, Plus } from 'lucide-react'
 import { SavedApiCard } from '../components/savedApis/SavedApiCard'
 import { SavedApiForm } from '../components/savedApis/SavedApiForm'
 import { Button } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
-import { Icon } from '../components/ui/Icon'
 import { Notice } from '../components/ui/Notice'
-import { BODY, CARD, FOCUS_RING, FRAME, PAGE_TITLE, RAIL } from '../components/ui/classes'
-import { SAVED_APIS_KEY, useDocumentTitle, useSavedApis, useWideLayout } from '../hooks'
+import { BODY, CARD, FRAME, PAGE_TITLE, RAIL } from '../components/ui/classes'
+import { SAVED_APIS_KEY, useDocumentTitle, useSavedApis } from '../hooks'
 import { deleteSavedApi } from '../services'
 import { formatNumber } from '../utils/format'
-import { editButtonId } from '../utils/savedApi'
+import { NEW_API_BUTTON_ID, editButtonId } from '../utils/savedApi'
 
 const SKELETON_CARDS = 3
 
 export function SavedApisPage() {
   useDocumentTitle('APIs salvas')
   const queryClient = useQueryClient()
-  const wide = useWideLayout()
   const { apis, isLoading, error, refetch } = useSavedApis()
+  const [creating, setCreating] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
@@ -35,22 +34,18 @@ export function SavedApisPage() {
   const editing = apis?.find((api) => api.id === editingId) ?? null
   const count = apis?.length ?? 0
 
-  const form = (
-    <SavedApiForm
-      key={editing?.id ?? 'new'}
-      editing={editing}
-      showTitle={wide}
-      onDone={() => {
-        const id = editingId
-        setEditingId(null)
-        if (id) requestAnimationFrame(() => document.getElementById(editButtonId(id))?.focus())
-      }}
-    />
-  )
+  const closeForm = () => {
+    const id = editingId
+    setEditingId(null)
+    setCreating(false)
+    requestAnimationFrame(() =>
+      document.getElementById(id ? editButtonId(id) : NEW_API_BUTTON_ID)?.focus(),
+    )
+  }
 
   return (
     <div className={FRAME}>
-      <aside aria-label="Resumo e cadastro de APIs" className={RAIL}>
+      <aside aria-label="Resumo das APIs salvas" className={RAIL}>
         <div className="flex flex-col gap-3">
           <h1 className={PAGE_TITLE}>APIs salvas</h1>
           <p className="text-sm leading-5 text-ink-secondary">
@@ -68,26 +63,27 @@ export function SavedApisPage() {
           </span>
         </p>
 
-        {wide ? (
-          <section className="border-t border-border pt-5">{form}</section>
-        ) : (
-          <details open={editing ? true : undefined} className="group border-t border-border">
-            <summary
-              className={`flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-sm text-sm font-medium text-ink-secondary [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
+        {creating ? null : (
+          <div className="border-t border-border pt-5">
+            <Button
+              id={NEW_API_BUTTON_ID}
+              variant="secondary"
+              size="lg"
+              icon={Plus}
+              onClick={() => {
+                setEditingId(null)
+                setConfirmingId(null)
+                setCreating(true)
+              }}
             >
-              <Icon
-                icon={ChevronRight}
-                size={14}
-                className="transition-transform duration-150 group-open:rotate-90"
-              />
-              {editing ? 'Editar API' : 'Salvar uma API'}
-            </summary>
-            <div className="pt-2 pb-2">{form}</div>
-          </details>
+              Cadastrar API
+            </Button>
+          </div>
         )}
       </aside>
 
       <section aria-label="Lista de APIs salvas" className={BODY}>
+        {creating ? <SavedApiForm key="new" editing={null} onDone={closeForm} /> : null}
         {isLoading ? (
           <div role="status" aria-label="Carregando APIs salvas" className="flex flex-col gap-3">
             {Array.from({ length: SKELETON_CARDS }, (_, index) => (
@@ -108,32 +104,38 @@ export function SavedApisPage() {
           </>
         ) : apis && apis.length > 0 ? (
           <ul className="flex flex-col gap-3">
-            {apis.map((api) => (
-              <SavedApiCard
-                key={api.id}
-                api={api}
-                isEditing={api.id === editingId}
-                isConfirming={api.id === confirmingId}
-                isDeleting={removal.isPending}
-                deleteError={removal.error?.message ?? null}
-                onEdit={() => {
-                  setEditingId(api.id)
-                  setConfirmingId(null)
-                }}
-                onAskRemove={() => {
-                  removal.reset()
-                  setConfirmingId(api.id)
-                }}
-                onCancelRemove={() => setConfirmingId(null)}
-                onRemove={() => removal.mutate(api.id)}
-              />
-            ))}
+            {apis.map((api) =>
+              api.id === editing?.id ? (
+                <li key={api.id}>
+                  <SavedApiForm key={api.id} editing={api} onDone={closeForm} />
+                </li>
+              ) : (
+                <SavedApiCard
+                  key={api.id}
+                  api={api}
+                  isConfirming={api.id === confirmingId}
+                  isDeleting={removal.isPending}
+                  deleteError={removal.error?.message ?? null}
+                  onEdit={() => {
+                    setCreating(false)
+                    setEditingId(api.id)
+                    setConfirmingId(null)
+                  }}
+                  onAskRemove={() => {
+                    removal.reset()
+                    setConfirmingId(api.id)
+                  }}
+                  onCancelRemove={() => setConfirmingId(null)}
+                  onRemove={() => removal.mutate(api.id)}
+                />
+              ),
+            )}
           </ul>
-        ) : (
+        ) : creating ? null : (
           <EmptyState
             icon={Bookmark}
             title="Nenhuma API salva"
-            description='Cadastre uma API pelo formulário ou marque "Salvar esta API na conta" ao criar uma avaliação.'
+            description='Cadastre uma API pelo botão ou marque "Salvar esta API na conta" ao criar uma avaliação.'
           />
         )}
       </section>

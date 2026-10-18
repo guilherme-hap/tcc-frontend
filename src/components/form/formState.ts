@@ -135,6 +135,10 @@ export function createInitialFormState(type: EvaluationType = 'full'): Evaluatio
   }
 }
 
+export function hasLoadOptionError(errors: FormErrors): boolean {
+  return Object.keys(errors).some((key) => key.startsWith('options.') || key.startsWith('headers.'))
+}
+
 export function isMutatingMethod(method: HttpMethod): boolean {
   return MUTATING_METHODS.includes(method)
 }
@@ -224,7 +228,7 @@ function buildTargets(form: EvaluationFormState, errors: FormErrors): IPerforman
   })
 }
 
-function buildLoadTestOptions(
+export function buildLoadTestOptions(
   form: EvaluationFormState,
   errors: FormErrors,
   maskHeaderValues: boolean,
@@ -301,7 +305,7 @@ function buildWeights(form: EvaluationFormState, errors: FormErrors): PillarWeig
   return weights
 }
 
-function buildRulesConfig(form: EvaluationFormState): Record<string, boolean> | undefined {
+export function buildRulesConfig(form: EvaluationFormState): Record<string, boolean> | undefined {
   return Object.keys(form.rulesConfig).length > 0 ? form.rulesConfig : undefined
 }
 

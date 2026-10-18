@@ -24,6 +24,8 @@ export function toSavedDefaults(settings: {
   return Object.keys(defaults).length > 0 ? defaults : undefined
 }
 
+export const NEW_API_BUTTON_ID = 'new-api'
+
 export function editButtonId(id: string): string {
   return `edit-api-${id}`
 }

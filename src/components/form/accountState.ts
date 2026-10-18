@@ -5,6 +5,7 @@ import type {
   IPerformanceTarget,
   PillarName,
   SavedApi,
+  SavedApiDefaults,
   SavedApiInput,
   Severity,
   SeverityWeights,
@@ -15,6 +16,8 @@ import {
   DEFAULT_SEVERITY_WEIGHTS,
   NUMERIC_OPTION_KEYS,
   buildEvaluationRequest,
+  buildLoadTestOptions,
+  buildRulesConfig,
   buildSeverityWeights,
   createHeaderDraft,
   createInitialFormState,
@@ -148,6 +151,21 @@ export function buildRuleSet(form: EvaluationFormState): RuleSetResult {
 
   if (errors.severityWeights) return { ok: false, error: errors.severityWeights }
   return { ok: true, rulesConfig: form.rulesConfig, severityWeights: severityWeights ?? null }
+}
+
+export type SavedDefaultsResult =
+  | { ok: true; defaults: SavedApiDefaults | undefined }
+  | { ok: false; errors: FormErrors }
+
+export function buildSavedDefaults(form: EvaluationFormState): SavedDefaultsResult {
+  const errors: FormErrors = {}
+  const loadTestOptions = buildLoadTestOptions(form, errors, false)
+
+  if (Object.keys(errors).length > 0) return { ok: false, errors }
+  return {
+    ok: true,
+    defaults: toSavedDefaults({ rulesConfig: buildRulesConfig(form), loadTestOptions }),
+  }
 }
 
 function toSavedApiInput(name: string, { payload }: EvaluationRequest): SavedApiInput {

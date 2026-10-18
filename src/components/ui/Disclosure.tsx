@@ -26,7 +26,8 @@ export function Disclosure({
       onToggle={onToggle ? (event) => onToggle(event.currentTarget.open) : undefined}
       className={`group min-w-0 border-border ${CARD} ${className}`}
     >
-      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-card px-5 py-4 font-display text-base font-semibold tracking-[-0.01em] text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
+      <summary
+        className={`flex cursor-pointer list-none items-center gap-2 rounded-card px-5 py-4 font-display text-base font-semibold tracking-[-0.01em] text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden`}>
         <Icon
           icon={ChevronRight}
           className="text-ink-secondary transition-transform duration-150 group-open:rotate-90"

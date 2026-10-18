@@ -43,12 +43,6 @@ interface LoadOptionsFieldsProps {
 }
 
 export function LoadOptionsFields({ form, errors, open, onToggle, onChange }: LoadOptionsFieldsProps) {
-  const updateHeader = (id: string, patch: Partial<HeaderDraft>) => {
-    onChange({
-      headers: form.headers.map((header) => (header.id === id ? { ...header, ...patch } : header)),
-    })
-  }
-
   return (
     <Disclosure
       title="Opções do teste de carga"
@@ -56,8 +50,28 @@ export function LoadOptionsFields({ form, errors, open, onToggle, onChange }: Lo
       open={open}
       onToggle={onToggle}
     >
+      <LoadOptionsBody form={form} errors={errors} onChange={onChange} />
+    </Disclosure>
+  )
+}
+
+interface LoadOptionsBodyProps {
+  form: EvaluationFormState
+  errors: FormErrors
+  onChange: (patch: Partial<EvaluationFormState>) => void
+}
+
+export function LoadOptionsBody({ form, errors, onChange }: LoadOptionsBodyProps) {
+  const updateHeader = (id: string, patch: Partial<HeaderDraft>) => {
+    onChange({
+      headers: form.headers.map((header) => (header.id === id ? { ...header, ...patch } : header)),
+    })
+  }
+
+  return (
+    <div className="@container min-w-0">
       <div className="flex min-w-0 flex-col gap-5">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 @lg:grid-cols-3">
           {NUMERIC_FIELDS.map((field) => (
             <TextField
               key={field.key}
@@ -94,24 +108,30 @@ export function LoadOptionsFields({ form, errors, open, onToggle, onChange }: Lo
                 return (
                   <li key={header.id} className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
-                      <TextInput
-                        mono
-                        aria-label={`Nome do cabeçalho ${position}`}
-                        aria-invalid={error ? true : undefined}
-                        aria-describedby={error ? `header-${header.id}-message` : undefined}
-                        value={header.name}
-                        onChange={(event) => updateHeader(header.id, { name: event.target.value })}
-                        placeholder="Authorization"
-                        className="flex-1 sm:max-w-55"
-                      />
-                      <TextInput
-                        mono
-                        aria-label={`Valor do cabeçalho ${position}`}
-                        value={header.value}
-                        onChange={(event) => updateHeader(header.id, { value: event.target.value })}
-                        placeholder="Bearer ..."
-                        className="flex-1"
-                      />
+                      <div className="flex min-w-0 flex-1 flex-col gap-2 @lg:flex-row">
+                        <TextInput
+                          mono
+                          aria-label={`Nome do cabeçalho ${position}`}
+                          aria-invalid={error ? true : undefined}
+                          aria-describedby={error ? `header-${header.id}-message` : undefined}
+                          value={header.name}
+                          onChange={(event) =>
+                            updateHeader(header.id, { name: event.target.value })
+                          }
+                          placeholder="Authorization"
+                          className="flex-1 @lg:max-w-55"
+                        />
+                        <TextInput
+                          mono
+                          aria-label={`Valor do cabeçalho ${position}`}
+                          value={header.value}
+                          onChange={(event) =>
+                            updateHeader(header.id, { value: event.target.value })
+                          }
+                          placeholder="Bearer ..."
+                          className="flex-1"
+                        />
+                      </div>
                       <IconButton
                         icon={Trash2}
                         label={`Remover cabeçalho ${position}`}
@@ -144,6 +164,6 @@ export function LoadOptionsFields({ form, errors, open, onToggle, onChange }: Lo
           onChange={(allowHighLoad) => onChange({ allowHighLoad })}
         />
       </div>
-    </Disclosure>
+    </div>
   )
 }

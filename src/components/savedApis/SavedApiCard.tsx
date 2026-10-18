@@ -7,7 +7,6 @@ import { editButtonId } from '../../utils/savedApi'
 import { applySavedApi } from '../form/accountState'
 import { describeOptions, describeRules } from '../form/describe'
 import { createInitialFormState } from '../form/formState'
-import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { ConfirmBar } from '../ui/ConfirmBar'
 import { LinkButton } from '../ui/LinkButton'
@@ -16,7 +15,6 @@ import { CARD } from '../ui/classes'
 
 interface SavedApiCardProps {
   api: SavedApi
-  isEditing: boolean
   isConfirming: boolean
   isDeleting: boolean
   deleteError: string | null
@@ -28,7 +26,6 @@ interface SavedApiCardProps {
 
 export function SavedApiCard({
   api,
-  isEditing,
   isConfirming,
   isDeleting,
   deleteError,
@@ -39,21 +36,15 @@ export function SavedApiCard({
 }: SavedApiCardProps) {
   const removeRef = useRef<HTMLButtonElement>(null)
   const defaults = applySavedApi(createInitialFormState(), api)
-  const border = isConfirming
-    ? 'border-error/40'
-    : isEditing
-      ? 'border-accent-ink/55'
-      : 'border-border'
 
   return (
-    <li className={`flex min-w-0 flex-col ${CARD} ${border}`}>
+    <li className={`flex min-w-0 flex-col ${CARD} ${isConfirming ? 'border-error/40' : 'border-border'}`}>
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-display text-base font-semibold tracking-[-0.01em] wrap-anywhere text-ink">
               {api.name}
             </h2>
-            {isEditing ? <Badge tone="accent">Em edição</Badge> : null}
           </div>
           <span className="text-xs text-ink-secondary">
             Atualizada em{' '}
@@ -70,10 +61,9 @@ export function SavedApiCard({
           </LinkButton>
           <Button
             id={editButtonId(api.id)}
-            variant={isEditing ? 'secondary' : 'ghost'}
+            variant="ghost"
             icon={Pencil}
             aria-label={`Editar ${api.name}`}
-            aria-pressed={isEditing}
             onClick={onEdit}
           >
             Editar

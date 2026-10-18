@@ -2,7 +2,6 @@ import { LogOut, Plus, TriangleAlert } from 'lucide-react'
 import { Link, NavLink, Outlet, useLocation, useMatch } from 'react-router-dom'
 import { useSession } from '../../hooks'
 import type { AuthUser } from '../../types'
-import { APP_NAME } from '../../utils/brand'
 import {
   EVALUATION_PATH_PATTERN,
   HISTORY_PATH,
@@ -15,6 +14,7 @@ import {
   type AuthRedirectState,
 } from '../../utils/routes'
 import { BrandMark } from '../ui/BrandMark'
+import { BrandName } from '../ui/BrandName'
 import { LinkButton } from '../ui/LinkButton'
 import { Icon } from '../ui/Icon'
 import { FOCUS_RING } from '../ui/classes'
@@ -120,7 +120,7 @@ export function AppShell() {
             className={`inline-flex items-center gap-2.5 rounded-sm text-[15px] font-bold max-lg:min-h-11 text-ink [font-variation-settings:"wdth"_108] ${FOCUS_RING}`}
           >
             <BrandMark />
-            {APP_NAME}
+            <BrandName />
           </Link>
           {user ? (
             <AccountNav user={user} showNewEvaluation={!isHome && !isNew} />

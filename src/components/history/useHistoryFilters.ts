@@ -2,11 +2,11 @@ import { useSearchParams } from 'react-router-dom'
 import type { EvaluationListQuery, EvaluationStatus, EvaluationType } from '../../types'
 import { parseDayKey, rangeToInstants, type DayRange } from '../../utils/dateRange'
 import { STATUS_FILTER_STATUSES, STATUS_ORDER, TYPE_ORDER } from '../../utils/labels'
+import { TYPE_PARAM } from '../../utils/routes'
 
 export const HISTORY_PAGE_SIZE = 10
 
 const SEARCH_PARAM = 'q'
-const TYPE_PARAM = 'tipo'
 const STATUS_PARAM = 'status'
 const FROM_PARAM = 'de'
 const TO_PARAM = 'ate'

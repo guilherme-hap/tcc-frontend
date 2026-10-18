@@ -1,8 +1,9 @@
 import type { EvaluationType } from '../types'
 
 export const HOME_PATH = '/'
-export const NEW_EVALUATION_PATH = '/avaliacoes/nova'
-export const EVALUATION_PATH_PATTERN = '/avaliacoes/:id'
+const EVALUATIONS_PATH = '/avaliacoes'
+export const NEW_EVALUATION_PATH = `${EVALUATIONS_PATH}/nova`
+export const EVALUATION_PATH_PATTERN = `${EVALUATIONS_PATH}/:id`
 export const HISTORY_PATH = '/historico'
 export const SAVED_APIS_PATH = '/apis'
 export const LOGIN_PATH = '/entrar'
@@ -37,5 +38,5 @@ export function savedApiEvaluationPath(savedApiId: string): string {
 }
 
 export function evaluationPath(id: string): string {
-  return `/avaliacoes/${id}`
+  return `${EVALUATIONS_PATH}/${id}`
 }

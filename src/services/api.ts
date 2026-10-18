@@ -46,7 +46,7 @@ api.interceptors.response.use(undefined, async (error: unknown) => {
 export function handleError(err: unknown): never {
   if (err instanceof AxiosError) {
     if (!err.response) {
-      throw new ApiError('Não foi possível conectar ao servidor do auditor.')
+      throw new ApiError('Não foi possível conectar ao servidor do Specping.')
     }
     const data = err.response.data as Partial<ApiErrorBody> | undefined
     const code = data?.code ?? null

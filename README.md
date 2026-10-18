@@ -1,2 +1,2 @@
-# tcc-frontend
-Repositório para armazenar o código do front-end do auditor de APIs blackbox
+# Specping
+Repositório do front-end do Specping, auditor black-box de APIs REST

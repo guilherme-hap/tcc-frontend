@@ -132,7 +132,7 @@ function SavedApiLoadError({ message, type, onRetry }: SavedApiLoadErrorProps) {
   return (
     <div className={BODY}>
       <Notice tone="error" title="Não foi possível carregar a API salva deste link.">
-        {message ?? 'Sem resposta do servidor do auditor.'}
+        {message ?? 'Sem resposta do servidor do Specping.'}
       </Notice>
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <Button onClick={onRetry}>Tentar de novo</Button>

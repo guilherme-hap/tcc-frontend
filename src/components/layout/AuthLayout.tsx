@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { APP_NAME } from '../../utils/brand'
 import { HOME_PATH } from '../../utils/routes'
 import { BrandMark } from '../ui/BrandMark'
 import { MetaList, type MetaItem } from '../ui/MetaList'
@@ -30,7 +31,7 @@ export function AuthLayout({ title, lead, benefits = false, note, children }: Au
           className={`inline-flex items-center gap-2.5 rounded-sm text-[15px] font-bold max-lg:min-h-11 text-ink [font-variation-settings:"wdth"_108] ${FOCUS_RING}`}
         >
           <BrandMark />
-          Auditor de APIs
+          {APP_NAME}
         </Link>
         <TextLink to={HOME_PATH} tone="muted" leadingIcon={ArrowLeft}>
           Voltar ao início

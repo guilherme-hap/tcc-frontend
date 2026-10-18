@@ -9,6 +9,7 @@ import { LinkButton } from '../components/ui/LinkButton'
 import { Notice } from '../components/ui/Notice'
 import { BODY, FOCUS_RING, FRAME, OVERLINE, RAIL } from '../components/ui/classes'
 import { useDocumentTitle, useSession, useWideLayout } from '../hooks'
+import { APP_TAGLINE } from '../utils/brand'
 import { TYPE_ORDER } from '../utils/labels'
 import { HISTORY_PATH, NEW_EVALUATION_PATH } from '../utils/routes'
 
@@ -82,7 +83,7 @@ export function HomePage() {
       <aside aria-label="Apresentação do auditor" className={RAIL}>
         <div className="flex flex-col gap-3">
           <h1 className="font-display text-[28px] leading-8 font-bold tracking-[-0.02em] text-balance text-ink">
-            Avalie uma API de fora para dentro
+            {APP_TAGLINE}
           </h1>
           <p className="text-sm leading-5 text-ink-secondary">
             Com a especificação OpenAPI e a URL base, o auditor mede contrato, desempenho e

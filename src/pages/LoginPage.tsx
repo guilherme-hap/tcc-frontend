@@ -24,7 +24,7 @@ type LoginErrors = Partial<Record<(typeof FIELDS)[number], string>>
 
 export function LoginPage() {
   useDocumentTitle('Entrar')
-  const { user, expired } = useSession()
+  const { user } = useSession()
   const location = useLocation()
   const redirect = location.state as AuthRedirectState | null
   const [email, setEmail] = useState('')
@@ -85,10 +85,6 @@ export function LoginPage() {
       ) : failure && !hasFieldErrors ? (
         <Notice tone="error" title="Não foi possível entrar.">
           {failure.message}
-        </Notice>
-      ) : expired ? (
-        <Notice tone="warning" title="A sessão expirou.">
-          Uma sessão dura 8 horas. Entre de novo para continuar.
         </Notice>
       ) : null}
       <form ref={formRef} noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">

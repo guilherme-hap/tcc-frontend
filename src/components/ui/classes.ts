@@ -7,7 +7,7 @@ export const PAGE_CONTAINER = 'mx-auto flex w-full max-w-7xl flex-col gap-6 px-4
 export const FRAME = 'lg:grid lg:grid-cols-[23.25rem_minmax(0,1fr)] lg:items-start'
 
 export const RAIL =
-  'flex min-w-0 flex-col gap-5 border-b border-border bg-surface px-4 py-5 [scrollbar-color:var(--border-hover)_transparent] [scrollbar-width:thin] sm:px-6 lg:sticky lg:top-[53px] lg:h-[calc(100dvh-53px)] lg:overflow-y-auto lg:border-r lg:border-b-0'
+  'flex min-w-0 flex-col gap-5 border-b border-border bg-surface px-4 py-5 [scrollbar-color:var(--border-hover)_transparent] [scrollbar-width:thin] [scrollbar-gutter:stable] sm:px-6 lg:sticky lg:top-[53px] lg:h-[calc(100dvh-53px)] lg:overflow-y-auto lg:border-r lg:border-b-0'
 
 export const BODY = 'flex min-w-0 flex-col gap-5 px-4 pt-5 pb-10 sm:px-6 lg:px-7'
 

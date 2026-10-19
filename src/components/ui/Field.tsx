@@ -8,6 +8,7 @@ import type {
 import { Check, ChevronDown } from 'lucide-react'
 import { Icon } from './Icon'
 import { FOCUS_RING } from './classes'
+import { InfoTip } from './InfoTip'
 
 const CONTROL_CLASSES = `min-w-0 rounded-md border border-border-control bg-well px-3 text-[14px] text-ink transition-colors duration-150 placeholder:text-ink-muted hover:border-ink-muted aria-invalid:border-error aria-invalid:hover:border-error ${FOCUS_RING}`
 
@@ -94,6 +95,7 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
   optional?: boolean
   hint?: string
+  info?: ReactNode
   error?: string
   suffix?: ReactNode
   mono?: boolean
@@ -105,6 +107,7 @@ export function TextField({
   label,
   optional,
   hint,
+  info,
   error,
   suffix,
   'aria-invalid': invalid,
@@ -115,10 +118,13 @@ export function TextField({
 
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <label htmlFor={id} className="font-medium text-ink">
-        {label}
-        {optional ? <span className="font-normal text-ink-secondary"> (opcional)</span> : null}
-      </label>
+      <div className="flex items-center gap-1.5">
+        <label htmlFor={id} className="font-medium text-ink">
+          {label}
+          {optional ? <span className="font-normal text-ink-secondary"> (opcional)</span> : null}
+        </label>
+        {info ? <InfoTip label={label}>{info}</InfoTip> : null}
+      </div>
       <div className="flex items-center gap-2">
         <TextInput
           id={id}
@@ -161,12 +167,21 @@ interface CheckboxFieldProps {
   id: string
   label: string
   description?: string
+  info?: ReactNode
   error?: string
   checked: boolean
   onChange: (checked: boolean) => void
 }
 
-export function CheckboxField({ id, label, description, error, checked, onChange }: CheckboxFieldProps) {
+export function CheckboxField({
+  id,
+  label,
+  description,
+  info,
+  error,
+  checked,
+  onChange,
+}: CheckboxFieldProps) {
   return (
     <div className="flex min-w-0 items-start gap-3">
       <Checkbox
@@ -177,9 +192,12 @@ export function CheckboxField({ id, label, description, error, checked, onChange
         aria-describedby={error || description ? `${id}-message` : undefined}
       />
       <div className="flex min-w-0 flex-col gap-1">
-        <label htmlFor={id} className="cursor-pointer font-medium text-ink">
-          {label}
-        </label>
+        <div className="flex items-center gap-1.5">
+          <label htmlFor={id} className="cursor-pointer font-medium text-ink">
+            {label}
+          </label>
+          {info ? <InfoTip label={label}>{info}</InfoTip> : null}
+        </div>
         <FieldMessages id={id} hint={description} error={error} />
       </div>
     </div>

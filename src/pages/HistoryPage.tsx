@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, History, Plus } from 'lucide-react'
 import { DateRangePanel } from '../components/history/DateRangePanel'
 import { HistoryFilters } from '../components/history/HistoryFilters'
 import { HistoryTable } from '../components/history/HistoryTable'
+import { LazyScoreTrend } from '../components/history/LazyScoreTrend'
 import {
   HISTORY_PAGE_SIZE,
   toHistoryQuery,
@@ -36,7 +37,7 @@ export function HistoryPage() {
   useDocumentTitle('Histórico')
   const rangePanelId = useId()
   const wide = useWideLayout()
-  const { filters, page, hasFilters, update, setPage, clear } = useHistoryFilters()
+  const { filters, page, trend, hasFilters, update, setPage, setTrend, clear } = useHistoryFilters()
   const [rangeOpen, setRangeOpen] = useState(false)
   const [resetKey, setResetKey] = useState(0)
   const { history, isLoading, isRefreshing, error, refetch } = useEvaluationHistory(
@@ -138,6 +139,8 @@ export function HistoryPage() {
                 onClose={() => setRangeOpen(false)}
               />
             ) : null}
+
+            <LazyScoreTrend filters={filters} trend={trend} onChangeTrend={setTrend} />
 
             <Block title="Avaliações" flush>
               {isLoading ? (

@@ -11,6 +11,7 @@ const STATUS_PARAM = 'status'
 const FROM_PARAM = 'de'
 const TO_PARAM = 'ate'
 const PAGE_PARAM = 'pagina'
+const TREND_PARAM = 'grafico'
 
 export interface HistoryFilters extends DayRange {
   search: string
@@ -21,9 +22,11 @@ export interface HistoryFilters extends DayRange {
 export interface UseHistoryFiltersResult {
   filters: HistoryFilters
   page: number
+  trend: EvaluationType | null
   hasFilters: boolean
   update: (patch: Partial<HistoryFilters>) => void
   setPage: (page: number) => void
+  setTrend: (trend: EvaluationType | null) => void
   clear: () => void
 }
 
@@ -47,7 +50,15 @@ function readPage(params: URLSearchParams): number {
   return Number.isInteger(page) && page >= 1 ? page : 1
 }
 
-function writeParams(filters: HistoryFilters, page: number): URLSearchParams {
+function readTrend(params: URLSearchParams): EvaluationType | null {
+  return TYPE_ORDER.find((type) => type === params.get(TREND_PARAM)) ?? null
+}
+
+function writeParams(
+  filters: HistoryFilters,
+  page: number,
+  trend: EvaluationType | null,
+): URLSearchParams {
   const params = new URLSearchParams()
 
   if (filters.search) params.set(SEARCH_PARAM, filters.search)
@@ -56,6 +67,7 @@ function writeParams(filters: HistoryFilters, page: number): URLSearchParams {
   if (filters.from) params.set(FROM_PARAM, filters.from)
   if (filters.from && filters.to) params.set(TO_PARAM, filters.to)
   if (page > 1) params.set(PAGE_PARAM, String(page))
+  if (trend) params.set(TREND_PARAM, trend)
 
   return params
 }
@@ -75,17 +87,20 @@ export function useHistoryFilters(): UseHistoryFiltersResult {
   const [params, setParams] = useSearchParams()
   const filters = readFilters(params)
   const page = readPage(params)
+  const trend = readTrend(params)
 
-  const apply = (next: HistoryFilters, nextPage: number) => {
-    setParams(writeParams(next, nextPage), { replace: true })
+  const apply = (next: HistoryFilters, nextPage: number, nextTrend = trend) => {
+    setParams(writeParams(next, nextPage, nextTrend), { replace: true })
   }
 
   return {
     filters,
     page,
+    trend,
     hasFilters: Boolean(filters.search || filters.type || filters.status || filters.from),
     update: (patch) => apply({ ...filters, ...patch }, 1),
     setPage: (nextPage) => apply(filters, nextPage),
+    setTrend: (nextTrend) => apply(filters, page, nextTrend),
     clear: () => apply(EMPTY_FILTERS, 1),
   }
 }

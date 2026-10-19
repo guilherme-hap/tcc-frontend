@@ -16,6 +16,7 @@ import { CodeBlock } from '../ui/CodeBlock'
 import { Icon } from '../ui/Icon'
 import { Kbd } from '../ui/Kbd'
 import { MetaList, type MetaItem } from '../ui/MetaList'
+import { MiddleTruncate } from '../ui/MiddleTruncate'
 import { Notice } from '../ui/Notice'
 import { FOCUS_RING, OVERLINE, RAIL, TEXT_LINK } from '../ui/classes'
 import { DEFAULTS_LABEL, describeRules } from './describe'
@@ -68,6 +69,50 @@ function pillarDetail(form: EvaluationFormState, pillar: PillarName): string {
   return 'Oito verificações em quatro camadas'
 }
 
+function exceedsTotalDuration(form: EvaluationFormState): boolean {
+  return usesTargets(form.type) && estimateLoadDuration(form) > MAX_TOTAL_DURATION_SECONDS
+}
+
+function hostLabel(baseUrl: string | undefined): string {
+  if (!baseUrl) return 'a URL base da especificação'
+  try {
+    return new URL(baseUrl).host
+  } catch {
+    return baseUrl
+  }
+}
+
+interface LoadTargetProps {
+  form: EvaluationFormState
+  baseUrl: string | undefined
+  confirming: boolean
+}
+
+function LoadTarget({ form, baseUrl, confirming }: LoadTargetProps) {
+  const over = exceedsTotalDuration(form)
+
+  return (
+    <div
+      className={`flex min-w-0 flex-col gap-1 rounded-md border px-3 py-2 text-sm ${confirming ? 'border-warning/40 bg-warning-dim' : 'border-border bg-bg'}`}
+    >
+      <span className={`font-medium ${over ? 'text-error' : 'text-ink'}`}>
+        {formatCount(form.targets.length, 'endpoint', 'endpoints')} · {formatNumber(estimateLoadDuration(form))} s
+        {over ? ` (limite de ${MAX_TOTAL_DURATION_SECONDS} s)` : ''}
+      </span>
+      {baseUrl ? (
+        <MiddleTruncate text={baseUrl} className="font-mono text-xs text-ink-secondary" />
+      ) : (
+        <span className="text-ink-secondary">Na URL base da especificação</span>
+      )}
+      {confirming ? (
+        <span role="status" className="font-medium text-warning">
+          Clique de novo para enviar a carga a {hostLabel(baseUrl)}.
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
 interface CompositionProps {
   form: EvaluationFormState
 }
@@ -94,9 +139,12 @@ function Composition({ form }: CompositionProps) {
   )
 }
 
-function buildMeta(form: EvaluationFormState, account: SummaryAccount | null): MetaItem[] {
+function buildMeta(
+  form: EvaluationFormState,
+  account: SummaryAccount | null,
+  baseUrl: string | undefined,
+): MetaItem[] {
   const openApiUrl = form.openApiUrl.trim()
-  const apiBaseUrl = form.apiBaseUrl.trim()
   const minScore = form.minScore.trim()
   const meta: MetaItem[] = [
     {
@@ -109,14 +157,20 @@ function buildMeta(form: EvaluationFormState, account: SummaryAccount | null): M
   if (usesBaseUrl(form.type)) {
     meta.push({
       label: 'URL base',
-      value: apiBaseUrl || 'A da especificação',
-      mono: apiBaseUrl !== '',
+      value: baseUrl || 'A da especificação',
+      mono: Boolean(baseUrl),
     })
   }
   if (account) {
     meta.push({
       label: 'API salva',
-      value: account.savedApiName ?? (form.saveApi ? 'Será salva ao iniciar' : 'Nenhuma'),
+      value: account.savedApiName
+        ? form.saveApi
+          ? `${account.savedApiName}; nova configuração será salva`
+          : account.savedApiName
+        : form.saveApi
+          ? 'Será salva ao iniciar'
+          : 'Nenhuma',
     })
   }
   meta.push({ label: 'Nota mínima', value: minScore || 'Sem nota mínima', mono: minScore !== '' })
@@ -144,16 +198,27 @@ interface RequestSummaryProps {
   isSending: boolean
   submitError: string | null
   submitDetails: IValidationIssue[]
-  shortcutPending: boolean
+  confirming: boolean
+  baseUrl: string | undefined
 }
 
 interface MobileSubmitBarProps {
   form: EvaluationFormState
+  anonymous: boolean
+  confirming: boolean
+  baseUrl: string | undefined
   isSending: boolean
   message: string | null
 }
 
-export function MobileSubmitBar({ form, isSending, message }: MobileSubmitBarProps) {
+export function MobileSubmitBar({
+  form,
+  anonymous,
+  confirming,
+  baseUrl,
+  isSending,
+  message,
+}: MobileSubmitBarProps) {
   return (
     <div className="sticky bottom-0 z-10 flex items-center gap-3 border-t border-border bg-surface px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 lg:hidden">
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -166,10 +231,28 @@ export function MobileSubmitBar({ form, isSending, message }: MobileSubmitBarPro
             </span>
           ) : null}
         </span>
-        {message ? <span className="text-xs text-error">{message}</span> : <Composition form={form} />}
+        {message ? (
+          <span className="text-xs leading-4 text-error">{message}</span>
+        ) : confirming ? (
+          <span role="status" className="text-xs leading-4 font-medium text-warning">
+            Toque de novo para enviar a carga a {hostLabel(baseUrl)}
+          </span>
+        ) : (
+          <span className="flex items-center gap-3">
+            <span className="min-w-0 flex-1">
+              <Composition form={form} />
+            </span>
+            {anonymous ? (
+              <span className="inline-flex shrink-0 items-center gap-1 text-xs text-ink-secondary">
+                <Icon icon={Link2} size={12} />
+                Anônima
+              </span>
+            ) : null}
+          </span>
+        )}
       </div>
       <Button type="submit" variant="primary" size="lg" icon={Play} loading={isSending}>
-        {isSending ? 'Enviando…' : 'Iniciar'}
+        {isSending ? 'Enviando…' : confirming ? 'Confirmar' : 'Iniciar'}
       </Button>
     </div>
   )
@@ -183,7 +266,8 @@ export function RequestSummary({
   isSending,
   submitError,
   submitDetails,
-  shortcutPending,
+  confirming,
+  baseUrl,
 }: RequestSummaryProps) {
   const preview = buildRequestPreview(form)
   const visibility: EvaluationVisibility = account ? 'private' : 'anonymous'
@@ -240,7 +324,9 @@ export function RequestSummary({
                         </span>
                       ) : null}
                     </span>
-                    <span className="text-sm text-ink-secondary">
+                    <span
+                      className={`text-sm ${pillar === 'performance' && exceedsTotalDuration(form) ? 'text-error' : 'text-ink-secondary'}`}
+                    >
                       {pillarDetail(form, pillar)}
                     </span>
                   </li>
@@ -253,7 +339,7 @@ export function RequestSummary({
 
       <section className="flex flex-col gap-2">
         <h3 className={OVERLINE}>Dados do pedido</h3>
-        <MetaList items={buildMeta(form, account)} />
+        <MetaList items={buildMeta(form, account, baseUrl)} />
       </section>
 
       <details className="group border-t border-border">
@@ -300,12 +386,15 @@ export function RequestSummary({
           </Notice>
         ) : null}
         {usesTargets(form.type) ? (
-          <p className="flex items-start gap-2 text-sm text-ink-secondary">
-            <span className="flex h-5 items-center text-warning">
-              <Icon icon={TriangleAlert} size={14} />
-            </span>
-            O teste de carga envia requisições reais aos endpoints escolhidos. Use só contra um ambiente descartável.
-          </p>
+          <>
+            <p className="flex items-start gap-2 text-sm text-ink-secondary">
+              <span className="flex h-5 items-center text-warning">
+                <Icon icon={TriangleAlert} size={14} />
+              </span>
+              O teste de carga envia requisições reais aos endpoints escolhidos. Use só contra um ambiente descartável.
+            </p>
+            <LoadTarget form={form} baseUrl={baseUrl} confirming={confirming} />
+          </>
         ) : null}
         <Button
           type="submit"
@@ -315,13 +404,12 @@ export function RequestSummary({
           loading={isSending}
           className="w-full max-lg:hidden"
         >
-          {isSending ? 'Enviando…' : 'Iniciar avaliação'}
+          {isSending ? 'Enviando…' : confirming ? 'Confirmar e iniciar' : 'Iniciar avaliação'}
         </Button>
         <p
-          role="status"
-          className={`hidden items-center justify-center gap-2 text-sm sm:flex max-lg:sm:hidden ${shortcutPending ? 'font-medium text-warning' : 'text-ink-secondary'}`}
+          className={`hidden items-center justify-center gap-2 text-sm sm:flex max-lg:sm:hidden ${confirming ? 'font-medium text-warning' : 'text-ink-secondary'}`}
         >
-          {shortcutPending ? (
+          {confirming ? (
             <>
               Pressione <Kbd>Ctrl ↵</Kbd> de novo para enviar
             </>

@@ -25,9 +25,7 @@ function stillApplies(
   }
   if (root === 'minScore') return current.minScore === submitted.minScore
   if (root === 'savedApiName') {
-    return (
-      current.saveApi && !current.savedApiId && current.savedApiName === submitted.savedApiName
-    )
+    return current.saveApi && current.savedApiName === submitted.savedApiName
   }
   if (root === 'weights') {
     return (

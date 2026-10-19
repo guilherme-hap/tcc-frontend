@@ -1,10 +1,17 @@
 import type { ILoadTestOptions, SavedApi, SavedApiDefaults } from '../types'
 
-export function findSavedApiBySpec(
+export function findSavedApisBySpec(
   apis: SavedApi[] | null | undefined,
   openApiUrl: string,
-): SavedApi | null {
-  return apis?.find((api) => api.openApiUrl === openApiUrl.trim()) ?? null
+): SavedApi[] {
+  return apis?.filter((api) => api.openApiUrl === openApiUrl.trim()) ?? []
+}
+
+export function pickSavedApi(matches: SavedApi[], apiBaseUrl: string | null): SavedApi | null {
+  if (matches.length === 1) return matches[0]
+
+  const sameBase = matches.filter((api) => (api.apiBaseUrl ?? null) === apiBaseUrl)
+  return sameBase.length === 1 ? sameBase[0] : null
 }
 
 export function toSavedDefaults(settings: {

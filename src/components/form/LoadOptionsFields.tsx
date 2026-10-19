@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react'
+import { formatNumber } from '../../utils/format'
 import { Button } from '../ui/Button'
 import { Disclosure } from '../ui/Disclosure'
 import { CheckboxField, FieldMessages, TextField, TextInput } from '../ui/Field'
@@ -9,6 +10,7 @@ import {
   type EvaluationFormState,
   type FormErrors,
   type HeaderDraft,
+  loadLimit,
   type NumericOptionKey,
 } from './formState'
 
@@ -18,21 +20,45 @@ interface NumericOptionField {
   placeholder: string
   suffix?: string
   hint?: string
+  info?: string
 }
 
 const NUMERIC_FIELDS: NumericOptionField[] = [
-  { key: 'duration', label: 'Duração por endpoint', placeholder: '10', suffix: 's' },
-  { key: 'connections', label: 'Conexões simultâneas', placeholder: '10' },
+  {
+    key: 'duration',
+    label: 'Duração por endpoint',
+    placeholder: '10',
+    suffix: 's',
+    info: 'Cada endpoint roda por esta duração, um de cada vez. O padrão é 10 s, ou 5 s em métodos que alteram dados. A soma de todos os endpoints não pode passar de 600 s.',
+  },
+  {
+    key: 'connections',
+    label: 'Conexões simultâneas',
+    placeholder: '10',
+    info: 'Quantas conexões ficam abertas ao mesmo tempo contra cada endpoint.',
+  },
   {
     key: 'targetLatency',
     label: 'Tempo-alvo T do Apdex',
     placeholder: '1000',
     suffix: 'ms',
     hint: 'A duração precisa ser maior que 4 × T.',
+    info: 'Uma resposta até T é satisfeita, até 4 × T é tolerada e acima disso é frustrada. É a base da nota de desempenho (Apdex).',
   },
   { key: 'maxRequests', label: 'Máximo de requisições', placeholder: 'Sem limite' },
   { key: 'requestsPerSecond', label: 'Requisições por segundo', placeholder: 'Sem limite' },
 ]
+
+function limitHint(field: NumericOptionField, allowHighLoad: boolean): string | undefined {
+  if (field.hint) return field.hint
+
+  const limit = loadLimit(field.key, allowHighLoad)
+  if (limit === undefined) return undefined
+
+  return `Máximo ${formatNumber(limit)}${field.suffix ? ` ${field.suffix}` : ''}.`
+}
+
+const ELEVATED_LOAD_NOTE = `Sobe os máximos para ${formatNumber(loadLimit('duration', true) ?? 0)} s por endpoint, ${formatNumber(loadLimit('connections', true) ?? 0)} conexões, ${formatNumber(loadLimit('maxRequests', true) ?? 0)} requisições e ${formatNumber(loadLimit('requestsPerSecond', true) ?? 0)} requisições por segundo.`
 
 interface LoadOptionsFieldsProps {
   form: EvaluationFormState
@@ -81,7 +107,8 @@ export function LoadOptionsBody({ form, errors, onChange }: LoadOptionsBodyProps
               mono
               placeholder={field.placeholder}
               suffix={field.suffix}
-              hint={field.hint}
+              hint={limitHint(field, form.allowHighLoad)}
+              info={field.info}
               error={errors[`options.${field.key}`]}
               value={form.numericOptions[field.key]}
               onChange={(event) =>
@@ -159,7 +186,7 @@ export function LoadOptionsBody({ form, errors, onChange }: LoadOptionsBodyProps
         <CheckboxField
           id="allowHighLoad"
           label="Permitir carga elevada"
-          description="Sobe os limites para 300 s, 500 conexões, 1 milhão de requisições e 10 mil requisições por segundo."
+          description={ELEVATED_LOAD_NOTE}
           checked={form.allowHighLoad}
           onChange={(allowHighLoad) => onChange({ allowHighLoad })}
         />

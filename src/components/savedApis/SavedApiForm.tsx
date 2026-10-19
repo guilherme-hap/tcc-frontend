@@ -65,7 +65,7 @@ export function SavedApiForm({ editing, onDone }: SavedApiFormProps) {
       if (!(error instanceof ApiError)) return
 
       if (error.code === SAVED_API_EXISTS_CODE) {
-        setErrors({ openApiUrl: error.message })
+        setErrors({ name: error.message })
         setUnmatched([])
         focusFirstInvalid()
         return

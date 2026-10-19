@@ -184,13 +184,19 @@ export type SubmissionResult =
   | { ok: true; request: EvaluationRequest; savedApi: SavedApiInput | null }
   | { ok: false; errors: FormErrors }
 
-export function buildSubmission(form: EvaluationFormState, hasAccount: boolean): SubmissionResult {
+export function buildSubmission(
+  form: EvaluationFormState,
+  savedApis: SavedApi[] | null,
+): SubmissionResult {
   const result = buildEvaluationRequest(form)
   const errors: FormErrors = result.ok ? {} : { ...result.errors }
-  const savesApi = hasAccount && form.saveApi && !form.savedApiId
+  const savesApi = savedApis !== null && form.saveApi
   const name = form.savedApiName.trim()
 
   if (savesApi && !name) errors.savedApiName = 'Informe o nome da API.'
+  else if (savesApi && savedApis.some((api) => api.name === name)) {
+    errors.savedApiName = 'Já existe uma API salva com este nome.'
+  }
   if (!result.ok || Object.keys(errors).length > 0) return { ok: false, errors }
 
   return {

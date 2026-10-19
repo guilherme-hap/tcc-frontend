@@ -9,6 +9,7 @@ import type {
   PillarWeights,
   Severity,
 } from '../../types'
+import { formatNumber } from '../../utils/format'
 import { SEVERITY_ORDER } from '../../utils/labels'
 import { INVALID_URL_MESSAGE, isHttpUrl } from '../../utils/validation'
 
@@ -81,6 +82,18 @@ export type BuildResult =
   | { ok: false; errors: FormErrors }
 
 const INTEGER_OPTIONS: NumericOptionKey[] = ['connections', 'maxRequests']
+
+type LimitedOptionKey = Exclude<NumericOptionKey, 'targetLatency'>
+
+const LOAD_LIMITS: Record<'default' | 'elevated', Record<LimitedOptionKey, number>> = {
+  default: { duration: 60, connections: 50, maxRequests: 100_000, requestsPerSecond: 1_000 },
+  elevated: { duration: 300, connections: 500, maxRequests: 1_000_000, requestsPerSecond: 10_000 },
+}
+
+export function loadLimit(key: NumericOptionKey, allowHighLoad: boolean): number | undefined {
+  if (key === 'targetLatency') return undefined
+  return LOAD_LIMITS[allowHighLoad ? 'elevated' : 'default'][key]
+}
 
 export const NUMERIC_OPTION_KEYS: NumericOptionKey[] = [
   'duration',
@@ -247,8 +260,21 @@ export function buildLoadTestOptions(
     } else if (INTEGER_OPTIONS.includes(key) && !INTEGER_PATTERN.test(raw)) {
       errors[`options.${key}`] = 'Informe um número inteiro, sem ponto nem vírgula.'
     } else {
-      options[key] = value
+      const limit = loadLimit(key, form.allowHighLoad)
+      if (limit !== undefined && value > limit) {
+        const raisable = !form.allowHighLoad && value <= (loadLimit(key, true) ?? 0)
+        errors[`options.${key}`] =
+          `O máximo é ${formatNumber(limit)}.${raisable ? ' Marque "Permitir carga elevada" para subir o limite.' : ''}`
+      } else {
+        options[key] = value
+      }
     }
+  }
+
+  const total = options.duration === undefined ? 0 : form.targets.length * options.duration
+  if (total > MAX_TOTAL_DURATION_SECONDS) {
+    errors['options.duration'] =
+      `${formatNumber(form.targets.length)} endpoints de ${formatNumber(options.duration ?? 0)} s somam ${formatNumber(total)} s, acima do limite de ${MAX_TOTAL_DURATION_SECONDS} s. Reduza a duração ou tire endpoints.`
   }
 
   const headers: Record<string, string> = {}

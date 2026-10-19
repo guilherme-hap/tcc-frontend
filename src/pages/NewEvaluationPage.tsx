@@ -55,7 +55,6 @@ import type {
 } from '../types'
 import { formatCount } from '../utils/format'
 import { TYPE_ORDER } from '../utils/labels'
-import { findSavedApiBySpec } from '../utils/savedApi'
 import {
   NEW_EVALUATION_PATH,
   SAVED_API_PARAM,
@@ -83,7 +82,7 @@ const TIP_ITEMS: TipItem[] = [
   },
 ]
 
-const SHORTCUT_CONFIRM_MS = 4000
+const CONFIRM_MS = 8000
 
 interface Submission {
   request: EvaluationRequest
@@ -176,18 +175,13 @@ function EvaluationForm({
   const [contractRulesOpen, setContractRulesOpen] = useState(false)
   const [submitDetails, setSubmitDetails] = useState<IValidationIssue[]>([])
   const [specRequest, setSpecRequest] = useState<string | null>(null)
-  const [shortcutPending, setShortcutPending] = useState(false)
+  const [confirming, setConfirming] = useState(false)
   const { ref: formRef, focusFirstInvalid } = useFocusFirstInvalid<HTMLFormElement>()
 
   const hasAccount = user !== null
   const savedApis = hasAccount ? (apis ?? []) : null
   const selectedApi = savedApis?.find((api) => api.id === enteredForm.savedApiId) ?? null
-  const duplicateApi = selectedApi ? null : findSavedApiBySpec(savedApis, enteredForm.openApiUrl)
-  const form = {
-    ...enteredForm,
-    savedApiId: selectedApi?.id ?? '',
-    saveApi: enteredForm.saveApi && !duplicateApi,
-  }
+  const form = { ...enteredForm, savedApiId: selectedApi?.id ?? '' }
   const errors = rejection ? pruneErrors(rejection.errors, rejection.form, form) : {}
   const hasErrors = Object.keys(errors).length > 0
   const openApiUrl = form.openApiUrl.trim()
@@ -198,6 +192,7 @@ function EvaluationForm({
     (target) => findOperation(operations, target)?.requiresAuth,
   )
   const hasHeaders = form.headers.some((header) => header.name.trim())
+  const baseUrl = form.apiBaseUrl.trim() || specOperations.spec?.baseUrl
 
   const leaving = useRef({ form, keepsDraft: false })
   const submitted = useRef(false)
@@ -215,11 +210,11 @@ function EvaluationForm({
   })
 
   useEffect(() => {
-    if (!shortcutPending) return
+    if (!confirming) return
 
-    const timer = setTimeout(() => setShortcutPending(false), SHORTCUT_CONFIRM_MS)
+    const timer = setTimeout(() => setConfirming(false), CONFIRM_MS)
     return () => clearTimeout(timer)
-  }, [shortcutPending])
+  }, [confirming])
 
   useEffect(() => {
     clearFormDraft()
@@ -229,6 +224,7 @@ function EvaluationForm({
   }, [])
 
   const update = (patch: Partial<EvaluationFormState>) => {
+    setConfirming(false)
     setEnteredForm((current) => ({ ...current, ...patch }))
   }
 
@@ -243,17 +239,23 @@ function EvaluationForm({
     event.preventDefault()
     if (mutation.isPending) return
 
-    setShortcutPending(false)
     mutation.reset()
     setSubmitDetails([])
-    const result = buildSubmission(form, hasAccount)
+    const result = buildSubmission(form, savedApis)
 
     if (!result.ok) {
+      setConfirming(false)
       revealErrors(result.errors)
       return
     }
 
     setRejection(null)
+    if (usesTargets(form.type) && !confirming) {
+      setConfirming(true)
+      return
+    }
+
+    setConfirming(false)
     mutation.mutate(result, {
       onSuccess: ({ evaluationId, state }) => {
         submitted.current = true
@@ -279,11 +281,6 @@ function EvaluationForm({
 
     if (event.ctrlKey || event.metaKey) {
       event.preventDefault()
-      if (usesTargets(form.type) && !shortcutPending) {
-        setShortcutPending(true)
-        return
-      }
-      setShortcutPending(false)
       event.currentTarget.requestSubmit()
     } else if (event.target instanceof HTMLInputElement) {
       event.preventDefault()
@@ -347,7 +344,8 @@ function EvaluationForm({
             <>
               <Panel
                 title="Endpoints do teste de carga"
-                description="Escolha na lista de operações da especificação ou digite os paths como aparecem nela. Cada parâmetro entre chaves recebe o valor informado ou, sem ele, um valor gerado a partir da especificação; os testes rodam um endpoint por vez."
+                description="Escolha na lista de operações ou digite os paths como aparecem na especificação."
+                info="Os testes rodam um endpoint por vez. Cada parâmetro entre chaves recebe o valor informado ou, sem ele, um valor gerado a partir da especificação (em DELETE nenhum é gerado). O payload JSON também é opcional: vazio, um payload sintético é gerado."
                 aside={
                   <Badge mono>
                     {form.targets.length} de {MAX_TARGETS}
@@ -419,10 +417,7 @@ function EvaluationForm({
             </Disclosure>
           ) : null}
 
-          <Panel
-            title="Critério de aprovação"
-            description="Com uma nota mínima, o resultado diz se a avaliação foi aprovada ou reprovada. A execução e as notas não mudam."
-          >
+          <Panel title="Critério de aprovação">
             <div className="max-w-90">
               <TextField
                 id="minScore"
@@ -431,7 +426,8 @@ function EvaluationForm({
                 inputMode="decimal"
                 mono
                 placeholder="Sem nota mínima"
-                hint="De 0 a 100, comparada com a nota final. Avaliação parcial ou que falhou é reprovada."
+                hint="De 0 a 100."
+                info="Com uma nota mínima, o resultado diz se a avaliação foi aprovada ou reprovada, comparando-a com a nota final. Avaliação parcial ou que falhou é reprovada. A execução e as notas não mudam."
                 error={errors.minScore}
                 value={form.minScore}
                 onChange={(event) => update({ minScore: event.target.value })}
@@ -464,10 +460,14 @@ function EvaluationForm({
         isSending={mutation.isPending}
         submitError={mutation.isError ? mutation.error.message : null}
         submitDetails={submitDetails}
-        shortcutPending={shortcutPending}
+        confirming={confirming}
+        baseUrl={baseUrl}
       />
       <MobileSubmitBar
         form={form}
+        anonymous={!hasAccount}
+        confirming={confirming}
+        baseUrl={baseUrl}
         isSending={mutation.isPending}
         message={
           mutation.isError ? 'A avaliação não foi aceita' : hasErrors ? 'Revise os campos destacados' : null

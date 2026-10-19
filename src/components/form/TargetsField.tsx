@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react'
 import type { HttpMethod, ISpecOperation } from '../../types'
+import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { FieldMessages, SelectInput, TextArea, TextInput } from '../ui/Field'
 import { IconButton } from '../ui/IconButton'
@@ -30,10 +31,10 @@ function PathParamFields({ target, operation, position, errors, onChange }: Path
 
   return (
     <fieldset className="flex min-w-0 flex-col gap-2 sm:ml-7">
-      <legend className="mb-2 text-sm text-ink-secondary">
+      <legend className={required ? 'mb-2 text-sm text-ink-secondary' : 'sr-only'}>
         {required
-          ? 'Valores dos parâmetros do path. Em DELETE todos são obrigatórios: nenhum valor é gerado, para não excluir dados reais.'
-          : 'Valores dos parâmetros do path. Vazio, o valor é gerado a partir da especificação.'}
+          ? 'Em DELETE todos os valores são obrigatórios: nenhum é gerado, para não excluir dados reais.'
+          : `Valores dos parâmetros do path do endpoint ${position}`}
       </legend>
       <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
         {names.map((name, index) => {
@@ -147,16 +148,10 @@ export function TargetsField({ targets, operations, errors, onChange }: TargetsF
                 </div>
               ) : null}
               {operation?.requiresAuth || operation?.deprecated ? (
-                <p className="text-sm text-ink-secondary sm:ml-7">
-                  {[
-                    operation.deprecated ? 'Operação marcada como obsoleta na especificação.' : null,
-                    operation.requiresAuth
-                      ? 'Exige autenticação: informe o cabeçalho nas opções do teste de carga.'
-                      : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                </p>
+                <div className="flex flex-wrap gap-1.5 sm:ml-7">
+                  {operation.deprecated ? <Badge>Obsoleta</Badge> : null}
+                  {operation.requiresAuth ? <Badge>Exige autenticação</Badge> : null}
+                </div>
               ) : null}
               <PathParamFields
                 target={target}
@@ -170,7 +165,9 @@ export function TargetsField({ targets, operations, errors, onChange }: TargetsF
                   <TextArea
                     aria-label={`Payload JSON do endpoint ${position}`}
                     aria-invalid={payloadError ? true : undefined}
-                    aria-describedby={`target-${target.id}-payload-message`}
+                    aria-describedby={
+                      payloadError || withoutBody ? `target-${target.id}-payload-message` : undefined
+                    }
                     value={target.payload}
                     onChange={(event) => updateTarget(target.id, { payload: event.target.value })}
                     rows={3}
@@ -182,7 +179,7 @@ export function TargetsField({ targets, operations, errors, onChange }: TargetsF
                     hint={
                       withoutBody
                         ? 'A especificação não declara corpo JSON para esta operação: sem payload, a requisição vai sem corpo.'
-                        : 'Payload JSON opcional. Vazio, um payload sintético é gerado a partir da especificação.'
+                        : undefined
                     }
                   />
                 </div>

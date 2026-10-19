@@ -1,7 +1,7 @@
 import { formatCount, formatMilliseconds } from '../../utils/format'
 import { NUMERIC_OPTION_KEYS, parseLoadOption, type EvaluationFormState } from './formState'
 
-export const DEFAULTS_LABEL = 'Padrões'
+export const DEFAULTS_LABEL = 'Valores padrão'
 
 export function describeRules(form: EvaluationFormState): string {
   const parts: string[] = []

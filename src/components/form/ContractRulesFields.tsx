@@ -38,7 +38,7 @@ export function ContractRulesFields({
         <CheckboxField
           id="customSeverityWeights"
           label="Personalizar os pesos por severidade"
-          description="Por padrão: Erro 0,5208, Aviso 0,2708, Informação 0,1458, Dica 0,0625 e Desconhecida 0."
+          info="Por padrão: Erro 0,5208, Aviso 0,2708, Informação 0,1458, Dica 0,0625 e Desconhecida 0."
           checked={form.customSeverityWeights}
           onChange={(customSeverityWeights) => onChange({ customSeverityWeights })}
         />
@@ -66,7 +66,7 @@ export function ContractRulesFields({
             <FieldMessages
               id="severityWeights"
               error={errors.severityWeights}
-              hint="Cada regra violada pesa o valor da sua severidade. Só a proporção entre os pesos importa: eles não precisam somar 1."
+              hint="Só a proporção entre os pesos importa: eles não precisam somar 1."
             />
           </div>
         ) : null}

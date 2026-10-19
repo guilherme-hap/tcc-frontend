@@ -7,7 +7,7 @@ import { Badge } from '../ui/Badge'
 interface PerformanceProgressProps {
   progress: IStepProgress
   targets: IPerformanceTarget[] | null
-  receivedAt: number
+  tickAt: number
   now: number
   limitedRequests: boolean
   showTarget?: boolean
@@ -16,21 +16,23 @@ interface PerformanceProgressProps {
 export function PerformanceProgress({
   progress,
   targets,
-  receivedAt,
+  tickAt,
   now,
   limitedRequests,
   showTarget = true,
 }: PerformanceProgressProps) {
-  const { targetIndex, totalTargets, phase, expectedDurationSeconds } = progress
+  const { targetIndex, totalTargets, phase, expectedDurationSeconds, run, totalRuns } = progress
   const target = targets?.[targetIndex]
-  const elapsed = liveElapsedSeconds(progress, receivedAt, now)
+  const elapsed = liveElapsedSeconds(progress, tickAt, now)
   const fraction = expectedDurationSeconds > 0 ? elapsed / expectedDurationSeconds : 0
   const position = `Endpoint ${formatNumber(targetIndex + 1)} de ${formatNumber(totalTargets)}`
+  const runLabel = totalRuns > 1 ? `Execução ${formatNumber(run)} de ${formatNumber(totalRuns)}` : null
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-        <span className="font-medium text-ink">{position}</span>
+        {runLabel ? <span className="font-medium text-ink">{runLabel}</span> : null}
+        {phase === 'RESTING' ? null : <span className="font-medium text-ink">{position}</span>}
         {showTarget && target ? (
           <span className="flex min-w-0 items-center gap-2">
             <Badge mono>{target.method ?? 'GET'}</Badge>
@@ -43,6 +45,16 @@ export function PerformanceProgress({
           {PROGRESS_PHASE_LABELS[phase]}
         </Badge>
       </div>
+      {totalRuns > 1 ? (
+        <div aria-hidden="true" className="flex h-1.5 gap-0.5">
+          {Array.from({ length: totalRuns }, (_, index) => (
+            <span
+              key={index}
+              className={`flex-1 rounded-xs ${index < run - 1 ? 'bg-pillar-performance' : index === run - 1 ? 'bg-pillar-performance/45' : 'bg-idle'}`}
+            />
+          ))}
+        </div>
+      ) : null}
       <div
         role="progressbar"
         aria-label={`Teste de carga: ${position}`}
@@ -72,6 +84,8 @@ export function PerformanceProgress({
       <p className="text-sm text-ink-secondary">
         {phase === 'QUEUED' ? (
           'Na fila do teste de carga: o auditor roda um teste de carga por vez.'
+        ) : phase === 'RESTING' ? (
+          `Aguardando ${formatNumber(expectedDurationSeconds)} s para a API voltar ao repouso antes da próxima execução.`
         ) : (
           <>
             <span className="font-mono text-ink tabular-nums">

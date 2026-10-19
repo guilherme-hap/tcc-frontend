@@ -50,7 +50,8 @@ export function SecuritySection({ checks, layerWeights, breakdown, score }: Secu
     <Panel
       title="Verificações de segurança"
       className="section-large"
-      description="Configuração de transporte e cabeçalhos HTTP observados na URL base, não em cada endpoint."
+      description="Transporte e cabeçalhos HTTP observados na URL base."
+      info="As verificações valem para a URL base, não para cada endpoint."
     >
       <div className="@container flex flex-col gap-6">
         {parts && score !== undefined ? (

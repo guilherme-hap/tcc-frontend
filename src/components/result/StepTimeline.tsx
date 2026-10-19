@@ -46,11 +46,11 @@ interface StepRowProps {
   evaluation: EvaluationRecord
   frame: TimeWindow | null
   now: number
-  receivedAt: number
+  tickAt: number
   onOpenPerformance?: () => void
 }
 
-function StepRow({ step, evaluation, frame, now, receivedAt, onOpenPerformance }: StepRowProps) {
+function StepRow({ step, evaluation, frame, now, tickAt, onOpenPerformance }: StepRowProps) {
   const closedAt = evaluation.finishedAt ? Date.parse(evaluation.finishedAt) : now
   const duration = stepDuration(step, step.status === 'RUNNING' ? now : closedAt)
   const bar = frame ? barStyle(step, frame, now) : null
@@ -89,7 +89,7 @@ function StepRow({ step, evaluation, frame, now, receivedAt, onOpenPerformance }
           <PerformanceProgress
             progress={progress}
             targets={evaluation.targets}
-            receivedAt={receivedAt}
+            tickAt={tickAt}
             now={now}
             limitedRequests={evaluation.requestSettings?.loadTestOptions?.maxRequests !== undefined}
           />
@@ -112,7 +112,7 @@ function StepRow({ step, evaluation, frame, now, receivedAt, onOpenPerformance }
 interface StepTimelineProps {
   evaluation: EvaluationRecord
   isActive: boolean
-  receivedAt: number
+  tickAt: number
   onOpenPerformance?: () => void
   className?: string
 }
@@ -120,7 +120,7 @@ interface StepTimelineProps {
 export function StepTimeline({
   evaluation,
   isActive,
-  receivedAt,
+  tickAt,
   onOpenPerformance,
   className = '',
 }: StepTimelineProps) {
@@ -159,7 +159,7 @@ export function StepTimeline({
                   evaluation={evaluation}
                   frame={frame}
                   now={now}
-                  receivedAt={receivedAt}
+                  tickAt={tickAt}
                   onOpenPerformance={onOpenPerformance}
                 />
               ))}

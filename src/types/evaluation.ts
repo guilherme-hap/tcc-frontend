@@ -21,6 +21,12 @@ export interface ILoadTestOptions {
   body?: string
   allowMutatingMethods?: boolean
   allowHighLoad?: boolean
+  mode?: 'complete' | 'quick'
+  repetitions?: number
+  restIntervalSeconds?: number
+  maxCpuUsage?: number
+  maxEventLoopDelayMs?: number
+  stabilityThreshold?: number
 }
 
 export interface IPerformanceTarget {

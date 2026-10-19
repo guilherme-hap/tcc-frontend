@@ -59,10 +59,10 @@ export function stepDuration(
 
 export function liveElapsedSeconds(
   progress: IStepProgress,
-  receivedAt: number,
+  tickAt: number,
   now: number,
 ): number {
   if (progress.phase !== 'RUNNING') return 0
-  const sinceReceived = receivedAt > 0 ? Math.max(0, now - receivedAt) / 1000 : 0
-  return Math.min(progress.expectedDurationSeconds, progress.elapsedSeconds + sinceReceived)
+  const sinceTick = tickAt > 0 ? Math.min(1, Math.max(0, now - tickAt) / 1000) : 0
+  return Math.min(progress.expectedDurationSeconds, progress.elapsedSeconds + sinceTick)
 }

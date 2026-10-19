@@ -36,6 +36,36 @@ function loadEntries(options: LoadOptions): Entry[] {
   return entries
 }
 
+function measurementEntries(performance: NonNullable<IScoringParameters['performance']>): Entry[] {
+  const { repetitions, mode, restIntervalSeconds, thresholds, execution } = performance
+  const entries: Entry[] = []
+
+  if (repetitions !== undefined) {
+    entries.push([
+      'Execuções',
+      `${formatNumber(repetitions)} (modo ${mode === 'quick' ? 'rápido' : 'completo'})`,
+    ])
+  }
+  if (restIntervalSeconds !== undefined) {
+    entries.push(['Intervalo entre execuções', `${formatNumber(restIntervalSeconds)} s`])
+  }
+  if (thresholds) {
+    entries.push(
+      ['Limiar de CPU do gerador', `${formatNumber(thresholds.maxCpuUsage, 2)} de um núcleo`],
+      ['Limiar do event loop (p99)', `${formatNumber(thresholds.maxEventLoopDelayMs)} ms`],
+      ['Limiar de estabilidade (coeficiente de variação)', formatNumber(thresholds.stabilityThreshold, 2)],
+      ['Status dos limiares', 'Provisórios, ainda não calibrados'],
+    )
+  }
+  if (execution) {
+    entries.push([
+      'Executado em',
+      execution.workerMode === 'external' ? 'Worker externo' : 'Processo da API',
+    ])
+  }
+  return entries
+}
+
 interface ParameterGroupProps {
   title: string
   entries: Entry[]
@@ -65,6 +95,7 @@ export function ScoringParameters({
   const weighted = PILLARS.filter((pillar) => pillarWeights[pillar] !== undefined)
   const minScore = settings?.minScore
   const load = performance ? loadEntries(settings?.loadTestOptions ?? {}) : []
+  const measurement = performance ? measurementEntries(performance) : []
 
   const groups = (
     <div className="grid grid-cols-1 gap-x-10 gap-y-6 @lg:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-5">
@@ -98,8 +129,11 @@ export function ScoringParameters({
       {performance ? (
         <ParameterGroup
           title="Teste de carga"
-          entries={load.length > 0 ? load : [['Opções', 'Padrões do auditor']]}
+          entries={load.length > 0 ? load : [['Opções', 'Valores padrão']]}
         />
+      ) : null}
+      {performance && measurement.length > 0 ? (
+        <ParameterGroup title="Repetição e estabilidade" entries={measurement} />
       ) : null}
       {contract ? (
         <ParameterGroup

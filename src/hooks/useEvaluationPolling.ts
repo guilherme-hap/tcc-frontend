@@ -19,18 +19,20 @@ const SETTLED_STEP_STATUSES: EvaluationStepStatus[] = ['COMPLETED', 'FAILED', 'S
 
 export interface LiveSeries {
   targetIndex: number
+  run: number
   points: IPerformanceSeriesPoint[]
 }
 
 interface TrackedProgress extends EvaluationProgress {
   liveSeries: LiveSeries | null
   refreshDue: boolean
+  tickAt: number
 }
 
 export interface UseEvaluationPollingResult {
   evaluation: EvaluationRecord | undefined
   liveSeries: LiveSeries | null
-  progressReceivedAt: number
+  progressTickAt: number
   isLoading: boolean
   isPaused: boolean
   isPolling: boolean
@@ -49,16 +51,29 @@ function accumulateSeries(
 ): LiveSeries | null {
   if (!progress) return null
 
-  const points = previous?.targetIndex === progress.targetIndex ? previous.points : []
+  const sameTest = previous?.targetIndex === progress.targetIndex && previous.run === progress.run
+  const points = sameTest ? previous.points : []
   const { lastSecond } = progress
-  if (!lastSecond) return { targetIndex: progress.targetIndex, points }
+  if (!lastSecond) return { targetIndex: progress.targetIndex, run: progress.run, points }
 
   return {
     targetIndex: progress.targetIndex,
+    run: progress.run,
     points: [...points.filter((point) => point.second !== lastSecond.second), lastSecond].sort(
       (a, b) => a.second - b.second,
     ),
   }
+}
+
+function isSameTick(before: IStepProgress | undefined, after: IStepProgress | undefined): boolean {
+  return (
+    before !== undefined &&
+    after !== undefined &&
+    before.targetIndex === after.targetIndex &&
+    before.run === after.run &&
+    before.phase === after.phase &&
+    before.elapsedSeconds === after.elapsedSeconds
+  )
 }
 
 function needsRefresh(
@@ -75,7 +90,11 @@ function needsRefresh(
 
   const before = performanceProgress(previousSteps)
   const after = performanceProgress(next.steps)
-  return before !== undefined && after !== undefined && before.targetIndex !== after.targetIndex
+  return (
+    before !== undefined &&
+    after !== undefined &&
+    (before.targetIndex !== after.targetIndex || before.run !== after.run)
+  )
 }
 
 function mergeProgress(
@@ -122,10 +141,13 @@ export function useEvaluationPolling(
       const baseline =
         previous?.steps ?? queryClient.getQueryData<EvaluationRecord>(evaluationKey)?.steps
 
+      const sameTick = isSameTick(performanceProgress(previous?.steps), performanceProgress(next.steps))
+
       return {
         ...next,
         liveSeries: accumulateSeries(previous?.liveSeries, performanceProgress(next.steps)),
         refreshDue: needsRefresh(baseline, next),
+        tickAt: sameTick && previous ? previous.tickAt : Date.now(),
       }
     },
     enabled: tracking,
@@ -153,7 +175,7 @@ export function useEvaluationPolling(
   return {
     evaluation,
     liveSeries: isPolling ? (progress?.liveSeries ?? null) : null,
-    progressReceivedAt: progressQuery.dataUpdatedAt,
+    progressTickAt: progress?.tickAt ?? 0,
     isLoading: query.isPending,
     isPaused: query.isPaused,
     isPolling,

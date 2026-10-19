@@ -96,9 +96,10 @@ export const STEP_STATUS_LABELS: Record<EvaluationStepStatus, string> = {
   INTERRUPTED: 'Interrompido',
 }
 
-export const PROGRESS_PHASE_LABELS: Record<'QUEUED' | 'RUNNING', string> = {
+export const PROGRESS_PHASE_LABELS: Record<'QUEUED' | 'RUNNING' | 'RESTING', string> = {
   QUEUED: 'Aguardando a vez',
   RUNNING: 'Medindo',
+  RESTING: 'Intervalo entre execuções',
 }
 
 export const STATUS_ORDER: EvaluationStatus[] = ['PENDING', 'RUNNING', 'COMPLETED', 'PARTIAL', 'FAILED']

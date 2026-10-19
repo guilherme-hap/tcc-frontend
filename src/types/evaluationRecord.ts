@@ -34,7 +34,19 @@ export interface IPerformanceSeriesPoint {
   errors: number
 }
 
-export interface IAutocannonResult {
+export interface ISaturation {
+  cpuUsage: number
+  eventLoopDelayP99Ms: number
+  exceeded: boolean
+}
+
+export interface IDispersion {
+  stddev: number
+  min: number
+  max: number
+}
+
+export interface IAutocannonRunResult {
   score: number | null
   targetLatency: number
   satisfied: number
@@ -53,6 +65,21 @@ export interface IAutocannonResult {
   errors: number
   timeouts: number
   warnings: IAuditMessage[]
+  saturation: ISaturation
+}
+
+export interface IPerformanceRun {
+  run: number
+  result: IAutocannonRunResult | null
+  error?: string
+  code?: string
+}
+
+export interface IAutocannonResult extends Omit<IAutocannonRunResult, 'saturation'> {
+  runCount?: number
+  runsCounted?: number
+  dispersion?: IDispersion | null
+  runs?: IPerformanceRun[]
 }
 
 export interface IPerformanceTargetResult {
@@ -84,7 +111,9 @@ export type EvaluationStepStatus =
 export interface IStepProgress {
   targetIndex: number
   totalTargets: number
-  phase: 'QUEUED' | 'RUNNING'
+  run: number
+  totalRuns: number
+  phase: 'QUEUED' | 'RUNNING' | 'RESTING'
   startedAt: string | null
   expectedDurationSeconds: number
   elapsedSeconds: number
@@ -104,6 +133,10 @@ export interface IEvaluationStep {
   progress?: IStepProgress
 }
 
+export type SharedMachineStatus = 'shared' | 'separate' | 'unverified'
+
+export type StabilityStatus = 'stable' | 'low' | 'not_measured'
+
 export interface IScoringParameters {
   pillarWeights: PillarWeights
   contract?: {
@@ -112,6 +145,30 @@ export interface IScoringParameters {
   }
   performance?: {
     targetLatency: number
+    mode?: 'complete' | 'quick'
+    repetitions?: number
+    restIntervalSeconds?: number
+    thresholds?: {
+      status: 'provisional'
+      maxCpuUsage: number
+      maxEventLoopDelayMs: number
+      stabilityThreshold: number
+    }
+    execution?: {
+      host: string
+      pid: number
+      workerMode: 'embedded' | 'external'
+      apiHost: string
+      sameMachine: SharedMachineStatus
+    }
+    runScores?: (number | null)[]
+    stability?: {
+      status: StabilityStatus
+      coefficientOfVariation: number | null
+      dispersion: IDispersion | null
+      runsCounted: number
+    }
+    warnings?: IAuditMessage[]
   }
   security?: {
     layerWeights: Record<SecurityLayer, number>

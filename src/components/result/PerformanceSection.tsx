@@ -1,21 +1,28 @@
+import { useState, type ReactNode } from 'react'
 import { CircleX, TriangleAlert } from 'lucide-react'
 import { useNow, type LiveSeries } from '../../hooks'
 import type {
   IAutocannonResult,
   IPerformanceTarget,
   IPerformanceTargetResult,
+  IScoringParameters,
   IStepProgress,
 } from '../../types'
-import { formatMilliseconds, formatNumber, formatPercent } from '../../utils/format'
+import { formatCount, formatMilliseconds, formatNumber, formatPercent } from '../../utils/format'
 import { Badge } from '../ui/Badge'
+import { Button } from '../ui/Button'
+import { Collapsible } from '../ui/Collapsible'
 import { Icon } from '../ui/Icon'
+import { InfoTip } from '../ui/InfoTip'
 import { Panel } from '../ui/Panel'
 import { FOCUS_RING, OVERLINE } from '../ui/classes'
 import { ApdexZones } from './ApdexZones'
 import { AuditMessageList } from './AuditMessageList'
 import { LatencyPercentiles } from './LatencyPercentiles'
+import { LazySeriesChart } from './LazyCharts'
+import { MeasurementSummary } from './MeasurementSummary'
 import { PerformanceProgress } from './PerformanceProgress'
-import { SeriesChart } from './SeriesChart'
+import { RunsChart } from './RunsChart'
 import { StatusCodeBreakdown } from './StatusCodeBreakdown'
 
 const SUBHEADING = 'text-sm font-medium text-ink'
@@ -82,6 +89,37 @@ function TargetHeading({ method, path, pathParams }: TargetHeadingProps) {
   )
 }
 
+function RunSeries({ result }: { result: IAutocannonResult }) {
+  const runs = (result.runs ?? []).flatMap(({ run, result: runResult }) =>
+    runResult && runResult.series.length > 0 ? [{ run, series: runResult.series }] : [],
+  )
+  const [selected, setSelected] = useState(runs[0]?.run)
+  const current = runs.find(({ run }) => run === selected) ?? runs[0]
+
+  if (!current || runs.length < 2) {
+    return <LazySeriesChart points={result.series} targetLatency={result.targetLatency} />
+  }
+
+  return (
+    <div className="flex min-w-0 flex-col gap-3">
+      <div role="group" aria-label="Execução mostrada na série por segundo" className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-ink-secondary">Execução</span>
+        {runs.map(({ run }) => (
+          <Button
+            key={run}
+            variant={run === current.run ? 'primary' : 'secondary'}
+            aria-pressed={run === current.run}
+            onClick={() => setSelected(run)}
+          >
+            {formatNumber(run)}
+          </Button>
+        ))}
+      </div>
+      <LazySeriesChart points={current.series} targetLatency={result.targetLatency} />
+    </div>
+  )
+}
+
 interface DiagnosticsProps {
   result: IAutocannonResult
 }
@@ -107,16 +145,18 @@ function Diagnostics({ result }: DiagnosticsProps) {
 
       <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:gap-6">
         <div className="flex min-w-0 flex-col gap-1">
-          <h5 className={SUBHEADING}>Vazão média</h5>
+          <div className="flex items-center gap-1.5">
+            <h5 className={SUBHEADING}>Vazão média</h5>
+            <InfoTip label="Vazão média">
+              Todas as respostas, inclusive 4xx, pela duração medida. Depende das conexões e da
+              latência; não é a capacidade da API.
+            </InfoTip>
+          </div>
           <p className="num text-2xl leading-7 text-ink">
             {formatNumber(result.requestsPerSecond, 1)}
             <span className="ml-1.5 font-body text-sm font-normal tracking-normal text-ink-secondary [font-variation-settings:normal]">
               resp./s
             </span>
-          </p>
-          <p className="text-xs text-ink-secondary">
-            Todas as respostas, inclusive 4xx, pela duração medida. Depende das conexões e da
-            latência; não é a capacidade da API.
           </p>
         </div>
         <div className="flex min-w-0 flex-col gap-2">
@@ -125,40 +165,74 @@ function Diagnostics({ result }: DiagnosticsProps) {
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-col gap-2">
-        <h5 className={SUBHEADING}>Série por segundo</h5>
-        <SeriesChart points={result.series} targetLatency={result.targetLatency} />
-      </div>
+      <Collapsible title="Série por segundo" aside="respostas, latência e erros">
+        <RunSeries result={result} />
+      </Collapsible>
     </section>
   )
+}
+
+function describeScoreBasis(result: IAutocannonResult): string {
+  const runCount = result.runCount ?? 1
+  const parts = [
+    result.dispersion ? `Apdex × 100 ± ${formatNumber(result.dispersion.stddev)}` : 'Apdex × 100',
+    `T = ${formatMilliseconds(result.targetLatency)}`,
+    formatCount(runCount, 'execução', 'execuções'),
+  ]
+  const counted =
+    result.runsCounted !== undefined && result.runsCounted < runCount
+      ? ` (${formatNumber(result.runsCounted)} na média)`
+      : ''
+  return `${parts.join(' · ')}${counted}`
 }
 
 interface TargetCardProps {
   id: string
   target: IPerformanceTargetResult
   pathParams: Record<string, string> | undefined
+  thresholds: NonNullable<IScoringParameters['performance']>['thresholds']
+  expectedRuns: number | undefined
+  live?: ReactNode
 }
 
-function TargetCard({ id, target, pathParams }: TargetCardProps) {
+function TargetCard({ id, target, pathParams, thresholds, expectedRuns, live }: TargetCardProps) {
   const { result } = target
   const counts = result ? buildCounts(result) : null
+  const doneRuns = result?.runCount ?? 1
+  const partial = expectedRuns !== undefined && doneRuns < expectedRuns
 
   return (
     <li
       id={id}
       className="flex min-w-0 scroll-mt-32 flex-col gap-4 border-t border-border pt-5 first:border-t-0 first:pt-0"
     >
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-        <TargetHeading method={target.method} path={target.path} pathParams={pathParams} />
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+        <div className="flex min-w-0 flex-wrap items-start gap-x-3 gap-y-2">
+          <TargetHeading method={target.method} path={target.path} pathParams={pathParams} />
+          {partial ? (
+            <Badge tone="accent">
+              Parcial: {formatNumber(doneRuns)} de {formatNumber(expectedRuns)} execuções até agora
+            </Badge>
+          ) : null}
+        </div>
+
         {result ? (
-          <p className="flex items-baseline gap-2 text-sm text-ink-secondary">
-            <span className="font-mono text-2xl leading-8 font-semibold text-ink tabular-nums">
-              {result.score !== null ? formatNumber(result.score) : 'Não medido'}
-            </span>
-            Apdex × 100 · T = {formatMilliseconds(result.targetLatency)}
-          </p>
+          <div className="flex min-w-0 flex-col gap-1 sm:items-end">
+            {result.score !== null ? (
+              <span className="num text-4xl leading-none text-ink">{formatNumber(result.score)}</span>
+            ) : (
+              <span className="text-lg text-ink-secondary">Não medido</span>
+            )}
+            <span className="text-sm text-ink-secondary">{describeScoreBasis(result)}</span>
+          </div>
         ) : null}
       </div>
+
+      {live ? (
+        <div className="flex min-w-0 flex-col gap-4 rounded-md border border-border bg-well p-4">
+          {live}
+        </div>
+      ) : null}
 
       {result ? (
         <>
@@ -188,6 +262,16 @@ function TargetCard({ id, target, pathParams }: TargetCardProps) {
             </div>
           ) : null}
           <AuditMessageList messages={result.warnings} />
+          {result.runs && result.runs.length > 0 ? (
+            <Collapsible title="Execuções">
+              <RunsChart
+                runs={result.runs}
+                mean={result.score}
+                targetLatency={result.targetLatency}
+                thresholds={thresholds}
+              />
+            </Collapsible>
+          ) : null}
           <Diagnostics result={result} />
         </>
       ) : (
@@ -202,41 +286,31 @@ function TargetCard({ id, target, pathParams }: TargetCardProps) {
   )
 }
 
-interface LiveTargetCardProps {
-  target: IPerformanceTarget
+interface LiveRunProps {
   progress: IStepProgress
   points: LiveSeries['points']
   targets: IPerformanceTarget[] | null
-  receivedAt: number
+  tickAt: number
   now: number
   limitedRequests: boolean
   targetLatency: number | undefined
 }
 
-function LiveTargetCard({
-  target,
+function LiveRun({
   progress,
   points,
   targets,
-  receivedAt,
+  tickAt,
   now,
   limitedRequests,
   targetLatency,
-}: LiveTargetCardProps) {
+}: LiveRunProps) {
   return (
-    <li
-      aria-busy="true"
-      className="flex min-w-0 flex-col gap-4 border-t border-border pt-5 first:border-t-0 first:pt-0"
-    >
-      <TargetHeading
-        method={target.method ?? 'GET'}
-        path={target.path}
-        pathParams={target.pathParams}
-      />
+    <>
       <PerformanceProgress
         progress={progress}
         targets={targets}
-        receivedAt={receivedAt}
+        tickAt={tickAt}
         now={now}
         limitedRequests={limitedRequests}
         showTarget={false}
@@ -247,7 +321,7 @@ function LiveTargetCard({
             <h4 className={OVERLINE}>Ao vivo</h4>
             <Badge>Fora da nota</Badge>
           </div>
-          <SeriesChart
+          <LazySeriesChart
             points={points}
             minSlots={progress.expectedDurationSeconds}
             targetLatency={targetLatency}
@@ -258,6 +332,26 @@ function LiveTargetCard({
           </p>
         </div>
       ) : null}
+    </>
+  )
+}
+
+interface LiveTargetCardProps extends LiveRunProps {
+  target: IPerformanceTarget
+}
+
+function LiveTargetCard({ target, ...run }: LiveTargetCardProps) {
+  return (
+    <li
+      aria-busy="true"
+      className="flex min-w-0 flex-col gap-4 border-t border-border pt-5 first:border-t-0 first:pt-0"
+    >
+      <TargetHeading
+        method={target.method ?? 'GET'}
+        path={target.path}
+        pathParams={target.pathParams}
+      />
+      <LiveRun {...run} />
     </li>
   )
 }
@@ -322,10 +416,12 @@ interface PerformanceSectionProps {
   targets: IPerformanceTarget[] | null
   progress?: IStepProgress
   liveSeries?: LiveSeries | null
-  receivedAt?: number
+  tickAt?: number
   isActive?: boolean
   limitedRequests?: boolean
   targetLatency?: number
+  measurement?: IScoringParameters['performance']
+  pillarScore?: number
 }
 
 export function PerformanceSection({
@@ -333,10 +429,12 @@ export function PerformanceSection({
   targets,
   progress,
   liveSeries = null,
-  receivedAt = 0,
+  tickAt = 0,
   isActive = false,
   limitedRequests = false,
   targetLatency,
+  measurement,
+  pillarScore,
 }: PerformanceSectionProps) {
   const now = useNow(progress?.phase === 'RUNNING')
   const count = Math.max(targets?.length ?? 0, results.length)
@@ -349,50 +447,68 @@ export function PerformanceSection({
     }
     return []
   })
+  const failing = new Set(problems.map(({ index }) => index))
+  const indexes = Array.from({ length: count }, (_, index) => index)
+  const order = isActive
+    ? indexes
+    : [...indexes.filter((index) => failing.has(index)), ...indexes.filter((index) => !failing.has(index))]
 
   return (
-    <Panel
-      title="Endpoints do teste de carga"
-      className="section-large"
-      description="Apdex calculado por endpoint; a nota do pilar é a média simples dos endpoints medidos e dos que falharam, que contam como 0; endpoint não medido fica fora da média. Latência, vazão, códigos HTTP e a série por segundo são diagnóstico, por endpoint, e não entram na nota."
-    >
-      <div className="@container flex flex-col gap-5">
-        {count > 1 && problems.length > 0 ? <ProblemSummary problems={problems} count={count} /> : null}
-        <ul className="flex flex-col gap-5">
-          {Array.from({ length: count }, (_, index) => {
-            const result = results[index]
-            const target = targets?.[index]
+    <div className="section-large flex min-w-0 flex-col gap-5">
+      <Panel
+        title="Endpoints do teste de carga"
+        description="Apdex de cada endpoint, calculado em cada execução."
+        info={
+          <>
+            O Apdex é calculado por endpoint em cada execução, e as execuções entram na nota pela
+            média; as amostras de execuções diferentes não são juntadas. A nota do pilar é a média
+            simples dos endpoints medidos e dos que falharam, que contam como 0; endpoint não
+            medido fica fora da média. Latência, vazão, códigos HTTP e a série por segundo são
+            diagnóstico, por endpoint, e não entram na nota.
+          </>
+        }
+      >
+        <div className="@container flex flex-col gap-5">
+          {count > 1 && problems.length > 0 ? <ProblemSummary problems={problems} count={count} /> : null}
+          <ul className="flex flex-col gap-5">
+            {order.map((index) => {
+              const result = results[index]
+              const target = targets?.[index]
 
-            if (result) {
-              return (
-                <TargetCard
-                  key={index}
-                  id={targetCardId(index)}
-                  target={result}
-                  pathParams={target?.pathParams}
-                />
-              )
-            }
-            if (!target) return null
-            if (progress?.targetIndex === index) {
-              return (
-                <LiveTargetCard
-                  key={index}
-                  target={target}
-                  progress={progress}
-                  points={liveSeries?.targetIndex === index ? liveSeries.points : []}
-                  targets={targets}
-                  receivedAt={receivedAt}
-                  now={now}
-                  limitedRequests={limitedRequests}
-                  targetLatency={targetLatency}
-                />
-              )
-            }
-            return <WaitingTargetCard key={index} target={target} isActive={isActive} />
-          })}
-        </ul>
-      </div>
-    </Panel>
+              const liveRun =
+                target && progress?.targetIndex === index
+                  ? {
+                      progress,
+                      points: liveSeries?.targetIndex === index ? liveSeries.points : [],
+                      targets,
+                      tickAt,
+                      now,
+                      limitedRequests,
+                      targetLatency,
+                    }
+                  : null
+
+              if (result) {
+                return (
+                  <TargetCard
+                    key={index}
+                    id={targetCardId(index)}
+                    target={result}
+                    pathParams={target?.pathParams}
+                    thresholds={measurement?.thresholds}
+                    expectedRuns={progress?.totalRuns}
+                    live={liveRun ? <LiveRun {...liveRun} /> : undefined}
+                  />
+                )
+              }
+              if (!target) return null
+              if (liveRun) return <LiveTargetCard key={index} target={target} {...liveRun} />
+              return <WaitingTargetCard key={index} target={target} isActive={isActive} />
+            })}
+          </ul>
+        </div>
+      </Panel>
+      {measurement ? <MeasurementSummary measurement={measurement} pillarScore={pillarScore} /> : null}
+    </div>
   )
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ScorePart } from '../../utils/scoreParts'
+import { InfoTip } from '../ui/InfoTip'
 import { ScoreContributions } from './ScoreContributions'
 import { SegmentedScoreRing } from './SegmentedScoreRing'
 
@@ -27,9 +28,9 @@ export function ScoreBreakdown({ title, description, label, score, parts }: Scor
           showLabels
         />
         <div className="flex w-full min-w-0 flex-1 flex-col gap-3">
-          <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5">
             <h3 className="font-medium text-ink">{title}</h3>
-            <p className="max-w-[72ch] text-ink-secondary">{description}</p>
+            <InfoTip label={title}>{description}</InfoTip>
           </div>
           <ScoreContributions
             parts={parts}

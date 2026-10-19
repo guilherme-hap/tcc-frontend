@@ -45,7 +45,7 @@ import {
   SECTION_PARAM,
   type ResultLocationState,
 } from '../utils/routes'
-import { findSavedApiBySpec } from '../utils/savedApi'
+import { findSavedApisBySpec } from '../utils/savedApi'
 import { finalScoreParts, securityScoreParts } from '../utils/scoreParts'
 import { performanceProgress } from '../utils/steps'
 
@@ -75,7 +75,7 @@ function ResultSkeleton() {
 interface LiveState {
   isActive: boolean
   liveSeries: LiveSeries | null
-  receivedAt: number
+  tickAt: number
 }
 
 function renderPillar(
@@ -98,12 +98,14 @@ function renderPillar(
         targets={evaluation.targets}
         progress={progress}
         liveSeries={live.liveSeries}
-        receivedAt={live.receivedAt}
+        tickAt={live.tickAt}
         isActive={live.isActive}
         limitedRequests={loadTestOptions?.maxRequests !== undefined}
         targetLatency={
           loadTestOptions?.targetLatency ?? evaluation.scoring?.performance?.targetLatency
         }
+        measurement={evaluation.scoring?.performance}
+        pillarScore={evaluation.pillarScores?.performance}
       />
     )
   }
@@ -151,7 +153,7 @@ interface SectionProps {
   evaluation: EvaluationRecord
   isActive: boolean
   liveSeries: LiveSeries | null
-  receivedAt: number
+  tickAt: number
 }
 
 interface OverviewProps extends SectionProps {
@@ -163,7 +165,7 @@ interface OverviewProps extends SectionProps {
 function Overview({
   evaluation,
   isActive,
-  receivedAt,
+  tickAt,
   highlighted,
   onOpen,
   onHighlight,
@@ -174,7 +176,7 @@ function Overview({
     <StepTimeline
       evaluation={evaluation}
       isActive={isActive}
-      receivedAt={receivedAt}
+      tickAt={tickAt}
       onOpenPerformance={() => onOpen('performance')}
     />
   )
@@ -240,7 +242,7 @@ function Overview({
 
 interface ResultViewProps extends SectionProps {
   hasAccount: boolean
-  savedApi: SavedApi | null
+  savedApis: SavedApi[]
   tip: ReactNode
   children: ReactNode
 }
@@ -249,9 +251,9 @@ function ResultView({
   evaluation,
   isActive,
   liveSeries,
-  receivedAt,
+  tickAt,
   hasAccount,
-  savedApi,
+  savedApis,
   tip,
   children,
 }: ResultViewProps) {
@@ -263,7 +265,7 @@ function ResultView({
   const isFull = evaluation.evaluationType === 'full'
   const [pillar] = PILLARS_BY_TYPE[evaluation.evaluationType]
   const summary = describeFinalScore(evaluation, isActive)
-  const live: LiveState = { isActive, liveSeries, receivedAt }
+  const live: LiveState = { isActive, liveSeries, tickAt }
   const wide = useWideLayout()
 
   const selectSection = (next: SectionId) => {
@@ -318,7 +320,7 @@ function ResultView({
           evaluation={evaluation}
           isActive={isActive}
           hasAccount={hasAccount}
-          savedApi={savedApi}
+          savedApis={savedApis}
         >
           {!isFull ? (
             <>
@@ -354,7 +356,7 @@ function ResultView({
                 evaluation={evaluation}
                 isActive={isActive}
                 liveSeries={liveSeries}
-                receivedAt={receivedAt}
+                tickAt={tickAt}
                 highlighted={highlighted}
                 onOpen={selectSection}
                 onHighlight={setHighlighted}
@@ -376,7 +378,7 @@ function ResultView({
         ) : (
           <>
             {isActive || evaluation.status !== 'COMPLETED' ? (
-              <StepTimeline evaluation={evaluation} isActive={isActive} receivedAt={receivedAt} />
+              <StepTimeline evaluation={evaluation} isActive={isActive} tickAt={tickAt} />
             ) : null}
             {renderPillar(evaluation, pillar, live, true) ??
               (evaluation.status === 'FAILED' ? null : (
@@ -410,7 +412,7 @@ export function EvaluationResultPage() {
   const {
     evaluation,
     liveSeries,
-    progressReceivedAt,
+    progressTickAt,
     isLoading,
     isPaused,
     isPolling,
@@ -421,7 +423,7 @@ export function EvaluationResultPage() {
   const { apis } = useSavedApis()
   useDocumentTitle(resultTitle(evaluation ?? null))
   const hasAccount = user !== null
-  const savedApi = evaluation ? findSavedApiBySpec(apis, evaluation.openApiUrl) : null
+  const savedApis = evaluation ? findSavedApisBySpec(apis, evaluation.openApiUrl) : []
   const apiSaveFailed = (location.state as ResultLocationState | null)?.apiSaveFailed === true
 
   if (isLoading) {
@@ -474,13 +476,13 @@ export function EvaluationResultPage() {
       evaluation={evaluation}
       isActive={isPolling}
       liveSeries={liveSeries}
-      receivedAt={progressReceivedAt}
+      tickAt={progressTickAt}
       hasAccount={hasAccount}
-      savedApi={savedApi}
+      savedApis={savedApis}
       tip={
         !hasAccount && evaluation.visibility === 'anonymous' ? (
           <AccountTip id="result" title="Esta avaliação não está em nenhum histórico">
-            <p className="max-w-[88ch] text-sm text-ink">
+            <p className="max-w-[60ch] text-sm text-ink">
               Ela só abre por este endereço, para qualquer pessoa que o tenha. Com uma conta, as
               próximas avaliações entram no histórico, ficam privadas e a API pode ser salva para
               reavaliar sem redigitar.
@@ -489,7 +491,7 @@ export function EvaluationResultPage() {
         ) : null
       }
     >
-      {apiSaveFailed && hasAccount && savedApi === null ? (
+      {apiSaveFailed && hasAccount && savedApis.length === 0 ? (
         <Notice tone="warning" title="A avaliação foi criada, mas a API não foi salva.">
           Use "Salvar API" abaixo para tentar de novo.
         </Notice>

@@ -133,7 +133,8 @@ export function ContractSection({ result }: ContractSectionProps) {
     <Panel
       title="Regras violadas"
       className="section-large"
-      description={`${formatNumber(violatedRules)} de ${formatNumber(evaluatedRules)} regras aplicáveis violadas. Cada regra conta uma vez na nota, independentemente do número de ocorrências.`}
+      description={`${formatNumber(violatedRules)} de ${formatNumber(evaluatedRules)} regras aplicáveis violadas.`}
+      info="Cada regra conta uma vez na nota, independentemente do número de ocorrências."
     >
       {groups.length === 0 ? (
         <p className="text-ink-secondary">Nenhuma regra violada.</p>

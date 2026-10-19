@@ -16,7 +16,7 @@ interface StatContent {
   unit?: string
   hint: string
   chart?: ReactNode
-  tone?: 'error'
+  tone?: 'error' | 'warning'
 }
 
 interface StatSlot {
@@ -52,6 +52,51 @@ const CONTRACT_OCCURRENCES: StatSlot = {
     return {
       value: formatNumber(sum(Object.values(occurrencesByRule))),
       hint: `Em ${formatNumber(violatedRules)} ${violatedRules === 1 ? 'regra violada' : 'regras violadas'}`,
+    }
+  },
+}
+
+const PERFORMANCE_STABILITY: StatSlot = {
+  id: 'performance-stability',
+  label: 'Nota e desvio entre execuções',
+  content: ({ pillarScores, scoring }) => {
+    const measurement = scoring?.performance
+    const score = pillarScores?.performance
+    if (!measurement?.stability || score === undefined) return null
+    const { stability, repetitions, runScores } = measurement
+    const runs = repetitions ?? 1
+    const runsLabel = `${formatNumber(runs)} ${runs === 1 ? 'execução' : 'execuções'}`
+    const hints: Record<typeof stability.status, string> = {
+      stable: 'Variação entre execuções dentro do limiar provisório',
+      low: 'Variação entre execuções acima do limiar provisório',
+      not_measured: 'Variação entre execuções não medida',
+    }
+    return {
+      value: stability.dispersion
+        ? `${formatNumber(score)} ± ${formatNumber(stability.dispersion.stddev)}`
+        : formatNumber(score),
+      unit: runsLabel,
+      hint: hints[stability.status],
+      tone: stability.status === 'low' ? 'warning' : undefined,
+      chart:
+        runScores && runScores.length > 1 ? (
+          <div
+            role="img"
+            aria-label={`Nota por execução: ${runScores.map((value) => (value === null ? 'não medida' : formatNumber(value))).join(', ')}`}
+            className="flex gap-1"
+          >
+            {runScores.map((value, index) => (
+              <span key={index} className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-idle">
+                {value === null ? null : (
+                  <span
+                    className="absolute inset-y-0 left-0 bg-pillar-performance"
+                    style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+                  />
+                )}
+              </span>
+            ))}
+          </div>
+        ) : undefined,
     }
   },
 }
@@ -135,9 +180,15 @@ const SECURITY_PENDING: StatSlot = {
 }
 
 const SLOTS_BY_TYPE: Record<EvaluationType, StatSlot[]> = {
-  full: [CONTRACT_CONFORMITY, SECURITY_PASSED, PERFORMANCE_MEASURED, PERFORMANCE_SERVER_ERRORS],
+  full: [
+    CONTRACT_CONFORMITY,
+    SECURITY_PASSED,
+    PERFORMANCE_STABILITY,
+    PERFORMANCE_MEASURED,
+    PERFORMANCE_SERVER_ERRORS,
+  ],
   contract: [CONTRACT_CONFORMITY, CONTRACT_OCCURRENCES],
-  performance: [PERFORMANCE_MEASURED, PERFORMANCE_SERVER_ERRORS],
+  performance: [PERFORMANCE_STABILITY, PERFORMANCE_MEASURED, PERFORMANCE_SERVER_ERRORS],
   security: [SECURITY_PASSED, SECURITY_PENDING],
 }
 
@@ -173,11 +224,11 @@ export function ResultStats({ evaluation, isActive }: ResultStatsProps) {
                 />
               ) : (
                 <span
-                  className={`num text-2xl leading-7 ${content.tone === 'error' ? 'text-error' : 'text-ink'}`}
+                  className={`num text-right text-2xl leading-7 whitespace-nowrap ${content.tone === 'error' ? 'text-error' : content.tone === 'warning' ? 'text-warning' : 'text-ink'}`}
                 >
                   {content.value}
                   {content.unit ? (
-                    <span className="ml-1.5 font-body text-sm leading-5 font-normal tracking-normal text-ink-secondary [font-variation-settings:normal]">
+                    <span className="ml-1.5 font-body text-sm leading-5 font-normal tracking-normal whitespace-nowrap text-ink-secondary [font-variation-settings:normal]">
                       {content.unit}
                     </span>
                   ) : null}

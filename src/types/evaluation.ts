@@ -10,6 +10,8 @@ export type PillarName = 'contract' | 'performance' | 'security'
 
 export type PillarWeights = Partial<Record<PillarName, number>>
 
+export type MeasurementMode = 'complete' | 'quick'
+
 export interface ILoadTestOptions {
   duration?: number
   connections?: number
@@ -21,7 +23,7 @@ export interface ILoadTestOptions {
   body?: string
   allowMutatingMethods?: boolean
   allowHighLoad?: boolean
-  mode?: 'complete' | 'quick'
+  mode?: MeasurementMode
   repetitions?: number
   restIntervalSeconds?: number
   maxCpuUsage?: number

@@ -3,6 +3,7 @@ import type {
   EvaluationStepStatus,
   EvaluationType,
   EvaluationVisibility,
+  MeasurementMode,
   PillarName,
   SecurityCheckStatus,
   SecurityLayer,
@@ -156,3 +157,16 @@ export const CHECK_STATUS_LABELS: Record<SecurityCheckStatus, string> = {
 }
 
 export const CHECK_STATUS_ORDER: SecurityCheckStatus[] = ['pass', 'warning', 'missing', 'error']
+
+export const MEASUREMENT_MODE_LABELS: Record<MeasurementMode, string> = {
+  complete: 'completo',
+  quick: 'rápido',
+}
+
+export const TRANSPORT_ERROR_LABELS: Partial<Record<string, string>> = {
+  ECONNRESET: 'conexão encerrada pela API',
+  ECONNREFUSED: 'conexão recusada',
+  ENOTFOUND: 'host não encontrado',
+  TIMEOUT: 'sem resposta dentro do tempo limite',
+  UNKNOWN: 'erro de conexão sem código',
+}

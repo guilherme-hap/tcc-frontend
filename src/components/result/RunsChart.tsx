@@ -4,6 +4,7 @@ import type { IAutocannonRunResult, IPerformanceRun, IScoringParameters } from '
 import { formatMilliseconds, formatNumber } from '../../utils/format'
 import { Icon } from '../ui/Icon'
 import { ApdexBar, ApdexLegend } from './ApdexZones'
+import { FirstFailureLine } from './FirstFailure'
 import { LazyRunLatencyChart } from './LazyCharts'
 
 const GRID =
@@ -211,6 +212,11 @@ export function RunsChart({ runs, mean, targetLatency, thresholds }: RunsChartPr
                       <Icon icon={TriangleAlert} size={14} className="mt-1 shrink-0" />
                       O gerador de carga pode ter limitado a medição: {describeExcess(result, thresholds)}. A nota não foi alterada.
                     </p>
+                  ) : null}
+                  {result.firstFailure ? (
+                    <div className="@xl:col-span-2 @3xl:col-span-full">
+                      <FirstFailureLine failure={result.firstFailure} />
+                    </div>
                   ) : null}
                 </>
               ) : (

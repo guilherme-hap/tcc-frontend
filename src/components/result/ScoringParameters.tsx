@@ -6,6 +6,7 @@ import {
   CHECK_STATUS_ORDER,
   LAYER_LABELS,
   LAYER_ORDER,
+  MEASUREMENT_MODE_LABELS,
   PILLAR_LABELS,
   SEVERITY_LABELS,
   SEVERITY_ORDER,
@@ -43,7 +44,7 @@ function measurementEntries(performance: NonNullable<IScoringParameters['perform
   if (repetitions !== undefined) {
     entries.push([
       'Execuções',
-      `${formatNumber(repetitions)} (modo ${mode === 'quick' ? 'rápido' : 'completo'})`,
+      `${formatNumber(repetitions)} (modo ${MEASUREMENT_MODE_LABELS[mode ?? 'complete']})`,
     ])
   }
   if (restIntervalSeconds !== undefined) {

@@ -18,6 +18,7 @@ import { Panel } from '../ui/Panel'
 import { FOCUS_RING, OVERLINE } from '../ui/classes'
 import { ApdexZones } from './ApdexZones'
 import { AuditMessageList } from './AuditMessageList'
+import { FirstFailureDetail } from './FirstFailure'
 import { LatencyPercentiles } from './LatencyPercentiles'
 import { LazySeriesChart } from './LazyCharts'
 import { MeasurementSummary } from './MeasurementSummary'
@@ -125,6 +126,10 @@ interface DiagnosticsProps {
 }
 
 function Diagnostics({ result }: DiagnosticsProps) {
+  const runs = result.runs ?? []
+  const failureRun =
+    runs.length > 1 ? runs.find((run) => run.result?.firstFailure)?.run : undefined
+
   return (
     <section className="flex min-w-0 flex-col gap-4 border-t border-border pt-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -164,6 +169,10 @@ function Diagnostics({ result }: DiagnosticsProps) {
           <StatusCodeBreakdown statusCodes={result.statusCodes} />
         </div>
       </div>
+
+      {result.firstFailure ? (
+        <FirstFailureDetail failure={result.firstFailure} run={failureRun} />
+      ) : null}
 
       <Collapsible title="Série por segundo" aside="respostas, latência e erros">
         <RunSeries result={result} />

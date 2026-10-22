@@ -3,6 +3,7 @@ import type {
   EvaluationType,
   ILoadTestOptions,
   IPerformanceTarget,
+  MeasurementMode,
   PillarName,
   PillarWeights,
   Severity,
@@ -46,6 +47,12 @@ export interface IDispersion {
   max: number
 }
 
+export interface IFirstFailure {
+  statusCode: number | null
+  errorCode: string | null
+  bodySnippet: string | null
+}
+
 export interface IAutocannonRunResult {
   score: number | null
   targetLatency: number
@@ -64,6 +71,7 @@ export interface IAutocannonRunResult {
   totalRequests: number
   errors: number
   timeouts: number
+  firstFailure?: IFirstFailure | null
   warnings: IAuditMessage[]
   saturation: ISaturation
 }
@@ -145,7 +153,7 @@ export interface IScoringParameters {
   }
   performance?: {
     targetLatency: number
-    mode?: 'complete' | 'quick'
+    mode?: MeasurementMode
     repetitions?: number
     restIntervalSeconds?: number
     thresholds?: {

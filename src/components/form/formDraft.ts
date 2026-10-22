@@ -16,11 +16,13 @@ export function readFormDraft(): EvaluationFormState | null {
     const parsed: unknown = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null')
     if (typeof parsed !== 'object' || parsed === null) return null
 
-    const draft = { ...createInitialFormState(), ...parsed }
+    const initial = createInitialFormState()
+    const draft = { ...initial, ...parsed }
     if (!TYPE_ORDER.includes(draft.type) || !Array.isArray(draft.targets)) return null
 
     return {
       ...draft,
+      numericOptions: { ...initial.numericOptions, ...draft.numericOptions },
       targets: draft.targets.map((target) => ({ ...createTargetDraft(), ...target })),
     }
   } catch {

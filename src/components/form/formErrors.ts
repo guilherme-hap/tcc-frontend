@@ -1,5 +1,6 @@
 import {
   hasMutatingTarget,
+  isMeasurementOption,
   usesBaseUrl,
   usesContractRules,
   usesTargets,
@@ -44,10 +45,14 @@ function stillApplies(
   if (root === 'allowMutatingMethods') {
     return hasMutatingTarget(current) && !current.allowMutatingMethods
   }
+  if (root === 'quickMode') {
+    return usesTargets(current.type) && current.quickMode === submitted.quickMode
+  }
   if (root === 'options') {
     const option = id as NumericOptionKey
     return (
       usesTargets(current.type) &&
+      !(current.quickMode && isMeasurementOption(option)) &&
       current.numericOptions[option] === submitted.numericOptions[option]
     )
   }

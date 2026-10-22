@@ -1,6 +1,6 @@
 import { ChevronRight, Link2, Lock, Play, TriangleAlert, type LucideIcon } from 'lucide-react'
 import type { EvaluationVisibility, IValidationIssue, PillarName } from '../../types'
-import { formatCount, formatNumber, formatPercent } from '../../utils/format'
+import { formatCount, formatDuration, formatNumber, formatPercent } from '../../utils/format'
 import {
   EXECUTION_GROUPS,
   PILLARS_BY_TYPE,
@@ -24,6 +24,8 @@ import {
   MAX_TOTAL_DURATION_SECONDS,
   buildRequestPreview,
   estimateLoadDuration,
+  estimateLoadTime,
+  estimateRunCount,
   parseDecimal,
   usesBaseUrl,
   usesTargets,
@@ -64,9 +66,14 @@ function pillarDetail(form: EvaluationFormState, pillar: PillarName): string {
   }
   if (pillar === 'performance') {
     const seconds = formatNumber(estimateLoadDuration(form))
-    return `${formatCount(form.targets.length, 'endpoint', 'endpoints')} · ${seconds} s de ${MAX_TOTAL_DURATION_SECONDS} s`
+    return `${formatCount(form.targets.length, 'endpoint', 'endpoints')} · ${formatRuns(form)} · ${seconds} s de ${MAX_TOTAL_DURATION_SECONDS} s por execução`
   }
   return 'Oito verificações em quatro camadas'
+}
+
+function formatRuns(form: EvaluationFormState): string {
+  const runs = estimateRunCount(form)
+  return form.quickMode ? 'modo rápido' : formatCount(runs, 'execução', 'execuções')
 }
 
 function exceedsTotalDuration(form: EvaluationFormState): boolean {
@@ -96,8 +103,10 @@ function LoadTarget({ form, baseUrl, confirming }: LoadTargetProps) {
       className={`flex min-w-0 flex-col gap-1 rounded-md border px-3 py-2 text-sm ${confirming ? 'border-warning/40 bg-warning-dim' : 'border-border bg-bg'}`}
     >
       <span className={`font-medium ${over ? 'text-error' : 'text-ink'}`}>
-        {formatCount(form.targets.length, 'endpoint', 'endpoints')} · {formatNumber(estimateLoadDuration(form))} s
-        {over ? ` (limite de ${MAX_TOTAL_DURATION_SECONDS} s)` : ''}
+        {formatCount(form.targets.length, 'endpoint', 'endpoints')} · {formatRuns(form)} ·{' '}
+        {over
+          ? `${formatNumber(estimateLoadDuration(form))} s por execução (limite de ${MAX_TOTAL_DURATION_SECONDS} s)`
+          : `cerca de ${formatDuration(estimateLoadTime(form) * 1000)} no total`}
       </span>
       {baseUrl ? (
         <MiddleTruncate text={baseUrl} className="font-mono text-xs text-ink-secondary" />

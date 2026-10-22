@@ -6,6 +6,8 @@ import { CheckboxField, FieldMessages, TextField, TextInput } from '../ui/Field'
 import { IconButton } from '../ui/IconButton'
 import { describeOptions } from './describe'
 import {
+  DEFAULT_REPETITIONS,
+  DEFAULT_REST_INTERVAL_SECONDS,
   createHeaderDraft,
   type EvaluationFormState,
   type FormErrors,
@@ -29,7 +31,7 @@ const NUMERIC_FIELDS: NumericOptionField[] = [
     label: 'Duração por endpoint',
     placeholder: '10',
     suffix: 's',
-    info: 'Cada endpoint roda por esta duração, um de cada vez. O padrão é 10 s, ou 5 s em métodos que alteram dados. A soma de todos os endpoints não pode passar de 600 s.',
+    info: 'Cada endpoint roda por esta duração, um de cada vez. O padrão é 10 s, ou 5 s em métodos que alteram dados. Numa execução, a soma de todos os endpoints não pode passar de 600 s.',
   },
   {
     key: 'connections',
@@ -48,6 +50,25 @@ const NUMERIC_FIELDS: NumericOptionField[] = [
   { key: 'maxRequests', label: 'Máximo de requisições', placeholder: 'Sem limite' },
   { key: 'requestsPerSecond', label: 'Requisições por segundo', placeholder: 'Sem limite' },
 ]
+
+const MEASUREMENT_FIELDS: NumericOptionField[] = [
+  {
+    key: 'repetitions',
+    label: 'Execuções',
+    placeholder: String(DEFAULT_REPETITIONS),
+    info: `Quantas vezes o teste passa por todos os endpoints. A nota de cada endpoint é a média do Apdex das execuções, e a variação entre elas mede a estabilidade. O padrão é ${DEFAULT_REPETITIONS}.`,
+  },
+  {
+    key: 'restIntervalSeconds',
+    label: 'Intervalo entre execuções',
+    placeholder: String(DEFAULT_REST_INTERVAL_SECONDS),
+    suffix: 's',
+    info: `Pausa entre uma execução e a próxima, para a API voltar ao repouso. O padrão é ${DEFAULT_REST_INTERVAL_SECONDS} s; 0 tira a pausa.`,
+  },
+]
+
+const QUICK_MODE_NOTE =
+  'Roda uma execução só: a nota sai de uma única medida e a estabilidade entre execuções não é medida.'
 
 function limitHint(field: NumericOptionField, allowHighLoad: boolean): string | undefined {
   if (field.hint) return field.hint
@@ -88,6 +109,27 @@ interface LoadOptionsBodyProps {
 }
 
 export function LoadOptionsBody({ form, errors, onChange }: LoadOptionsBodyProps) {
+  const renderNumericField = (field: NumericOptionField) => (
+    <TextField
+      key={field.key}
+      id={`option-${field.key}`}
+      label={field.label}
+      inputMode="decimal"
+      mono
+      placeholder={field.placeholder}
+      suffix={field.suffix}
+      hint={limitHint(field, form.allowHighLoad)}
+      info={field.info}
+      error={errors[`options.${field.key}`]}
+      value={form.numericOptions[field.key]}
+      onChange={(event) =>
+        onChange({
+          numericOptions: { ...form.numericOptions, [field.key]: event.target.value },
+        })
+      }
+    />
+  )
+
   const updateHeader = (id: string, patch: Partial<HeaderDraft>) => {
     onChange({
       headers: form.headers.map((header) => (header.id === id ? { ...header, ...patch } : header)),
@@ -98,27 +140,25 @@ export function LoadOptionsBody({ form, errors, onChange }: LoadOptionsBodyProps
     <div className="@container min-w-0">
       <div className="flex min-w-0 flex-col gap-5">
         <div className="grid grid-cols-1 gap-4 @lg:grid-cols-3">
-          {NUMERIC_FIELDS.map((field) => (
-            <TextField
-              key={field.key}
-              id={`option-${field.key}`}
-              label={field.label}
-              inputMode="decimal"
-              mono
-              placeholder={field.placeholder}
-              suffix={field.suffix}
-              hint={limitHint(field, form.allowHighLoad)}
-              info={field.info}
-              error={errors[`options.${field.key}`]}
-              value={form.numericOptions[field.key]}
-              onChange={(event) =>
-                onChange({
-                  numericOptions: { ...form.numericOptions, [field.key]: event.target.value },
-                })
-              }
-            />
-          ))}
+          {NUMERIC_FIELDS.map(renderNumericField)}
         </div>
+
+        <fieldset className="flex min-w-0 flex-col gap-3">
+          <legend className="mb-1 font-medium text-ink">Repetição do teste</legend>
+          {form.quickMode ? null : (
+            <div className="grid grid-cols-1 gap-4 @lg:grid-cols-3">
+              {MEASUREMENT_FIELDS.map(renderNumericField)}
+            </div>
+          )}
+          <CheckboxField
+            id="quickMode"
+            label="Modo rápido"
+            description={QUICK_MODE_NOTE}
+            error={errors.quickMode}
+            checked={form.quickMode}
+            onChange={(quickMode) => onChange({ quickMode })}
+          />
+        </fieldset>
 
         <fieldset className="flex min-w-0 flex-col gap-3">
           <legend className="mb-1 font-medium text-ink">Cabeçalhos das requisições</legend>

@@ -60,6 +60,7 @@ export function applySavedApi(
       value,
     })),
     allowHighLoad: options?.allowHighLoad ?? false,
+    quickMode: options?.mode === 'quick',
   }
 }
 
@@ -95,6 +96,7 @@ export function buildReevaluationForm(
       ([name, value]) => ({ ...createHeaderDraft(), name, value }),
     ),
     allowHighLoad: options?.allowHighLoad ?? false,
+    quickMode: options?.mode === 'quick',
     customWeights: weights !== undefined,
     weights: Object.fromEntries(
       (Object.keys(base.weights) as PillarName[]).map((pillar) => [

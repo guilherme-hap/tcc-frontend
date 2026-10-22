@@ -17,6 +17,8 @@ export const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELET
 
 export const MAX_TARGETS = 20
 export const MAX_TOTAL_DURATION_SECONDS = 600
+export const DEFAULT_REPETITIONS = 3
+export const DEFAULT_REST_INTERVAL_SECONDS = 5
 
 const DEFAULT_DURATION_SECONDS = 10
 const DEFAULT_MUTATING_DURATION_SECONDS = 5
@@ -53,6 +55,8 @@ export type NumericOptionKey =
   | 'targetLatency'
   | 'maxRequests'
   | 'requestsPerSecond'
+  | 'repetitions'
+  | 'restIntervalSeconds'
 
 export interface EvaluationFormState {
   type: EvaluationType
@@ -63,6 +67,7 @@ export interface EvaluationFormState {
   headers: HeaderDraft[]
   allowMutatingMethods: boolean
   allowHighLoad: boolean
+  quickMode: boolean
   customWeights: boolean
   weights: Record<PillarName, string>
   rulesConfig: Record<string, boolean>
@@ -81,27 +86,44 @@ export type BuildResult =
   | { ok: true; request: EvaluationRequest }
   | { ok: false; errors: FormErrors }
 
-const INTEGER_OPTIONS: NumericOptionKey[] = ['connections', 'maxRequests']
+const INTEGER_OPTIONS: NumericOptionKey[] = ['connections', 'maxRequests', 'repetitions']
+const ZERO_ALLOWED_OPTIONS: NumericOptionKey[] = ['restIntervalSeconds']
 
-type LimitedOptionKey = Exclude<NumericOptionKey, 'targetLatency'>
+export type MeasurementOptionKey = Extract<NumericOptionKey, 'repetitions' | 'restIntervalSeconds'>
+
+type LimitedOptionKey = Exclude<NumericOptionKey, 'targetLatency' | MeasurementOptionKey>
 
 const LOAD_LIMITS: Record<'default' | 'elevated', Record<LimitedOptionKey, number>> = {
   default: { duration: 60, connections: 50, maxRequests: 100_000, requestsPerSecond: 1_000 },
   elevated: { duration: 300, connections: 500, maxRequests: 1_000_000, requestsPerSecond: 10_000 },
 }
 
+const MEASUREMENT_LIMITS: Record<MeasurementOptionKey, number> = {
+  repetitions: 10,
+  restIntervalSeconds: 300,
+}
+
 export function loadLimit(key: NumericOptionKey, allowHighLoad: boolean): number | undefined {
   if (key === 'targetLatency') return undefined
+  if (isMeasurementOption(key)) return MEASUREMENT_LIMITS[key]
   return LOAD_LIMITS[allowHighLoad ? 'elevated' : 'default'][key]
 }
 
-export const NUMERIC_OPTION_KEYS: NumericOptionKey[] = [
+export const LOAD_OPTION_KEYS: NumericOptionKey[] = [
   'duration',
   'connections',
   'targetLatency',
   'maxRequests',
   'requestsPerSecond',
 ]
+
+export const MEASUREMENT_OPTION_KEYS: MeasurementOptionKey[] = ['repetitions', 'restIntervalSeconds']
+
+export const NUMERIC_OPTION_KEYS: NumericOptionKey[] = [...LOAD_OPTION_KEYS, ...MEASUREMENT_OPTION_KEYS]
+
+export function isMeasurementOption(key: NumericOptionKey): key is MeasurementOptionKey {
+  return (MEASUREMENT_OPTION_KEYS as NumericOptionKey[]).includes(key)
+}
 
 export const DEFAULT_SEVERITY_WEIGHTS: Record<Severity, string> = {
   Error: '0,5208',
@@ -131,10 +153,13 @@ export function createInitialFormState(type: EvaluationType = 'full'): Evaluatio
       targetLatency: '',
       maxRequests: '',
       requestsPerSecond: '',
+      repetitions: '',
+      restIntervalSeconds: '',
     },
     headers: [],
     allowMutatingMethods: false,
     allowHighLoad: false,
+    quickMode: false,
     customWeights: false,
     weights: { contract: '33,33', performance: '33,33', security: '33,34' },
     rulesConfig: {},
@@ -149,7 +174,9 @@ export function createInitialFormState(type: EvaluationType = 'full'): Evaluatio
 }
 
 export function hasLoadOptionError(errors: FormErrors): boolean {
-  return Object.keys(errors).some((key) => key.startsWith('options.') || key.startsWith('headers.'))
+  return Object.keys(errors).some(
+    (key) => key === 'quickMode' || key.startsWith('options.') || key.startsWith('headers.'),
+  )
 }
 
 export function isMutatingMethod(method: HttpMethod): boolean {
@@ -187,6 +214,33 @@ export function parseDecimal(value: string): number {
 
 export function parseLoadOption(value: string): number {
   return THOUSANDS_PATTERN.test(value.trim()) ? NaN : parseDecimal(value)
+}
+
+function parsedMeasurementOption(
+  form: EvaluationFormState,
+  key: MeasurementOptionKey,
+  fallback: number,
+): number {
+  const raw = form.numericOptions[key]
+  const value = parseLoadOption(raw)
+  const valid =
+    raw.trim() !== '' &&
+    Number.isFinite(value) &&
+    value >= (ZERO_ALLOWED_OPTIONS.includes(key) ? 0 : 1) &&
+    value <= MEASUREMENT_LIMITS[key] &&
+    (!INTEGER_OPTIONS.includes(key) || INTEGER_PATTERN.test(raw.trim()))
+  return valid ? value : fallback
+}
+
+export function estimateRunCount(form: EvaluationFormState): number {
+  if (form.quickMode) return 1
+  return parsedMeasurementOption(form, 'repetitions', DEFAULT_REPETITIONS)
+}
+
+export function estimateLoadTime(form: EvaluationFormState): number {
+  const runs = estimateRunCount(form)
+  const rest = parsedMeasurementOption(form, 'restIntervalSeconds', DEFAULT_REST_INTERVAL_SECONDS)
+  return runs * estimateLoadDuration(form) + (runs - 1) * rest
 }
 
 export function estimateLoadDuration(form: EvaluationFormState): number {
@@ -249,14 +303,18 @@ export function buildLoadTestOptions(
   const options: ILoadTestOptions = {}
 
   for (const key of NUMERIC_OPTION_KEYS) {
+    if (form.quickMode && isMeasurementOption(key)) continue
     const raw = form.numericOptions[key].trim()
     if (!raw) continue
 
     const value = parseLoadOption(raw)
+    const allowsZero = ZERO_ALLOWED_OPTIONS.includes(key)
     if (THOUSANDS_PATTERN.test(raw)) {
       errors[`options.${key}`] = 'Escreva o número sem separador de milhar (ex.: 1500 ou 1,5).'
-    } else if (!Number.isFinite(value) || value <= 0) {
-      errors[`options.${key}`] = 'Informe um número maior que zero.'
+    } else if (!Number.isFinite(value) || value < 0 || (!allowsZero && value === 0)) {
+      errors[`options.${key}`] = allowsZero
+        ? 'Informe um número a partir de zero.'
+        : 'Informe um número maior que zero.'
     } else if (INTEGER_OPTIONS.includes(key) && !INTEGER_PATTERN.test(raw)) {
       errors[`options.${key}`] = 'Informe um número inteiro, sem ponto nem vírgula.'
     } else {
@@ -303,6 +361,7 @@ export function buildLoadTestOptions(
   }
 
   if (form.allowHighLoad) options.allowHighLoad = true
+  if (form.quickMode) options.mode = 'quick'
 
   return Object.keys(options).length > 0 ? options : undefined
 }
@@ -431,6 +490,8 @@ function fieldKeyForIssue(form: EvaluationFormState, path: string): string | und
   if (path === 'openApiUrl' || path === 'apiBaseUrl' || path === 'minScore') return path
   if (path === 'weights' || path.startsWith('weights.')) return 'weights'
   if (path === 'severityWeights' || path.startsWith('severityWeights.')) return 'severityWeights'
+
+  if (path === 'loadTestOptions.mode') return 'quickMode'
 
   if (path.startsWith(SERVER_HEADERS_PATH)) {
     const name = path.slice(SERVER_HEADERS_PATH.length)

@@ -138,12 +138,12 @@ function Diagnostics({ result }: DiagnosticsProps) {
       </div>
 
       <div className="flex min-w-0 flex-col gap-2">
-        <h5 className={SUBHEADING}>Latência das respostas fora de 4xx</h5>
+        <h5 className={SUBHEADING}>Latência das respostas 2xx e 3xx</h5>
         {result.latency ? (
           <LatencyPercentiles latency={result.latency} />
         ) : (
           <p className="text-sm text-ink-secondary">
-            Nenhuma resposta fora de 4xx chegou: não há latência para medir.
+            Nenhuma resposta 2xx ou 3xx chegou: não há latência para medir.
           </p>
         )}
       </div>

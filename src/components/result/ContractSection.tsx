@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ChevronRight, ExternalLink } from 'lucide-react'
 import { useSpectralRules } from '../../hooks'
 import type { IContractResult, ISpectralCatalogRule, ISpectralDeclaredFormat } from '../../types'
-import { groupByRule, type RuleGroup } from '../../utils/contractRules'
+import { groupByRule, validatorMessage, type RuleGroup } from '../../utils/contractRules'
 import { formatCount, formatNumber } from '../../utils/format'
 import { SEVERITY_LABELS, SEVERITY_ORDER } from '../../utils/labels'
 import { Badge } from '../ui/Badge'
@@ -37,7 +37,7 @@ function DeclaredFormatCauses({ format }: { format: ISpectralDeclaredFormat }) {
       </p>
       <ul lang="en" className="flex list-disc flex-col gap-0.5 pl-4 text-ink">
         {format.messages.map((message, index) => (
-          <li key={index}>{message}</li>
+          <li key={index}>{validatorMessage(message)}</li>
         ))}
       </ul>
     </div>
@@ -74,7 +74,7 @@ function ValidatorDetails({ details, declaredIn }: ValidatorDetailsProps) {
         </p>
         <ul lang="en" className="flex list-disc flex-col gap-0.5 pl-4">
           {details.map((detail, index) => (
-            <li key={index}>{detail}</li>
+            <li key={index}>{validatorMessage(detail)}</li>
           ))}
         </ul>
       </div>
@@ -158,7 +158,7 @@ function RuleRow({ group, maxCount, catalog }: RuleRowProps) {
                 {issue.declaredFormat ? (
                   <DeclaredFormatCauses format={issue.declaredFormat} />
                 ) : issue.message.trim() === catalog?.description?.trim() ? null : (
-                  <p className="text-ink">{issue.message}</p>
+                  <p className="text-ink">{validatorMessage(issue.message)}</p>
                 )}
                 {issue.details?.length ? (
                   <ValidatorDetails details={issue.details} declaredIn={issue.declaredFormat?.in} />

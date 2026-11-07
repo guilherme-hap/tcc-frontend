@@ -3,7 +3,7 @@ import { ChevronRight, ExternalLink } from 'lucide-react'
 import { useSpectralRules } from '../../hooks'
 import type { IContractResult, ISpectralCatalogRule } from '../../types'
 import { groupByRule, type RuleGroup } from '../../utils/contractRules'
-import { formatNumber } from '../../utils/format'
+import { formatCount, formatNumber } from '../../utils/format'
 import { SEVERITY_LABELS, SEVERITY_ORDER } from '../../utils/labels'
 import { Badge } from '../ui/Badge'
 import { Icon } from '../ui/Icon'
@@ -104,6 +104,25 @@ function RuleRow({ group, maxCount, catalog }: RuleRowProps) {
                 {issue.message.trim() === catalog?.description?.trim() ? null : (
                   <p className="text-ink">{issue.message}</p>
                 )}
+                {issue.details?.length ? (
+                  <details className="group/details">
+                    <summary
+                      className={`inline-flex cursor-pointer list-none items-center gap-1 rounded-sm text-xs text-ink-secondary hover:text-ink [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
+                    >
+                      <Icon
+                        icon={ChevronRight}
+                        size={12}
+                        className="transition-transform duration-150 group-open/details:rotate-90 motion-reduce:transition-none"
+                      />
+                      E mais {formatCount(issue.details.length, 'mensagem', 'mensagens')} do validador neste trecho
+                    </summary>
+                    <ul className="mt-1 flex list-disc flex-col gap-0.5 pl-6 text-xs text-ink-secondary">
+                      {issue.details.map((detail, detailIndex) => (
+                        <li key={detailIndex}>{detail}</li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : null}
               </li>
             ))}
             {hidden > 0 ? (

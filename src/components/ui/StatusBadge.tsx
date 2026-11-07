@@ -1,6 +1,6 @@
 import { Check, Clock, LoaderCircle, TriangleAlert, X, type LucideIcon } from 'lucide-react'
 import type { EvaluationStatus } from '../../types'
-import { STATUS_LABELS } from '../../utils/labels'
+import { STATUS_LABELS, WAITING_FOR_LOAD_TEST_LABEL } from '../../utils/labels'
 import { Badge, type BadgeTone } from './Badge'
 
 const STATUS_TONES: Record<EvaluationStatus, BadgeTone> = {
@@ -28,7 +28,7 @@ export function StatusBadge({ status, waitingForLoadTest = false }: StatusBadgeP
   if (status === 'RUNNING' && waitingForLoadTest) {
     return (
       <Badge tone="neutral" icon={Clock}>
-        Aguardando teste de carga
+        {WAITING_FOR_LOAD_TEST_LABEL}
       </Badge>
     )
   }

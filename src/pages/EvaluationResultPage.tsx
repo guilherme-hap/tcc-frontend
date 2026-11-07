@@ -38,7 +38,13 @@ import {
 } from '../hooks'
 import type { EvaluationRecord, PillarName, SavedApi } from '../types'
 import { formatNumber, formatPercent } from '../utils/format'
-import { PILLARS_BY_TYPE, PILLAR_LABELS, STATUS_LABELS, TYPE_TITLES } from '../utils/labels'
+import {
+  PILLARS_BY_TYPE,
+  PILLAR_LABELS,
+  STATUS_LABELS,
+  TYPE_TITLES,
+  WAITING_FOR_LOAD_TEST_LABEL,
+} from '../utils/labels'
 import {
   LOGIN_PATH,
   NEW_EVALUATION_PATH,
@@ -47,7 +53,7 @@ import {
 } from '../utils/routes'
 import { findSavedApisBySpec } from '../utils/savedApi'
 import { finalScoreParts, securityScoreParts } from '../utils/scoreParts'
-import { performanceProgress } from '../utils/steps'
+import { isWaitingForLoadTest, performanceProgress } from '../utils/steps'
 
 const BODY_ID = 'resultado-conteudo'
 const STICKY_NAV_OFFSET = 128
@@ -401,7 +407,9 @@ function resultTitle(evaluation: EvaluationRecord | null): string {
   const outcome =
     evaluation.finalScore !== null
       ? formatNumber(evaluation.finalScore)
-      : STATUS_LABELS[evaluation.status]
+      : isWaitingForLoadTest(evaluation)
+        ? WAITING_FOR_LOAD_TEST_LABEL
+        : STATUS_LABELS[evaluation.status]
   return `Resultado · ${TYPE_TITLES[evaluation.evaluationType]} · ${outcome}`
 }
 

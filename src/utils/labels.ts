@@ -88,6 +88,8 @@ export const STATUS_LABELS: Record<EvaluationStatus, string> = {
   FAILED: 'Falhou',
 }
 
+export const WAITING_FOR_LOAD_TEST_LABEL = 'Aguardando teste de carga'
+
 export const STEP_STATUS_LABELS: Record<EvaluationStepStatus, string> = {
   PENDING: 'Aguardando',
   RUNNING: 'Em execução',

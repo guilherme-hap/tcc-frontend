@@ -8,6 +8,10 @@ export interface RuleGroup {
   issues: ISpectralIssue[]
 }
 
+export function validatorMessage(message: string): string {
+  return message.replace(/\?\.$/, '?')
+}
+
 export function severityRank(severity: Severity): number {
   return SEVERITY_ORDER.indexOf(severity)
 }

@@ -55,12 +55,12 @@ function ValidatorDetails({ details, declaredIn }: ValidatorDetailsProps) {
   return (
     <details className="group/details">
       <summary
-        className={`inline-flex cursor-pointer list-none items-center gap-1 rounded-sm text-xs text-ink-secondary hover:text-ink [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
+        className={`inline-flex cursor-pointer list-none items-start gap-1 rounded-sm text-xs text-ink-secondary hover:text-ink [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
       >
         <Icon
           icon={ChevronRight}
           size={12}
-          className="transition-transform duration-150 group-open/details:rotate-90 motion-reduce:transition-none"
+          className="mt-1 shrink-0 transition-transform duration-150 group-open/details:rotate-90 motion-reduce:transition-none"
         />
         {declaredIn
           ? `Outras ${count} do validador, sobre formatos que o parâmetro não usa`

@@ -83,7 +83,7 @@ export function HistoryTable({ items, isRefreshing }: HistoryTableProps) {
                   </span>
                 </td>
                 <td className={BODY_CELL}>
-                  <StatusBadge status={item.status} />
+                  <StatusBadge status={item.status} waitingForLoadTest={item.waitingForLoadTest} />
                 </td>
                 <td className={BODY_CELL}>
                   <ScoreValue score={item.finalScore} />

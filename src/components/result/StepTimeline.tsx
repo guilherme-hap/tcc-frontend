@@ -3,7 +3,7 @@ import type { EvaluationRecord, IEvaluationStep } from '../../types'
 import { useNow } from '../../hooks'
 import { formatDuration } from '../../utils/format'
 import { PILLAR_LABELS } from '../../utils/labels'
-import { groupByStage, noticeListsStepErrors, stepDuration } from '../../utils/steps'
+import { groupByStage, isStepWaiting, noticeListsStepErrors, stepDuration } from '../../utils/steps'
 import { PILLAR_BG } from '../../utils/tones'
 import { Icon } from '../ui/Icon'
 import { CARD, FOCUS_RING, OVERLINE } from '../ui/classes'
@@ -17,7 +17,10 @@ interface TimeWindow {
 
 function timeWindow(evaluation: EvaluationRecord, now: number, isActive: boolean): TimeWindow | null {
   const steps = evaluation.steps ?? []
-  const starts = steps.flatMap((step) => (step.startedAt ? [Date.parse(step.startedAt)] : []))
+  const starts = steps.flatMap((step) => {
+    const first = step.queuedAt ?? step.startedAt
+    return first ? [Date.parse(first)] : []
+  })
   const ends = steps.flatMap((step) => (step.finishedAt ? [Date.parse(step.finishedAt)] : []))
   const origin = evaluation.startedAt ? Date.parse(evaluation.startedAt) : Math.min(...starts)
   if (!Number.isFinite(origin) || starts.length === 0) return null
@@ -41,6 +44,31 @@ function barStyle(step: IEvaluationStep, frame: TimeWindow, now: number) {
   return { left: `${left}%`, width: `${width}%` }
 }
 
+const WAIT_PATTERN = {
+  backgroundImage:
+    'repeating-linear-gradient(135deg, var(--color-border-hover) 0 3px, transparent 3px 6px)',
+}
+
+function waitStyle(step: IEvaluationStep, frame: TimeWindow, now: number) {
+  if (!step.queuedAt) return null
+
+  const from = Date.parse(step.queuedAt) - frame.origin
+  const until = step.startedAt
+    ? Date.parse(step.startedAt)
+    : step.finishedAt
+      ? Date.parse(step.finishedAt)
+      : isStepWaiting(step)
+        ? now
+        : frame.origin + frame.span
+  const to = until - frame.origin
+  if (to - from <= 0) return null
+
+  const left = Math.min(100, Math.max(0, (from / frame.span) * 100))
+  const width = Math.min(100 - left, Math.max(0, ((to - from) / frame.span) * 100))
+
+  return { ...WAIT_PATTERN, left: `${left}%`, width: `${width}%` }
+}
+
 interface StepRowProps {
   step: IEvaluationStep
   evaluation: EvaluationRecord
@@ -54,6 +82,8 @@ function StepRow({ step, evaluation, frame, now, tickAt, onOpenPerformance }: St
   const closedAt = evaluation.finishedAt ? Date.parse(evaluation.finishedAt) : now
   const duration = stepDuration(step, step.status === 'RUNNING' ? now : closedAt)
   const bar = frame ? barStyle(step, frame, now) : null
+  const wait = frame ? waitStyle(step, frame, now) : null
+  const waiting = isStepWaiting(step)
   const progress = step.status === 'RUNNING' ? step.progress : undefined
 
   return (
@@ -61,15 +91,16 @@ function StepRow({ step, evaluation, frame, now, tickAt, onOpenPerformance }: St
       <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
         <span aria-hidden="true" className={`size-2.5 shrink-0 rounded-xs ${PILLAR_BG[step.pillar]}`} />
         <span className="font-semibold text-ink">{PILLAR_LABELS[step.pillar]}</span>
-        <StepStatusBadge status={step.status} />
+        <StepStatusBadge status={waiting ? 'PENDING' : step.status} />
         <span className="ml-auto font-mono text-xs text-ink-secondary tabular-nums">
           {duration === null ? '—' : formatDuration(duration)}
         </span>
       </div>
       <div
         aria-hidden="true"
-        className={`relative h-2.5 rounded-xs ${step.startedAt ? 'bg-idle' : 'border border-dashed border-border-hover'}`}
+        className={`relative h-2.5 rounded-xs ${step.startedAt || step.queuedAt ? 'bg-idle' : 'border border-dashed border-border-hover'}`}
       >
+        {wait ? <span className="absolute inset-y-0 rounded-xs" style={wait} /> : null}
         {bar ? (
           <span
             className={`absolute inset-y-0 min-w-0.5 rounded-xs ${PILLAR_BG[step.pillar]} ${step.status === 'RUNNING' ? 'animate-pulse motion-reduce:animate-none' : ''}`}
@@ -81,6 +112,8 @@ function StepRow({ step, evaluation, frame, now, tickAt, onOpenPerformance }: St
         <p className={`text-sm ${step.status === 'FAILED' ? 'text-error' : 'text-warning'}`}>
           {step.error}
         </p>
+      ) : waiting && !progress ? (
+        <p className="text-sm text-ink-secondary">Aguardando o teste de carga em andamento terminar.</p>
       ) : step.status === 'INTERRUPTED' ? (
         <p className="text-sm text-warning">A avaliação terminou antes desta etapa terminar.</p>
       ) : null}
@@ -131,6 +164,7 @@ export function StepTimeline({
 
   const stages = groupByStage(steps)
   const frame = timeWindow(evaluation, now, isActive)
+  const hasWait = frame !== null && steps.some((step) => waitStyle(step, frame, now) !== null)
 
   return (
     <section className={`flex min-w-0 flex-col gap-4 border-border p-4 ${CARD} ${className}`}>
@@ -175,6 +209,13 @@ export function StepTimeline({
           <span>0 s</span>
           <span>{formatDuration(frame.span)}</span>
         </div>
+      ) : null}
+      {hasWait ? (
+        <p className="flex items-center gap-2 text-xs text-ink-secondary">
+          <span aria-hidden="true" className="inline-block h-2.5 w-6 rounded-xs bg-idle" style={WAIT_PATTERN} />
+          Espera pelo teste de carga: contrato e segurança não rodam durante um teste de carga, e cada teste de carga espera o
+          anterior.
+        </p>
       ) : null}
     </section>
   )

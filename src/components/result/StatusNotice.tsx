@@ -1,6 +1,6 @@
 import type { EvaluationRecord, IEvaluationStep } from '../../types'
 import { PILLARS_BY_TYPE, PILLAR_LABELS } from '../../utils/labels'
-import { ALL_PILLARS_FAILED_CODE, stepsWithError } from '../../utils/steps'
+import { ALL_PILLARS_FAILED_CODE, isWaitingForLoadTest, stepsWithError } from '../../utils/steps'
 import { Notice } from '../ui/Notice'
 
 interface StepErrorListProps {
@@ -30,6 +30,15 @@ export function StatusNotice({ evaluation }: StatusNoticeProps) {
 
   if (status === 'PENDING') {
     return <Notice busy title="Avaliação na fila. Esta página atualiza sozinha." />
+  }
+
+  if (status === 'RUNNING' && isWaitingForLoadTest(evaluation)) {
+    return (
+      <Notice busy title="Avaliação aguardando um teste de carga terminar. Esta página atualiza sozinha.">
+        O auditor roda um teste de carga por vez, e contrato e segurança não rodam enquanto um teste de carga está em
+        andamento, para não distorcer a medição. A avaliação continua sozinha quando ele terminar.
+      </Notice>
+    )
   }
 
   if (status === 'RUNNING') {

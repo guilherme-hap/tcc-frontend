@@ -21,9 +21,18 @@ const STATUS_ICONS: Record<EvaluationStatus, LucideIcon> = {
 
 interface StatusBadgeProps {
   status: EvaluationStatus
+  waitingForLoadTest?: boolean
 }
 
-export function StatusBadge({ status }: StatusBadgeProps) {
+export function StatusBadge({ status, waitingForLoadTest = false }: StatusBadgeProps) {
+  if (status === 'RUNNING' && waitingForLoadTest) {
+    return (
+      <Badge tone="neutral" icon={Clock}>
+        Aguardando teste de carga
+      </Badge>
+    )
+  }
+
   return (
     <Badge tone={STATUS_TONES[status]} icon={STATUS_ICONS[status]} spin={status === 'RUNNING'}>
       {STATUS_LABELS[status]}

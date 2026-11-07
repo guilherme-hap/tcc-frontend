@@ -135,6 +135,7 @@ export interface IEvaluationStep {
   pillar: PillarName
   stage: number
   status: EvaluationStepStatus
+  queuedAt?: string | null
   startedAt: string | null
   finishedAt: string | null
   error?: string
@@ -243,6 +244,7 @@ export interface EvaluationListItem {
   id: string
   evaluationType: EvaluationType
   status: EvaluationStatus
+  waitingForLoadTest: boolean
   finalScore: number | null
   openApiUrl: string
   createdAt: string

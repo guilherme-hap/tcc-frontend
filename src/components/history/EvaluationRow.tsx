@@ -21,7 +21,7 @@ export function EvaluationRow({ item }: EvaluationRowProps) {
       <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
         <span className="font-medium text-ink">{type}</span>
         <TypeStrip type={item.evaluationType} className="w-10 max-sm:hidden" />
-        <StatusBadge status={item.status} />
+        <StatusBadge status={item.status} waitingForLoadTest={item.waitingForLoadTest} />
       </span>
       <span className="justify-self-end">
         <ScoreValue score={item.finalScore} />

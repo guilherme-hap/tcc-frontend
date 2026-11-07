@@ -63,6 +63,7 @@ export interface IAutocannonRunResult {
   excluded4xx: number
   serverErrors: number
   unanswered: number
+  inFlightAtEnd: number
   errorRate: number
   latency: ILatencySummary | null
   requestsPerSecond: number

@@ -98,6 +98,9 @@ function RuleRow({ group, maxCount, catalog }: RuleRowProps) {
                     {issue.endpoint === 'global' ? 'Documento' : issue.endpoint}
                   </span>
                 </div>
+                {issue.location ? (
+                  <p className="font-mono text-xs break-all text-ink-muted">{issue.location}</p>
+                ) : null}
                 {issue.message.trim() === catalog?.description?.trim() ? null : (
                   <p className="text-ink">{issue.message}</p>
                 )}

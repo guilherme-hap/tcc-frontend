@@ -50,6 +50,7 @@ function buildCounts(result: IAutocannonResult): Counts {
     { label: 'Falhas de conexão', count: result.errors },
     { label: 'Timeouts', count: result.timeouts },
     { label: 'Sem resposta ao fim', count: result.unanswered },
+    { label: 'Em andamento ao fim', count: result.inFlightAtEnd },
   ]
 
   return {

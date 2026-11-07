@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ChevronRight, ExternalLink } from 'lucide-react'
 import { useSpectralRules } from '../../hooks'
-import type { IContractResult, ISpectralCatalogRule } from '../../types'
+import type { IContractResult, ISpectralCatalogRule, ISpectralDeclaredFormat } from '../../types'
 import { groupByRule, type RuleGroup } from '../../utils/contractRules'
 import { formatCount, formatNumber } from '../../utils/format'
 import { SEVERITY_LABELS, SEVERITY_ORDER } from '../../utils/labels'
@@ -26,6 +26,60 @@ function buildFilterOptions(groups: RuleGroup[]): SeverityFilterOption[] {
   })).filter((option) => option.count > 0)
 
   return [{ value: 'all', label: 'Todas', count: groups.length }, ...bySeverity]
+}
+
+function DeclaredFormatCauses({ format }: { format: ISpectralDeclaredFormat }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="text-ink">
+        O parâmetro declara <code className="font-mono text-xs">in: {format.in}</code>, mas não segue
+        esse formato. {format.messages.length === 1 ? 'Causa' : 'Causas'} segundo o validador:
+      </p>
+      <ul lang="en" className="flex list-disc flex-col gap-0.5 pl-4 text-ink">
+        {format.messages.map((message, index) => (
+          <li key={index}>{message}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+interface ValidatorDetailsProps {
+  details: string[]
+  declaredIn: string | undefined
+}
+
+function ValidatorDetails({ details, declaredIn }: ValidatorDetailsProps) {
+  const count = formatCount(details.length, 'mensagem', 'mensagens')
+
+  return (
+    <details className="group/details">
+      <summary
+        className={`inline-flex cursor-pointer list-none items-center gap-1 rounded-sm text-xs text-ink-secondary hover:text-ink [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
+      >
+        <Icon
+          icon={ChevronRight}
+          size={12}
+          className="transition-transform duration-150 group-open/details:rotate-90 motion-reduce:transition-none"
+        />
+        {declaredIn
+          ? `Outras ${count} do validador, sobre formatos que o parâmetro não usa`
+          : `E mais ${count} do validador neste trecho`}
+      </summary>
+      <div className="mt-1 flex flex-col gap-1 pl-4 text-xs text-ink-secondary">
+        <p>
+          {declaredIn
+            ? `O Swagger 2.0 aceita cinco formatos de parâmetro (body, header, query, path e formData). O validador testa o parâmetro contra cada um e informa por que cada um falhou. Estas mensagens são dos formatos diferentes de ${declaredIn} e não se aplicam a este parâmetro.`
+            : 'Quando o schema aceita mais de uma forma para este trecho, o validador testa cada uma e informa por que cada uma falhou. Normalmente só as mensagens da forma que você pretendia usar apontam o problema.'}
+        </p>
+        <ul lang="en" className="flex list-disc flex-col gap-0.5 pl-4">
+          {details.map((detail, index) => (
+            <li key={index}>{detail}</li>
+          ))}
+        </ul>
+      </div>
+    </details>
+  )
 }
 
 interface RuleRowProps {
@@ -101,27 +155,13 @@ function RuleRow({ group, maxCount, catalog }: RuleRowProps) {
                 {issue.location ? (
                   <p className="font-mono text-xs break-all text-ink-muted">{issue.location}</p>
                 ) : null}
-                {issue.message.trim() === catalog?.description?.trim() ? null : (
+                {issue.declaredFormat ? (
+                  <DeclaredFormatCauses format={issue.declaredFormat} />
+                ) : issue.message.trim() === catalog?.description?.trim() ? null : (
                   <p className="text-ink">{issue.message}</p>
                 )}
                 {issue.details?.length ? (
-                  <details className="group/details">
-                    <summary
-                      className={`inline-flex cursor-pointer list-none items-center gap-1 rounded-sm text-xs text-ink-secondary hover:text-ink [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
-                    >
-                      <Icon
-                        icon={ChevronRight}
-                        size={12}
-                        className="transition-transform duration-150 group-open/details:rotate-90 motion-reduce:transition-none"
-                      />
-                      E mais {formatCount(issue.details.length, 'mensagem', 'mensagens')} do validador neste trecho
-                    </summary>
-                    <ul className="mt-1 flex list-disc flex-col gap-0.5 pl-6 text-xs text-ink-secondary">
-                      {issue.details.map((detail, detailIndex) => (
-                        <li key={detailIndex}>{detail}</li>
-                      ))}
-                    </ul>
-                  </details>
+                  <ValidatorDetails details={issue.details} declaredIn={issue.declaredFormat?.in} />
                 ) : null}
               </li>
             ))}

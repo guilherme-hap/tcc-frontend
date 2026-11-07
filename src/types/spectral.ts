@@ -6,6 +6,7 @@ export interface ISpectralIssue {
   location: string
   rule: string | number
   message: string
+  details?: string[]
   severity: Severity
 }
 

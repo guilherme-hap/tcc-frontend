@@ -6,6 +6,7 @@ import { formatDateTime, formatDuration } from '../../utils/format'
 import { TYPE_TITLES, VISIBILITY_LABELS } from '../../utils/labels'
 import { HISTORY_PATH, HOME_PATH } from '../../utils/routes'
 import { finalScoreParts, securityScoreParts } from '../../utils/scoreParts'
+import { isWaitingForLoadTest, workAndWait } from '../../utils/steps'
 import { PILLAR_STROKE } from '../../utils/tones'
 import { Badge, type BadgeTone } from '../ui/Badge'
 import { StatusBadge } from '../ui/StatusBadge'
@@ -32,6 +33,8 @@ const VISIBILITY_ICONS: Record<EvaluationVisibility, LucideIcon> = {
   anonymous: Link2,
 }
 
+const MIN_VISIBLE_WAIT_MS = 1000
+
 function executionTime({ startedAt, finishedAt }: EvaluationRecord): number | null {
   return startedAt && finishedAt ? Date.parse(finishedAt) - Date.parse(startedAt) : null
 }
@@ -42,7 +45,8 @@ interface EvaluationMetaProps {
 }
 
 function EvaluationMeta({ evaluation, className }: EvaluationMetaProps) {
-  const elapsed = executionTime(evaluation)
+  const split = workAndWait(evaluation)
+  const elapsed = split ? split.workMs : executionTime(evaluation)
   const items: MetaItem[] = [{ label: 'Especificação', value: evaluation.openApiUrl, mono: true }]
 
   if (evaluation.apiBaseUrl) {
@@ -51,6 +55,9 @@ function EvaluationMeta({ evaluation, className }: EvaluationMetaProps) {
   items.push({ label: 'Criada em', value: formatDateTime(evaluation.createdAt), mono: true })
   if (elapsed !== null) {
     items.push({ label: 'Tempo de execução', value: formatDuration(elapsed), mono: true })
+  }
+  if (split && split.waitMs >= MIN_VISIBLE_WAIT_MS) {
+    items.push({ label: 'Espera pelo teste de carga', value: formatDuration(split.waitMs), mono: true })
   }
 
   return <MetaList items={items} className={className} />
@@ -102,7 +109,7 @@ export function ResultRail({
           {TYPE_TITLES[evaluationType]}
         </h1>
         <div className="flex flex-wrap gap-1.5">
-          <StatusBadge status={evaluation.status} />
+          <StatusBadge status={evaluation.status} waitingForLoadTest={isWaitingForLoadTest(evaluation)} />
           {passed === null ? null : <GateBadge passed={passed} />}
           <Badge tone={VISIBILITY_TONES[visibility]} icon={VISIBILITY_ICONS[visibility]}>
             {VISIBILITY_LABELS[visibility]}

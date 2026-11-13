@@ -8,8 +8,21 @@ export interface RuleGroup {
   issues: ISpectralIssue[]
 }
 
+const MAX_ALLOWED_VALUES = 8
+const ALLOWED_VALUES = /^(.*allowed values: )(.+?)((?:\. Did you mean "[^"]*"\?)?\.?)$/
+const LISTED_VALUE = /"(?:[^"\\]|\\.)*"|[^,\s][^,]*/g
+
 export function validatorMessage(message: string): string {
-  return message.replace(/\?\.$/, '?')
+  const text = message.replace(/\?\.$/, '?')
+  const match = ALLOWED_VALUES.exec(text)
+  if (!match) return text
+
+  const [, head, list, tail] = match
+  const values = list.match(LISTED_VALUE) ?? []
+  if (values.length <= MAX_ALLOWED_VALUES) return text
+
+  const hidden = values.length - MAX_ALLOWED_VALUES
+  return `${head}${values.slice(0, MAX_ALLOWED_VALUES).join(', ')}, … (+${hidden})${tail}`
 }
 
 export function severityRank(severity: Severity): number {
